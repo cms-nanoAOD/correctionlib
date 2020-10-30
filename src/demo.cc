@@ -19,9 +19,13 @@ rapidjson::Document readjson(std::string fn) {
 }
 
 
-int main() {
-  auto doc = readjson("corrections.json");
-  for (auto& corr : doc["corrections"].GetArray()) {
-    printf("Correction: %s\n", corr["name"].GetString());
+int main(int argc, char** argv) {
+  if ( argc == 2 ) {
+    auto doc = readjson(argv[1]);
+    for (auto& corr : doc["corrections"].GetArray()) {
+      printf("Correction: %s\n", corr["name"].GetString());
+    }
+  } else {
+    printf("Usage: %s filename.json\n", argv[0]);
   }
 }

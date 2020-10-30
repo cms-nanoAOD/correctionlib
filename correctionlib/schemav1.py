@@ -50,11 +50,9 @@ class Binning(Model):
 
 class MultiBinning(Model):
     """N-dimensional rectangular binning"""
-    nodetype: Literal["multibinnning"]
+    nodetype: Literal["multibinning"]
     edges: List[List[float]]
     "Bin edges for each input"
-    lengths: List[int]
-    "len(edges[i]) == lengths[i]"
     content: List[Content]
 
 

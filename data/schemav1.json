@@ -147,7 +147,7 @@
             "properties": {
                 "nodetype": {
                     "title": "Nodetype",
-                    "const": "multibinnning",
+                    "const": "multibinning",
                     "type": "string"
                 },
                 "edges": {
@@ -158,13 +158,6 @@
                         "items": {
                             "type": "number"
                         }
-                    }
-                },
-                "lengths": {
-                    "title": "Lengths",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
                     }
                 },
                 "content": {
@@ -194,7 +187,6 @@
             "required": [
                 "nodetype",
                 "edges",
-                "lengths",
                 "content"
             ],
             "additionalProperties": false
