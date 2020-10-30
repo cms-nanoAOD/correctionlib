@@ -36,11 +36,6 @@ Category = ForwardRef("Category")
 Content = Union[Binning, MultiBinning, Category, Value]
 
 
-class ContentNode(Model):
-    nodetype: str
-    content: List[Content]
-
-
 class Binning(Model):
     nodetype: Literal["binning"]
     edges: List[float]
@@ -50,6 +45,7 @@ class Binning(Model):
 
 class MultiBinning(Model):
     """N-dimensional rectangular binning"""
+
     nodetype: Literal["multibinning"]
     edges: List[List[float]]
     "Bin edges for each input"
