@@ -12,7 +12,7 @@ data/%.json: correctionlib/%.py
 	python $<
 
 demo: src/demo.cc include/rapidjson.pin
-	g++ --std=c++11 -Iinclude src/demo.cc -o $@
+	g++ --std=c++17 -Iinclude src/demo.cc -o $@
 
 clean:
 	rm -rf include/rapidjson*

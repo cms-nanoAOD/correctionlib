@@ -19,13 +19,14 @@ class Model(BaseModel):
 class Variable(Model):
     name: str
     type: Literal["string", "int", "real"]
+    "Implicitly 64 bit integer and double-precision floating point?"
     description: Optional[str]
 
 
 class Formula(Model):
     expression: str
     parser: Literal["TFormula", "numexpr"]
-    variables: List[int]
+    parameters: List[int]
     "Index to Correction.inputs[]"
 
 
@@ -54,7 +55,7 @@ class MultiBinning(Model):
 
 class Category(Model):
     nodetype: Literal["category"]
-    keys: List[str]
+    keys: List[Union[str,int]]
     content: List[Content]
 
 
@@ -71,7 +72,7 @@ class Correction(Model):
     version: int
     "Version"
     inputs: List[Variable]
-    output: Union[Variable, List[Variable]]
+    output: Variable
     data: Content
 
 

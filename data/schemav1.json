@@ -78,8 +78,8 @@
                         }
                     ]
                 },
-                "variables": {
-                    "title": "Variables",
+                "parameters": {
+                    "title": "Parameters",
                     "type": "array",
                     "items": {
                         "type": "integer"
@@ -89,7 +89,7 @@
             "required": [
                 "expression",
                 "parser",
-                "variables"
+                "parameters"
             ],
             "additionalProperties": false
         },
@@ -106,7 +106,14 @@
                     "title": "Keys",
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ]
                     }
                 },
                 "content": {
@@ -262,18 +269,7 @@
                     }
                 },
                 "output": {
-                    "title": "Output",
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/Variable"
-                        },
-                        {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/Variable"
-                            }
-                        }
-                    ]
+                    "$ref": "#/definitions/Variable"
                 },
                 "data": {
                     "title": "Data",
