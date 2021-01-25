@@ -27,16 +27,15 @@ class Variable(Model):
 
 
 class Formula(Model):
+    # TODO: nodetype: Literal["formula"]
     expression: str
     parser: Literal["TFormula", "numexpr"]
     parameters: List[int]
     "Index to Correction.inputs[]"
 
 
-# None = invalid phase space?
-Value = Union[Formula, float]
 # py3.7+: ForwardRef can be used instead of strings
-Content = Union["Binning", "MultiBinning", "Category", Value]
+Content = Union["Binning", "MultiBinning", "Category", Formula, float]
 
 
 class Binning(Model):
@@ -57,6 +56,7 @@ class MultiBinning(Model):
 
 class Category(Model):
     nodetype: Literal["category"]
+    # TODO: should be Union[List[str], List[int]]
     keys: List[Union[str,int]]
     content: List[Content]
 
