@@ -161,8 +161,14 @@ Binning::Binning(const rapidjson::Value& json)
 
 Content Binning::child(const std::vector<Variable> inputs, int depth) const {
   double value = inputs[depth].getDouble();
-  auto it = std::lower_bound(std::begin(edges_), std::end(edges_), value);
+  auto it = std::lower_bound(std::begin(edges_), std::end(edges_), value) - 1;
   size_t idx = std::distance(std::begin(edges_), it);
+  if ( idx < 0 ) {
+    throw std::runtime_error("Index below bounds in Binning var: " + inputs[depth].name() + " val: " + std::to_string(value));
+  }
+  else if ( idx >= edges_.size() - 1 ) {
+    throw std::runtime_error("Index above bounds in Binning var:" + inputs[depth].name() + " val: " + std::to_string(value));
+  }
   return content_.at(idx);
 }
 
@@ -197,8 +203,14 @@ Content MultiBinning::child(const std::vector<Variable> inputs, int depth) const
   size_t idx {0};
   for (size_t i=0; i < edges_.size(); ++i) {
     double value = inputs[depth + i].getDouble();
-    auto it = std::lower_bound(std::begin(edges_[i]), std::end(edges_[i]), value);
+    auto it = std::lower_bound(std::begin(edges_[i]), std::end(edges_[i]), value) - 1;
     size_t localidx = std::distance(std::begin(edges_[i]), it);
+    if ( localidx < 0 ) {
+      throw std::runtime_error("Index below bounds in MultiBinning var:" + inputs[depth + i].name() + " val: " + std::to_string(value));
+    }
+    else if ( localidx >= edges_[i].size() - 1) {
+      throw std::runtime_error("Index above bounds in MultiBinning var:" + inputs[depth + i].name() + " val: " + std::to_string(value));
+    }
     idx += localidx * dim_strides_[i];
   }
   return content_.at(idx);
@@ -226,8 +238,20 @@ Category::Category(const rapidjson::Value& json)
 
 Content Category::child(const std::vector<Variable> inputs, int depth) const {
   auto& value = inputs[depth];
-  if ( value.isString() ) { return str_map_.at(value.getString()); }
-  else if ( value.isInt() ) { return int_map_.at(value.getInt()); }
+  if ( value.isString() ) {
+    try {
+      return str_map_.at(value.getString());
+    } catch (std::out_of_range ex) {
+      throw std::runtime_error("Index not available in Category var:" + value.name() + " val: " + value.getString());
+    }
+  }
+  else if ( value.isInt() ) {
+    try {
+      return int_map_.at(value.getInt());
+    } catch (std::out_of_range ex) {
+      throw std::runtime_error("Index not available in Category var:" + value.name() + " val: " + std::to_string(value.getInt()));
+    }
+  }
   throw std::runtime_error("Invalid variable type");
 }
 
@@ -336,7 +360,9 @@ int main(int argc, char** argv) {
       printf("Correction: %s\n", corr.name().c_str());
     }
     double out = cset["scalefactors_Tight_Electron"].evaluate({1.3, 25.});
-    printf("scalefactors_Tight_Electron(1.3, 25) = %f", out);
+    printf("scalefactors_Tight_Electron(1.3, 25) = %f\n", out);
+    out = cset["DeepCSV_2016LegacySF"].evaluate({"central", 0, 1.2, 35., 0.01});
+    printf("DeepCSV_2016LegacySF('central', 0, 1.2, 35., 0.5) = %f\n", out);
   } else {
     printf("Usage: %s filename.json\n", argv[0]);
   }
