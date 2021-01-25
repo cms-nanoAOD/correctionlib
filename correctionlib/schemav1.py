@@ -2,10 +2,12 @@ from typing import (
     List,
     Optional,
     Union,
-    ForwardRef,
-    Literal,
 )
 from pydantic import BaseModel
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 
 VERSION = 1
@@ -21,6 +23,7 @@ class Variable(Model):
     type: Literal["string", "int", "real"]
     "Implicitly 64 bit integer and double-precision floating point?"
     description: Optional[str]
+    # TODO: clamping behavior for out of range?
 
 
 class Formula(Model):
@@ -30,11 +33,10 @@ class Formula(Model):
     "Index to Correction.inputs[]"
 
 
+# None = invalid phase space?
 Value = Union[Formula, float]
-Binning = ForwardRef("Binning")
-MultiBinning = ForwardRef("MultiBinning")
-Category = ForwardRef("Category")
-Content = Union[Binning, MultiBinning, Category, Value]
+# py3.7+: ForwardRef can be used instead of strings
+Content = Union["Binning", "MultiBinning", "Category", Value]
 
 
 class Binning(Model):
