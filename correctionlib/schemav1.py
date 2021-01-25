@@ -2,9 +2,12 @@ from typing import (
     List,
     Optional,
     Union,
-    Literal,
 )
 from pydantic import BaseModel
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 
 VERSION = 1
