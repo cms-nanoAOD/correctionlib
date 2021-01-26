@@ -34,7 +34,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
         python-version: [3.6]
-        root-version: [6.18]
+        root-version: [6.18.04]
 
     steps:
     - name: Checkout code
@@ -51,16 +51,17 @@ jobs:
     - name: Install build environment
       shell: bash -l {0}
       run: |
-        conda install -c conda-forge make numpy root==${{ matrix.root-version }}
+        conda install -c conda-forge make numpy root_base==${{ matrix.root-version }}
     - name: Build package
       shell: bash -l {0}
       run: |
-        uname|grep -q Darwin && export CONDA_BUILD_SYSROOT=(xcrun --show-sdk-path)
+        uname|grep -q Darwin && export CONDA_BUILD_SYSROOT=$(xcrun --show-sdk-path)
         make PYTHON=python${{ matrix.python-version }} all
     - name: Run some demos
       shell: bash -l {0}
       run: |
-        uname|grep -q Darwin && export CONDA_BUILD_SYSROOT=(xcrun --show-sdk-path)
+        uname|grep -q Darwin && export CONDA_BUILD_SYSROOT=$(xcrun --show-sdk-path)
+        uname|grep -q Darwin && export DYLD_LIBRARY_PATH=$(root-config --libdir)
         env
         ./demo data/examples.json
         python demo.py
