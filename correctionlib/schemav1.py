@@ -4,6 +4,7 @@ from typing import (
     Union,
 )
 from pydantic import BaseModel
+
 try:
     from typing import Literal
 except ImportError:
@@ -27,16 +28,15 @@ class Variable(Model):
 
 
 class Formula(Model):
+    # TODO: nodetype: Literal["formula"]
     expression: str
     parser: Literal["TFormula", "numexpr"]
     parameters: List[int]
     "Index to Correction.inputs[]"
 
 
-# None = invalid phase space?
-Value = Union[Formula, float]
 # py3.7+: ForwardRef can be used instead of strings
-Content = Union["Binning", "MultiBinning", "Category", Value]
+Content = Union["Binning", "MultiBinning", "Category", Formula, float]
 
 
 class Binning(Model):
@@ -51,13 +51,18 @@ class MultiBinning(Model):
 
     nodetype: Literal["multibinning"]
     edges: List[List[float]]
-    "Bin edges for each input"
+    """Bin edges for each input
+
+    C-ordered array, e.g. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
+    to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0]), etc.
+    """
     content: List[Content]
 
 
 class Category(Model):
     nodetype: Literal["category"]
-    keys: List[Union[str,int]]
+    # TODO: should be Union[List[str], List[int]]
+    keys: List[Union[str, int]]
     content: List[Content]
 
 
