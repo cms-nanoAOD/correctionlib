@@ -12,23 +12,20 @@ Variable::Variable(const rapidjson::Value& json) :
   else { throw std::runtime_error("Unrecognized variable type"); } 
 }
 
-void Variable::set(Type t) {
+void Variable::validate(Type t) const {
   if ( std::holds_alternative<std::string>(t) ) {
-    if ( type_ == VarType::string ) { value_ = t; }
-    else {
-      throw std::runtime_error("Input has wrong type: expected string");
+    if ( type_ != VarType::string ) {
+      throw std::runtime_error("Input " + name() + " has wrong type: expected string");
     }
   }
   else if ( std::holds_alternative<int>(t) ) {
-    if ( type_ == VarType::integer ) { value_ = t; }
-    else {
-      throw std::runtime_error("Input has wrong type: expected int");
+    if ( type_ != VarType::integer ) {
+      throw std::runtime_error("Input " + name() + " has wrong type: expected int");
     }
   }
   else if ( std::holds_alternative<double>(t) ) {
-    if ( type_ == VarType::real ) { value_ = t; }
-    else {
-      throw std::runtime_error("Input has wrong type: expected real-valued");
+    if ( type_ != VarType::real ) {
+      throw std::runtime_error("Input " + name() + " has wrong type: expected real-valued");
     }
   }
 }
@@ -45,7 +42,7 @@ Formula::Formula(const rapidjson::Value& json) :
   }
 }
 
-double Formula::evaluate(const std::vector<Variable> inputs) const {
+double Formula::evaluate(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values) const {
   // TODO
   return 0.;
 }
@@ -75,8 +72,8 @@ Binning::Binning(const rapidjson::Value& json)
   }
 }
 
-Content Binning::child(const std::vector<Variable> inputs, int depth) const {
-  double value = inputs[depth].getDouble();
+Content Binning::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
+  double value = std::get<double>(values[depth]);
   auto it = std::lower_bound(std::begin(edges_), std::end(edges_), value) - 1;
   size_t idx = std::distance(std::begin(edges_), it);
   if ( idx < 0 ) {
@@ -115,10 +112,10 @@ MultiBinning::MultiBinning(const rapidjson::Value& json)
   }
 }
 
-Content MultiBinning::child(const std::vector<Variable> inputs, int depth) const {
+Content MultiBinning::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
   size_t idx {0};
   for (size_t i=0; i < edges_.size(); ++i) {
-    double value = inputs[depth + i].getDouble();
+    double value = std::get<double>(values[depth + i]);
     auto it = std::lower_bound(std::begin(edges_[i]), std::end(edges_[i]), value) - 1;
     size_t localidx = std::distance(std::begin(edges_[i]), it);
     if ( localidx < 0 ) {
@@ -152,50 +149,61 @@ Category::Category(const rapidjson::Value& json)
   }
 }
 
-Content Category::child(const std::vector<Variable> inputs, int depth) const {
-  auto& value = inputs[depth];
-  if ( value.isString() ) {
+Content Category::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
+  if ( auto pval = std::get_if<std::string>(&values[depth]) ) {
     try {
-      return str_map_.at(value.getString());
+      return str_map_.at(*pval);
     } catch (std::out_of_range ex) {
-      throw std::runtime_error("Index not available in Category var:" + value.name() + " val: " + value.getString());
+      throw std::runtime_error("Index not available in Category var:" + inputs[depth].name() + " val: " + *pval);
     }
   }
-  else if ( value.isInt() ) {
+  else if ( auto pval = std::get_if<int>(&values[depth]) ) {
     try {
-      return int_map_.at(value.getInt());
+      return int_map_.at(*pval);
     } catch (std::out_of_range ex) {
-      throw std::runtime_error("Index not available in Category var:" + value.name() + " val: " + std::to_string(value.getInt()));
+      throw std::runtime_error("Index not available in Category var:" + inputs[depth].name() + " val: " + std::to_string(*pval));
     }
   }
   throw std::runtime_error("Invalid variable type");
 }
 
+struct node_evaluate {
+  double operator() (double node);
+  double operator() (const Binning& node);
+  double operator() (const MultiBinning& node);
+  double operator() (const Category& node);
+  double operator() (const Formula& node);
+
+  const std::vector<Variable> inputs;
+  const std::vector<Variable::Type> values;
+  const int depth;
+};
+
 double node_evaluate::operator() (double node) { return node; }
 
 double node_evaluate::operator() (const Binning& node) {
   return std::visit(
-      node_evaluate{inputs, depth + 1},
-      node.child(inputs, depth)
+      node_evaluate{inputs, values, depth + 1},
+      node.child(inputs, values, depth)
       );
 }
 
 double node_evaluate::operator() (const MultiBinning& node) {
   return std::visit(
-      node_evaluate{inputs, depth + 1},
-      node.child(inputs, depth)
+      node_evaluate{inputs, values, depth + 1},
+      node.child(inputs, values, depth)
       );
 }
 
 double node_evaluate::operator() (const Category& node) {
   return std::visit(
-      node_evaluate{inputs, depth + 1},
-      node.child(inputs, depth)
+      node_evaluate{inputs, values, depth + 1},
+      node.child(inputs, values, depth)
       );
 }
 
 double node_evaluate::operator() (const Formula& node) {
-  return node.evaluate(inputs);
+  return node.evaluate(inputs, values);
 }
 
 Correction::Correction(const rapidjson::Value& json) :
@@ -210,15 +218,14 @@ Correction::Correction(const rapidjson::Value& json) :
   }
 }
 
-double Correction::evaluate(const std::vector<Variable::Type> inputs) {
-  if ( inputs.size() != inputs_.size() ) {
+double Correction::evaluate(const std::vector<Variable::Type>& values) const {
+  if ( values.size() != inputs_.size() ) {
     throw std::runtime_error("Insufficient inputs");
   }
-  // FIXME: thread safety
-  for (size_t i=0; i < inputs.size(); ++i) {
-    inputs_[i].set(inputs[i]);
+  for (size_t i=0; i < inputs_.size(); ++i) {
+    inputs_[i].validate(values[i]);
   }
-  return std::visit(node_evaluate{inputs_, 0}, data_);
+  return std::visit(node_evaluate{inputs_, values, 0}, data_);
 }
 
 CorrectionSet::CorrectionSet(const std::string& fn) {

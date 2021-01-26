@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=--std=c++17 -Wall -Irapidjson/include -Ipybind11/include $(shell python3-config --includes) -Iinclude
+CFLAGS=--std=c++17 -O3 -Wall -Irapidjson/include -Ipybind11/include $(shell python3-config --includes) -Iinclude
 
 all: data/schemav1.json demo libcorrection
 
@@ -21,5 +21,6 @@ clean:
 	rm -rf data/*
 	rm -rf build/*
 	rm -f demo
+	rm -f libcorrection.*
 
 .PHONY: all clean
