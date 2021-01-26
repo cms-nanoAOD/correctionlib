@@ -44,7 +44,7 @@ be using the [boost.spirit](http://boost-spirit.com/home/) parser with some reas
 this is the approach used for CMSSW's [expression parser](https://github.com/cms-sw/cmssw/blob/master/CommonTools/Utils/src/Grammar.h).
 There are also various C++ formula parsers such as [ExprTk](http://www.partow.net/programming/exprtk/index.html),
 and the python bindings may be able to call into [numexpr](https://numexpr.readthedocs.io/en/latest/user_guide.html),
-though, due to the tree-like structure of the corrections, it may provde difficult to exploit vectorization
+though, due to the tree-like structure of the corrections, it may prove difficult to exploit vectorization
 at levels other than the entrypoint.
 
 # Installation
