@@ -9,13 +9,13 @@
 
 class Variable {
   public:
-    typedef std::variant<std::string, int, double> Type;
+    typedef std::variant<int, double, std::string> Type;
 
     Variable(const rapidjson::Value& json);
     std::string name() const { return name_; };
     std::string description() const { return description_; };
     std::string type() const;
-    void validate(Type t) const;
+    void validate(const Type& t) const;
 
   private:
     enum class VarType {string, integer, real};
@@ -49,7 +49,7 @@ class Formula {
 class Binning {
   public:
     Binning(const rapidjson::Value& json);
-    Content child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
+    const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
   private:
     std::vector<double> edges_;
@@ -60,7 +60,7 @@ class MultiBinning {
   public:
     MultiBinning(const rapidjson::Value& json);
     int ndimensions() const { return edges_.size(); };
-    Content child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
+    const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
   private:
     std::vector<std::vector<double>> edges_;
@@ -71,7 +71,7 @@ class MultiBinning {
 class Category {
   public:
     Category(const rapidjson::Value& json);
-    Content child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
+    const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
   private:
     std::map<int, Content> int_map_;

@@ -19,7 +19,7 @@ std::string Variable::type() const {
   return "";
 }
 
-void Variable::validate(Type t) const {
+void Variable::validate(const Type& t) const {
   if ( std::holds_alternative<std::string>(t) ) {
     if ( type_ != VarType::string ) {
       throw std::runtime_error("Input " + name() + " has wrong type: got string expected " + type());
@@ -79,7 +79,7 @@ Binning::Binning(const rapidjson::Value& json)
   }
 }
 
-Content Binning::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
+const Content& Binning::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
   double value = std::get<double>(values[depth]);
   auto it = std::lower_bound(std::begin(edges_), std::end(edges_), value) - 1;
   size_t idx = std::distance(std::begin(edges_), it);
@@ -119,7 +119,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json)
   }
 }
 
-Content MultiBinning::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
+const Content& MultiBinning::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
   size_t idx {0};
   for (size_t i=0; i < edges_.size(); ++i) {
     double value = std::get<double>(values[depth + i]);
@@ -156,7 +156,7 @@ Category::Category(const rapidjson::Value& json)
   }
 }
 
-Content Category::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
+const Content& Category::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
   if ( auto pval = std::get_if<std::string>(&values[depth]) ) {
     try {
       return str_map_.at(*pval);
@@ -181,8 +181,8 @@ struct node_evaluate {
   double operator() (const Category& node);
   double operator() (const Formula& node);
 
-  const std::vector<Variable> inputs;
-  const std::vector<Variable::Type> values;
+  const std::vector<Variable>& inputs;
+  const std::vector<Variable::Type>& values;
   const int depth;
 };
 
