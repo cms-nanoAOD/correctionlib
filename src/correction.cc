@@ -12,20 +12,27 @@ Variable::Variable(const rapidjson::Value& json) :
   else { throw std::runtime_error("Unrecognized variable type"); } 
 }
 
+std::string Variable::type() const {
+  if ( type_ == VarType::string ) { return "string"; }
+  else if ( type_ == VarType::integer ) { return "int"; }
+  else if ( type_ == VarType::real ) { return "real"; }
+  return "";
+}
+
 void Variable::validate(Type t) const {
   if ( std::holds_alternative<std::string>(t) ) {
     if ( type_ != VarType::string ) {
-      throw std::runtime_error("Input " + name() + " has wrong type: expected string");
+      throw std::runtime_error("Input " + name() + " has wrong type: got string expected " + type());
     }
   }
   else if ( std::holds_alternative<int>(t) ) {
     if ( type_ != VarType::integer ) {
-      throw std::runtime_error("Input " + name() + " has wrong type: expected int");
+      throw std::runtime_error("Input " + name() + " has wrong type: got int expected " + type());
     }
   }
   else if ( std::holds_alternative<double>(t) ) {
     if ( type_ != VarType::real ) {
-      throw std::runtime_error("Input " + name() + " has wrong type: expected real-valued");
+      throw std::runtime_error("Input " + name() + " has wrong type: got real-valued expected " + type());
     }
   }
 }

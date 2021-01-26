@@ -14,6 +14,7 @@ class Variable {
     Variable(const rapidjson::Value& json);
     std::string name() const { return name_; };
     std::string description() const { return description_; };
+    std::string type() const;
     void validate(Type t) const;
 
   private:
