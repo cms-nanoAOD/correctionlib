@@ -10,14 +10,12 @@ endif
 OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
 CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include $(PYINC) -Iinclude
 
-all: data/schemav1.json demo libcorrection
+all: build demo libcorrection
 
-data/%.json: correctionlib/%.py
-	mkdir -p data
-	python3 $<
+build:
+	mkdir -p build
 
 build/%.o: src/%.cc
-	mkdir -p build
 	$(CC) $(CFLAGS) -c $< -o $@
 
 demo: build/demo.o build/correction.o
@@ -27,9 +25,8 @@ libcorrection: build/python.o build/correction.o
 	$(CC) -fPIC -shared $(OSXFLAG) $^ -o $@$(PYEXT)
 
 clean:
-	rm -rf data/schemav*
-	rm -rf build/*
+	rm -rf build
 	rm -f demo
-	rm -f libcorrection.*
+	rm -f libcorrection*
 
 .PHONY: all clean
