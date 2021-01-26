@@ -4,6 +4,7 @@ from typing import (
     Union,
 )
 from pydantic import BaseModel
+
 try:
     from typing import Literal
 except ImportError:
@@ -61,7 +62,7 @@ class MultiBinning(Model):
 class Category(Model):
     nodetype: Literal["category"]
     # TODO: should be Union[List[str], List[int]]
-    keys: List[Union[str,int]]
+    keys: List[Union[str, int]]
     content: List[Content]
 
 

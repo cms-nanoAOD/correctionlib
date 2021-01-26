@@ -1,0 +1,54 @@
+name: PR Tests
+
+on:
+  pull_request:
+    branches:
+    - master
+
+jobs:
+  linter:
+    name: Linter
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+    - name: Lint with flake8
+      run: |
+        pip install flake8 black
+        flake8 correctionlib --count --show-source --statistics
+    - name: Check formatting with black
+      run: |
+        python -m black --check correctionlib
+
+  test:
+    name: Build (Python ${{ matrix.python-version }}, ROOT ${{ matrix.root-version }})
+    needs: linter
+    runs-on: ${{ matrix.os }}
+    strategy:
+      max-parallel: 4
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+        python-version: [2.7, 3.6, 3.8]
+        root-version: [6.12]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: Install ROOT ${{ matrix.root-version }}
+      run: |
+        source $CONDA/etc/profile.d/conda.sh
+        conda create --prefix condaenv python=${{ matrix.python-version }} -y
+        conda activate $PWD/condaenv
+        conda install -c conda-forge numpy scipy nomkl root==${{ matrix.root-version }}
+    - name: Build package
+      run: |
+        source $CONDA/etc/profile.d/conda.sh
+        conda activate $PWD/condaenv
+        make PYTHON=python${{ matrix.python-version }} all
