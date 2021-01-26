@@ -25,7 +25,7 @@ jobs:
         python -m black --check correctionlib
 
   test:
-    name: Build (Python ${{ matrix.python-version }}, ROOT ${{ matrix.root-version }})
+    name: Build (${{ matrix.os }}, python ${{ matrix.python-version }}, ROOT ${{ matrix.root-version }})
     needs: linter
     runs-on: ${{ matrix.os }}
     strategy:
@@ -34,21 +34,22 @@ jobs:
       matrix:
         os: [ubuntu-latest, macOS-latest]
         python-version: [2.7, 3.6, 3.8]
-        root-version: [6.12]
+        # CMSSW 10_2_X uses 6.12, 10_6_X uses 6.14
+        root-version: [6.16]
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v1
       with:
         submodules: recursive
-    - name: Install ROOT ${{ matrix.root-version }}
+    - name: Setup miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        auto-update-conda: true
+        python-version: ${{ matrix.python-version }}
+    - name: Install build environment
       run: |
-        source $CONDA/etc/profile.d/conda.sh
-        conda create --prefix condaenv python=${{ matrix.python-version }} -y
-        conda activate $PWD/condaenv
-        conda install -c conda-forge numpy scipy nomkl root==${{ matrix.root-version }}
+        conda install -c conda-forge numpy nomkl root==${{ matrix.root-version }}
     - name: Build package
       run: |
-        source $CONDA/etc/profile.d/conda.sh
-        conda activate $PWD/condaenv
         make PYTHON=python${{ matrix.python-version }} all
