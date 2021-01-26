@@ -55,7 +55,7 @@ in OS X and Linux, and python bindings can be compiled against both python2 and 
 well as from within a CMSSW environment. The python bindings should be distributable as a
 pip-installable package, but we haven't decided exactly how that will look.
 
-To build in an environment with ROOT:
+To build in most environments:
 ```bash
 git clone --recursive git@github.com:nsmith-/correctionlib.git
 cd correctionlib
@@ -71,7 +71,7 @@ To compile with python2 support, use `make PYTHON=python2 all` (don't forget to 
 The pydantic schema tools only support python3, however the evaluator can still be used with JSON files
 that conform to the schema.
 
-# Building new corrections
+# Creating new corrections
 
 The `correctionlib` python package (as opposed to the `libcorrection` evaluator package) provides a helpful
 framework for defining correction objects. Nodes can be type-checked as they are constructed using the
