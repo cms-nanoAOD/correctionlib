@@ -33,7 +33,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-latest, macOS-latest]
-        python-version: [2.7, 3.6]
+        python-version: [3.6]
         # CMSSW 10_2_X uses 6.12, 10_6_X uses 6.14
         root-version: [6.16]
 
