@@ -5,13 +5,20 @@ The purpose of this library is to provide a well-structured JSON data format for
 wide variety of ad-hoc correction factors encountered in a typical HEP analysis and
 a companion evaluation tool suitable for use in C++ and python programs.
 Here we restrict our definition of correction factors to a class of functions with
-scalar inputs that produce a scalar output. In python typing syntax, this would be:
+scalar inputs that produce a scalar output.
+
+In python, the function signature is:
 
 ```python
 from typing import Union
 
 def f(*args: Union[str,int,float]) -> float:
     return ...
+```
+
+In C++, the evaluator implements this currently as:
+```cpp
+double Correction::evaluate(const std::vector<std::variant<int, double, std::string>>& values) const;
 ```
 
 Eventually, the supported function classes may include:
