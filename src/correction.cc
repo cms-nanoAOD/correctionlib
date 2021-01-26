@@ -41,7 +41,10 @@ Formula::Formula(const rapidjson::Value& json) :
   expression_(json["expression"].GetString())
 {
   if (json["parser"] == "TFormula") { type_ = ParserType::TFormula; }
-  else if (json["parser"] == "numexpr") { type_ = ParserType::numexpr; }
+  else if (json["parser"] == "numexpr") {
+    type_ = ParserType::numexpr;
+    throw std::runtime_error("numexpr formula parser is not yet supported");
+  }
   else { throw std::runtime_error("Unrecognized formula parser type"); } 
 
   for (const auto& item : json["parameters"].GetArray()) {
@@ -50,8 +53,17 @@ Formula::Formula(const rapidjson::Value& json) :
 }
 
 double Formula::evaluate(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values) const {
-  // TODO
-  return 0.;
+  if ( ! evaluator_ ) {
+    // TODO: thread-safety: should we acquire a lock when building?
+    evaluator_ = std::make_unique<TFormula>("formula", expression_.c_str(), false);
+    if ( evaluator_->Compile() != 0 ) {
+      throw std::runtime_error("Failed to compile expression " + expression_ + " into TFormula");
+    }
+  }
+  std::vector<double> params;
+  for ( auto idx : parameterIdx_ ) { params.push_back(std::get<double>(values[idx])); }
+  // do we need a lock when evaluating?
+  return evaluator_->EvalPar(&params[0]);
 }
 
 Content resolve_content(const rapidjson::Value& json) {

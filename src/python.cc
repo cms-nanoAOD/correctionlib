@@ -30,7 +30,7 @@ PYBIND11_MODULE(libcorrection, m) {
 
     py::class_<CorrectionSet>(m, "CorrectionSet")
         .def(py::init<const std::string &>())
-        .def("__getitem__", &CorrectionSet::operator[])
+        .def("__getitem__", &CorrectionSet::operator[], py::return_value_policy::reference_internal)
         .def("__len__", &CorrectionSet::size)
         .def("__iter__", [](const CorrectionSet &v) {
           // FIXME: this is not a mapping

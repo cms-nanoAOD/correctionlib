@@ -7,3 +7,5 @@ for corr in cset:
 sf = cset["DeepCSV_2016LegacySF"]
 out = sf.evaluate("central", 0, 1.2, 35., 0.01)
 print(out)
+out = sf.evaluate("central", 0, 1.2, 35., 0.3)
+print(out)

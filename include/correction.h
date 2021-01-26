@@ -6,6 +6,7 @@
 #include <variant>
 #include <map>
 #include <rapidjson/document.h>
+#include <TFormula.h>
 
 class Variable {
   public:
@@ -43,7 +44,7 @@ class Formula {
     std::string expression_;
     ParserType type_;
     std::vector<int> parameterIdx_;
-    // mutable std::unique_ptr<TFormula>;
+    mutable std::unique_ptr<TFormula> evaluator_;
 };
 
 class Binning {
