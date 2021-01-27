@@ -1,20 +1,33 @@
-all: data/schemav1.json demo
-.PHONY: all
+CC=g++
+PYTHON=python3
+PYEXT=$(shell $(PYTHON)-config --extension-suffix 2>/dev/null || echo ".so")
+SCRAM := $(shell command -v scram)
+ifdef SCRAM
+	PYINC=-I$(shell $(SCRAM) tool tag $(PYTHON) INCLUDE)
+else
+	PYINC=$(shell $(PYTHON)-config --includes)
+endif
+OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
+CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include $(PYINC) -I$(shell root-config --incdir) -Iinclude
+LDFLAGS=-L$(shell root-config --libdir) -lCore -lHist
 
-include/rapidjson.pin:
-	curl https://github.com/Tencent/rapidjson/archive/v1.1.0.tar.gz -L | tar xz \
-		&& cp -r rapidjson-1.1.0/include/rapidjson include/ \
-		&& rm -rf rapidjson-1.1.0
-	touch $@
+all: build demo libcorrection
 
-data/%.json: correctionlib/%.py
-	mkdir -p data
-	python $<
+build:
+	mkdir -p build
 
-demo: src/demo.cc include/rapidjson.pin
-	g++ --std=c++17 -Iinclude src/demo.cc -o $@
+build/%.o: src/%.cc
+	$(CC) $(CFLAGS) -c $< -o $@
+
+demo: build/demo.o build/correction.o
+	$(CC) $(LDFLAGS) $^ -o $@
+
+libcorrection: build/python.o build/correction.o
+	$(CC) $(LDFLAGS) -fPIC -shared $(OSXFLAG) $^ -o $@$(PYEXT)
 
 clean:
-	rm -rf include/rapidjson*
-	rm -rf data/*
+	rm -rf build
 	rm -f demo
+	rm -f libcorrection*
+
+.PHONY: all clean
