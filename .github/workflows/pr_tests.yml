@@ -32,7 +32,7 @@ jobs:
       max-parallel: 4
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.6, 3.8]
 
     steps:
@@ -50,7 +50,7 @@ jobs:
     - name: Install build environment
       shell: bash -l {0}
       run: |
-        conda install -c conda-forge make numpy $(uname|grep -q Darwin && echo "clangxx_osx-64>=7" || echo "gxx_linux-64>=8.1")
+        conda install -c conda-forge make numpy $(uname|grep -q Darwin && echo "clangxx_osx-64>=10" || echo "gxx_linux-64>=8.1")
     - name: Build package
       shell: bash -l {0}
       run: |
