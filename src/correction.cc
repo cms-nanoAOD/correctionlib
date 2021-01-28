@@ -11,7 +11,7 @@ Variable::Variable(const rapidjson::Value& json) :
   if (json["type"] == "string") { type_ = VarType::string; }
   else if (json["type"] == "int") { type_ = VarType::integer; }
   else if (json["type"] == "real") { type_ = VarType::real; }
-  else { throw std::runtime_error("Unrecognized variable type"); } 
+  else { throw std::runtime_error("Unrecognized variable type"); }
 }
 
 std::string Variable::type() const {
@@ -52,8 +52,32 @@ EXPRESSION  <- ATOM (BINARYOP ATOM)* {
                }
 UNARYOP     <- < '-' >
 BINARYOP    <- < [-+/*^] >
-UNARYF      <- < 'exp' | 'sqrt' | 'log' | 'log10' | 'TMath::Log' | 'max' >
-BINARYF     <- < 'max' >
+UNARYF      <- <
+  'log' |
+  'log10' |
+  'exp' |
+  'erf' |
+  'sqrt' |
+  'abs' |
+  'cos' |
+  'sin' |
+  'tan' |
+  'acos' |
+  'asin' |
+  'atan' |
+  'cosh' |
+  'sinh' |
+  'tanh' |
+  'acosh' |
+  'asinh' |
+  'atanh'
+  >
+BINARYF     <- <
+  'atan2' |
+  'pow' |
+  'max' |
+  'min'
+  >
 PARAMETER   <- < '[' [0-9]+ ']' >
 VARIABLE    <- < [xyzt] >
 LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? >
@@ -73,7 +97,7 @@ Formula::Formula(const rapidjson::Value& json) :
     type_ = ParserType::numexpr;
     throw std::runtime_error("numexpr formula parser is not yet supported");
   }
-  else { throw std::runtime_error("Unrecognized formula parser type"); } 
+  else { throw std::runtime_error("Unrecognized formula parser type"); }
 
   for (const auto& item : json["parameters"].GetArray()) {
     variableIdx_.push_back(item.GetInt());
@@ -158,8 +182,24 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
     if ( ast.nodes.size() != 2 ) { throw std::runtime_error("CALLU without 2 nodes?"); }
     Ast::UnaryFcn fun;
     auto name = ast.nodes[0]->token;
-    if      ( name == "exp" )  { fun = [](double x) { return std::exp(x); }; }
-    else if ( name == "sqrt" ) { fun = [](double x) { return std::sqrt(x); }; }
+    if      ( name == "log" )   { fun = [](double x) { return std::log(x); }; }
+    else if ( name == "log10" ) { fun = [](double x) { return std::log10(x); }; }
+    else if ( name == "exp" )   { fun = [](double x) { return std::exp(x); }; }
+    else if ( name == "erf" )   { fun = [](double x) { return std::erf(x); }; }
+    else if ( name == "sqrt" )  { fun = [](double x) { return std::sqrt(x); }; }
+    else if ( name == "abs" )   { fun = [](double x) { return std::abs(x); }; }
+    else if ( name == "cos" )   { fun = [](double x) { return std::cos(x); }; }
+    else if ( name == "sin" )   { fun = [](double x) { return std::sin(x); }; }
+    else if ( name == "tan" )   { fun = [](double x) { return std::tan(x); }; }
+    else if ( name == "acos" )  { fun = [](double x) { return std::acos(x); }; }
+    else if ( name == "asin" )  { fun = [](double x) { return std::asin(x); }; }
+    else if ( name == "atan" )  { fun = [](double x) { return std::atan(x); }; }
+    else if ( name == "cosh" )  { fun = [](double x) { return std::cosh(x); }; }
+    else if ( name == "sinh" )  { fun = [](double x) { return std::sinh(x); }; }
+    else if ( name == "tanh" )  { fun = [](double x) { return std::tanh(x); }; }
+    else if ( name == "acosh" ) { fun = [](double x) { return std::acosh(x); }; }
+    else if ( name == "asinh" ) { fun = [](double x) { return std::asinh(x); }; }
+    else if ( name == "atanh" ) { fun = [](double x) { return std::atanh(x); }; }
     else {
       throw std::runtime_error("unrecognized unary function: " + std::string(name));
     }
@@ -173,8 +213,10 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
     if ( ast.nodes.size() != 3 ) { throw std::runtime_error("CALLB without 3 nodes?"); }
     Ast::BinaryFcn fun;
     auto name = ast.nodes[0]->token;
-    if      ( name == "max" ) { fun = [](double x, double y) { return std::max(x, y); }; }
-    else if ( name == "min" ) { fun = [](double x, double y) { return std::min(x, y); }; }
+    if      ( name == "atan2" ) { fun = [](double x, double y) { return std::atan2(x, y); }; }
+    else if ( name == "pow" )   { fun = [](double x, double y) { return std::pow(x, y); }; }
+    else if ( name == "max" )   { fun = [](double x, double y) { return std::max(x, y); }; }
+    else if ( name == "min" )   { fun = [](double x, double y) { return std::min(x, y); }; }
     else {
       throw std::runtime_error("unrecognized binary function: " + std::string(name));
     }
@@ -250,7 +292,7 @@ Content resolve_content(const rapidjson::Value& json) {
 
 Binning::Binning(const rapidjson::Value& json)
 {
-  if (json["nodetype"] != "binning") { throw std::runtime_error("Attempted to construct Binning node but data is not that type"); } 
+  if (json["nodetype"] != "binning") { throw std::runtime_error("Attempted to construct Binning node but data is not that type"); }
   for (const auto& item : json["edges"].GetArray()) {
     edges_.push_back(item.GetDouble());
   }
@@ -277,7 +319,7 @@ const Content& Binning::child(const std::vector<Variable>& inputs, const std::ve
 
 MultiBinning::MultiBinning(const rapidjson::Value& json)
 {
-  if (json["nodetype"] != "multibinning") { throw std::runtime_error("Attempted to construct MultiBinning node but data is not that type"); } 
+  if (json["nodetype"] != "multibinning") { throw std::runtime_error("Attempted to construct MultiBinning node but data is not that type"); }
   std::vector<size_t> dim_sizes;
   for (const auto& dimension : json["edges"].GetArray()) {
     std::vector<double> dim_edges;
@@ -321,12 +363,12 @@ const Content& MultiBinning::child(const std::vector<Variable>& inputs, const st
 
 Category::Category(const rapidjson::Value& json)
 {
-  if (json["nodetype"] != "category") { throw std::runtime_error("Attempted to construct Category node but data is not that type"); } 
+  if (json["nodetype"] != "category") { throw std::runtime_error("Attempted to construct Category node but data is not that type"); }
   const auto keys = json["keys"].GetArray();
   const auto vals = json["content"].GetArray();
   auto key=std::begin(keys);
   auto val=std::begin(vals);
-  for (; key != std::end(keys) && val != std::end(vals); ++key, ++val) 
+  for (; key != std::end(keys) && val != std::end(vals); ++key, ++val)
   {
     if ( key == std::end(keys) || val == std::end(vals) ) {
       throw std::runtime_error("Inconsistency in Category: number of keys does not match number of values");
