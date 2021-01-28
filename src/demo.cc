@@ -16,6 +16,26 @@ int main(int argc, char** argv) {
     for(size_t i=0; i<n; ++i) {
       stuff += cset["DeepCSV_2016LegacySF"].evaluate({"central", 0, 1.2, 35., i / (double) n});
     }
+  }
+  else if ( argc == 3 ) {
+    rapidjson::Document json;
+    std::string doc = R"(
+    [
+        {
+            "expression": ")" + std::string(argv[1]) + R"( ",
+            "parser": "TFormula",
+            "parameters": [ 0 ]
+        },
+        {
+            "name": "a_variable",
+            "type": "real"
+        }
+    ]
+    )";
+    json.Parse(doc.c_str());
+    auto f = Formula(json.GetArray()[0]);
+    auto i = Variable(json.GetArray()[1]);
+    std::cout << f.evaluate({i}, {std::stod(argv[2])}) << '\n';
   } else {
     printf("Usage: %s filename.json\n", argv[0]);
   }

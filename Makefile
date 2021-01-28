@@ -8,7 +8,7 @@ else
 	PYINC=$(shell $(PYTHON)-config --includes)
 endif
 OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
-CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include $(PYINC) -I$(shell root-config --incdir) -Iinclude
+CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib $(PYINC) -I$(shell root-config --incdir) -Iinclude
 LDFLAGS=-L$(shell root-config --libdir) -lCore -lHist
 
 all: build demo libcorrection

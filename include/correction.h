@@ -6,6 +6,7 @@
 #include <variant>
 #include <map>
 #include <rapidjson/document.h>
+#include "peglib.h"
 #include <TFormula.h>
 
 class Variable {
@@ -43,8 +44,12 @@ class Formula {
   private:
     std::string expression_;
     ParserType type_;
-    std::vector<int> parameterIdx_;
+    std::vector<int> variableIdx_;
     mutable std::unique_ptr<TFormula> evaluator_;
+
+    static peg::parser parser_;
+    std::shared_ptr<peg::Ast> ast_;
+    double eval_ast(const peg::Ast& ast, const std::vector<double>& variables) const;
 };
 
 class Binning {

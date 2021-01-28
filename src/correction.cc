@@ -1,5 +1,6 @@
 #include <rapidjson/filereadstream.h>
 #include <algorithm>
+#include <charconv>
 #include "correction.h"
 
 Variable::Variable(const rapidjson::Value& json) :
@@ -37,6 +38,26 @@ void Variable::validate(const Type& t) const {
   }
 }
 
+peg::parser Formula::parser_(R"(
+EXPRESSION  <- ATOM (BINARYOP ATOM)* {
+                 precedence
+                   L - +
+                   L / *
+                   R ^
+               }
+BINARYOP    <- < [-+/*^] >
+CALL        <- FUNCTION '(' EXPRESSION (',' EXPRESSION)* ')'
+FUNCTION    <- < 'exp' | 'sqrt' | 'log' | 'log10' | 'TMath::Log' | 'max' >
+ATOM        <- LITERAL / UATOM
+UATOM       <- UNARYOP? ( NAME / CALL / '(' EXPRESSION ')' )
+UNARYOP     <- < '-' >
+NAME        <- PARAMETER / VARIABLE
+PARAMETER   <- < '[' [0-9]+ ']' >
+VARIABLE    <- < [xyzt] >
+LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? >
+%whitespace <- [ \t\r\n]*
+)");
+
 Formula::Formula(const rapidjson::Value& json) :
   expression_(json["expression"].GetString())
 {
@@ -48,11 +69,23 @@ Formula::Formula(const rapidjson::Value& json) :
   else { throw std::runtime_error("Unrecognized formula parser type"); } 
 
   for (const auto& item : json["parameters"].GetArray()) {
-    parameterIdx_.push_back(item.GetInt());
+    variableIdx_.push_back(item.GetInt());
   }
+
+  parser_.enable_ast();
+  parser_.enable_packrat_parsing();
+  if ( ! parser_.parse(expression_, ast_) ) {
+    throw std::runtime_error("Failed to parse expression");
+  }
+  ast_ = parser_.optimize_ast(ast_);
 }
 
 double Formula::evaluate(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values) const {
+  std::vector<double> variables;
+  for ( auto idx : variableIdx_ ) { variables.push_back(std::get<double>(values[idx])); }
+  if ( ast_ ) {
+    return eval_ast(*ast_, variables);
+  }
   if ( ! evaluator_ ) {
     // TODO: thread-safety: should we acquire a lock when building?
     evaluator_ = std::make_unique<TFormula>("formula", expression_.c_str(), false);
@@ -60,10 +93,59 @@ double Formula::evaluate(const std::vector<Variable>& inputs, const std::vector<
       throw std::runtime_error("Failed to compile expression " + expression_ + " into TFormula");
     }
   }
-  std::vector<double> params;
-  for ( auto idx : parameterIdx_ ) { params.push_back(std::get<double>(values[idx])); }
   // do we need a lock when evaluating?
-  return evaluator_->EvalPar(&params[0]);
+  return evaluator_->EvalPar(&variables[0]);
+}
+
+double Formula::eval_ast(const peg::Ast& ast, const std::vector<double>& variables) const {
+  if (ast.is_token) {
+    if (ast.name == "LITERAL") {
+      return ast.token_to_number<double>();
+    }
+    else if (ast.name == "VARIABLE") {
+      if ( ast.token == "x" ) { return variables.at(0); }
+      else if ( ast.token == "y" ) { return variables.at(1); }
+      else if ( ast.token == "z" ) { return variables.at(2); }
+      else if ( ast.token == "t" ) { return variables.at(3); }
+    }
+    else if (ast.name == "PARAMETER") {
+      throw std::runtime_error("parameter not impl");
+    }
+  }
+  else if (ast.name == "UATOM" ) {
+    auto ope = ast.nodes[0]->token[0];
+    auto arg = eval_ast(*ast.nodes[1], variables);
+    switch (ope) {
+      case '-': return -arg;
+    }
+  }
+  else if (ast.name == "CALL" ) {
+    auto fun = ast.nodes[0]->token;
+    if ( ast.nodes.size() == 2 ) {
+      auto arg = eval_ast(*ast.nodes[1], variables);
+      if ( fun == "exp" ) { return std::exp(arg); }
+      else if ( fun == "sqrt" ) { return std::sqrt(arg); }
+    }
+    else {
+      throw std::runtime_error("could not match call to number of arguments");
+    }
+  }
+  else if (ast.name == "EXPRESSION" ) {
+    auto result = eval_ast(*ast.nodes[0], variables);
+    for (auto i = 1u; i < ast.nodes.size(); i += 2) {
+      auto num = eval_ast(*ast.nodes[i + 1], variables);
+      auto ope = ast.nodes[i]->token[0];
+      switch (ope) {
+        case '+': result += num; break;
+        case '-': result -= num; break;
+        case '*': result *= num; break;
+        case '/': result /= num; break;
+        case '^': result = std::pow(result, num); break;
+      }
+    }
+    return result;
+  }
+  throw std::runtime_error("Unrecognized AST node");
 }
 
 Content resolve_content(const rapidjson::Value& json) {
