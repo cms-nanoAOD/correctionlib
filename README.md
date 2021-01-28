@@ -58,10 +58,7 @@ in OS X and Linux, and python bindings can be compiled against both python2 and 
 well as from within a CMSSW environment. The python bindings should be distributable as a
 pip-installable package, but we haven't decided exactly how that will look.
 
-Current requirements:
-  * GCC 8.1+ or Clang7+ (CMSSW_10_6_X has a new enough clang)
-
-To build in most environments:
+To build in most environments (tested in CMSSW 10_2 and 10_6):
 ```bash
 git clone --recursive git@github.com:nsmith-/correctionlib.git
 cd correctionlib
