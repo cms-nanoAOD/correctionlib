@@ -3,6 +3,7 @@
 
 int main(int argc, char** argv) {
   if ( argc == 2 ) {
+    Formula::eager_compilation = false;
     auto cset = CorrectionSet(std::string(argv[1]));
     for (auto& corr : cset) {
       printf("Correction: %s\n", corr.name().c_str());
