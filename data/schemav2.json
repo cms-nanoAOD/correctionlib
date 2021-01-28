@@ -1,0 +1,322 @@
+{
+    "title": "CorrectionSet",
+    "type": "object",
+    "properties": {
+        "schema_version": {
+            "title": "Schema Version",
+            "const": 2,
+            "type": "integer"
+        },
+        "corrections": {
+            "title": "Corrections",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Correction"
+            }
+        }
+    },
+    "required": [
+        "schema_version",
+        "corrections"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "Variable": {
+            "title": "Variable",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "title": "Type",
+                    "anyOf": [
+                        {
+                            "const": "string",
+                            "type": "string"
+                        },
+                        {
+                            "const": "int",
+                            "type": "string"
+                        },
+                        {
+                            "const": "real",
+                            "type": "string"
+                        }
+                    ]
+                },
+                "description": {
+                    "title": "Description",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "additionalProperties": false
+        },
+        "Formula": {
+            "title": "Formula",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "const": "formula",
+                    "type": "string"
+                },
+                "expression": {
+                    "title": "Expression",
+                    "type": "string"
+                },
+                "parser": {
+                    "title": "Parser",
+                    "const": "TFormula_v1",
+                    "type": "string"
+                },
+                "variables": {
+                    "title": "Variables",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "parameters": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                }
+            },
+            "required": [
+                "nodetype",
+                "expression",
+                "parser",
+                "variables",
+                "parameters"
+            ],
+            "additionalProperties": false
+        },
+        "Category": {
+            "title": "Category",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "const": "category",
+                    "type": "string"
+                },
+                "content": {
+                    "title": "Content",
+                    "anyOf": [
+                        {
+                            "type": "object",
+                            "additionalProperties": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/definitions/Binning"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/MultiBinning"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Category"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Formula"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "additionalProperties": {
+                                "anyOf": [
+                                    {
+                                        "$ref": "#/definitions/Binning"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/MultiBinning"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Category"
+                                    },
+                                    {
+                                        "$ref": "#/definitions/Formula"
+                                    },
+                                    {
+                                        "type": "number"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "nodetype",
+                "content"
+            ],
+            "additionalProperties": false
+        },
+        "MultiBinning": {
+            "title": "MultiBinning",
+            "description": "N-dimensional rectangular binning",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "const": "multibinning",
+                    "type": "string"
+                },
+                "edges": {
+                    "title": "Edges",
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "content": {
+                    "title": "Content",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/Binning"
+                            },
+                            {
+                                "$ref": "#/definitions/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/definitions/Category"
+                            },
+                            {
+                                "$ref": "#/definitions/Formula"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "nodetype",
+                "edges",
+                "content"
+            ],
+            "additionalProperties": false
+        },
+        "Binning": {
+            "title": "Binning",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "const": "binning",
+                    "type": "string"
+                },
+                "edges": {
+                    "title": "Edges",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "content": {
+                    "title": "Content",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/Binning"
+                            },
+                            {
+                                "$ref": "#/definitions/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/definitions/Category"
+                            },
+                            {
+                                "$ref": "#/definitions/Formula"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "nodetype",
+                "edges",
+                "content"
+            ],
+            "additionalProperties": false
+        },
+        "Correction": {
+            "title": "Correction",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "description": {
+                    "title": "Description",
+                    "type": "string"
+                },
+                "version": {
+                    "title": "Version",
+                    "type": "integer"
+                },
+                "inputs": {
+                    "title": "Inputs",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                },
+                "output": {
+                    "$ref": "#/definitions/Variable"
+                },
+                "data": {
+                    "title": "Data",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "name",
+                "version",
+                "inputs",
+                "output",
+                "data"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

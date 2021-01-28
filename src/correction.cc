@@ -503,6 +503,9 @@ CorrectionSet::CorrectionSet(const std::string& fn) {
   json.ParseStream(is);
   fclose(fp);
   schema_version_ = json["schema_version"].GetInt();
+  if ( schema_version_ != 1 ) {
+    throw std::runtime_error("This evaluator is designed for schema v1 corrections only. Got version: " + std::to_string(schema_version_));
+  }
   for (const auto& item : json["corrections"].GetArray()) {
     auto corr = std::make_shared<Correction>(item);
     corrections_[corr->name()] = corr;
