@@ -25,16 +25,15 @@ jobs:
         python -m black --check correctionlib
 
   test:
-    name: Build (${{ matrix.os }}, python ${{ matrix.python-version }}, ROOT ${{ matrix.root-version }})
+    name: Build (${{ matrix.os }}, python ${{ matrix.python-version }}
     needs: linter
     runs-on: ${{ matrix.os }}
     strategy:
       max-parallel: 4
       fail-fast: true
       matrix:
-        os: [ubuntu-latest]
-        python-version: [3.6]
-        root-version: [6.16]
+        os: [ubuntu-latest, macOS-latest]
+        python-version: [3.6, 3.8]
 
     steps:
     - name: Checkout code
@@ -51,7 +50,7 @@ jobs:
     - name: Install build environment
       shell: bash -l {0}
       run: |
-        conda install -c conda-forge make numpy root==${{ matrix.root-version }}
+        conda install -c conda-forge make numpy
     - name: Build package
       shell: bash -l {0}
       run: |
