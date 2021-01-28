@@ -1,6 +1,5 @@
 #include <rapidjson/filereadstream.h>
 #include <algorithm>
-#include <charconv>
 #include <cmath>
 #include "correction.h"
 
@@ -142,28 +141,28 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
     }
     else if (ast.name == "VARIABLE") {
       if ( ast.token == "x" ) {
-        if ( variableIdx_.size() < 1u ) {
+        if ( variableIdx_.size() < (size_t) 1 ) {
           throw std::runtime_error("Insufficient variables for formula");
         }
-        return {Ast::NodeType::Variable, 0u, {}};
+        return {Ast::NodeType::Variable, (size_t) 0, {}};
       }
       else if ( ast.token == "y" ) {
-        if ( variableIdx_.size() < 2u ) {
+        if ( variableIdx_.size() < (size_t) 2 ) {
           throw std::runtime_error("Insufficient variables for formula");
         }
-        return {Ast::NodeType::Variable, 1u, {}};
+        return {Ast::NodeType::Variable, (size_t) 1, {}};
       }
       else if ( ast.token == "z" ) {
-        if ( variableIdx_.size() < 3u ) {
+        if ( variableIdx_.size() < (size_t) 3 ) {
           throw std::runtime_error("Insufficient variables for formula");
         }
-        return {Ast::NodeType::Variable, 2u, {}};
+        return {Ast::NodeType::Variable, (size_t) 2, {}};
       }
       else if ( ast.token == "t" ) {
-        if ( variableIdx_.size() < 4u ) {
+        if ( variableIdx_.size() < (size_t) 4 ) {
           throw std::runtime_error("Insufficient variables for formula");
         }
-        return {Ast::NodeType::Variable, 3u, {}};
+        return {Ast::NodeType::Variable, (size_t) 3, {}};
       }
     }
     else if (ast.name == "PARAMETER") {
