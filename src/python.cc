@@ -10,22 +10,7 @@ PYBIND11_MODULE(libcorrection, m) {
     py::class_<Correction>(m, "Correction")
         .def("name", &Correction::name)
         .def("evaluate", [](Correction& c, py::args args) {
-          std::vector<Variable::Type> varargs;
-          for (auto handle : args) {
-            if ( py::isinstance<py::int_>(handle) ) {
-              varargs.push_back(py::cast<int>(handle));
-            }
-            else if ( py::isinstance<py::float_>(handle) ) {
-              varargs.push_back(py::cast<double>(handle));
-            }
-            else if ( py::isinstance<py::str>(handle) ) {
-              varargs.push_back(py::cast<std::string>(handle));
-            }
-            else {
-              throw std::runtime_error("Cannot interpret argument");
-            }
-          }
-          return c.evaluate(varargs);
+          return c.evaluate(py::cast<std::vector<Variable::Type>>(args));
         }); 
 
     py::class_<CorrectionSet>(m, "CorrectionSet")
