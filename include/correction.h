@@ -5,8 +5,9 @@
 #include <vector>
 #include <variant>
 #include <map>
+#include <mutex>
 #include <rapidjson/document.h>
-#include <TFormula.h>
+#include "peglib.h"
 
 class Variable {
   public:
@@ -35,6 +36,7 @@ typedef std::variant<double, Binning, MultiBinning, Category, Formula> Content;
 class Formula {
   public:
     enum class ParserType {TFormula, numexpr};
+    static bool eager_compilation; // true by default
 
     Formula(const rapidjson::Value& json);
     std::string expression() const { return expression_; };
@@ -43,8 +45,40 @@ class Formula {
   private:
     std::string expression_;
     ParserType type_;
-    std::vector<int> parameterIdx_;
-    mutable std::unique_ptr<TFormula> evaluator_;
+    std::vector<int> variableIdx_;
+
+    static std::map<ParserType, peg::parser> parsers_;
+    static std::mutex parsers_mutex_; // could be one per parser, but this is good enough
+    struct Ast {
+      enum class NodeType {
+        Literal,
+        Variable,
+        Parameter,
+        UnaryCall,
+        BinaryCall,
+        UAtom,
+        Expression,
+      };
+
+      typedef double (*UnaryFcn)(double);
+      typedef double (*BinaryFcn)(double, double);
+      typedef std::variant<
+        std::monostate,
+        double, // literal
+        size_t, // variable/parameter index
+        char, // unary / binary op
+        UnaryFcn,
+        BinaryFcn
+      > NodeData;
+
+      NodeType nodetype;
+      NodeData data;
+      std::vector<Ast> children;
+    };
+    mutable std::unique_ptr<Ast> ast_;
+    void build_ast() const;
+    const Ast translate_ast(const peg::Ast& ast) const;
+    double eval_ast(const Ast& ast, const std::vector<double>& variables) const;
 };
 
 class Binning {

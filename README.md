@@ -45,14 +45,10 @@ This tool will definitely not provide:
   * support for `TLorentzVector` or other object-type inputs (such tools should be written
     as a higher-level tool depending on this library as a low-level tool)
 
-Formula support is currently planned via linking to ROOT libraries and using `TFormula`,
-however if possible we would like to avoid this external dependency. One alternative could
-be using the [boost.spirit](http://boost-spirit.com/home/) parser with some reasonable grammar--
-this is the approach used for CMSSW's [expression parser](https://github.com/cms-sw/cmssw/blob/master/CommonTools/Utils/src/Grammar.h).
-There are also various C++ formula parsers such as [ExprTk](http://www.partow.net/programming/exprtk/index.html),
-and the python bindings may be able to call into [numexpr](https://numexpr.readthedocs.io/en/latest/user_guide.html),
-though, due to the tree-like structure of the corrections, it may prove difficult to exploit vectorization
-at levels other than the entrypoint.
+Formula support is implemented using the [cpp-peglib](https://github.com/yhirose/cpp-peglib)
+PEG parser and an AST evaluator. Grammars are currently available for:
+
+  * a decently sized subset of ROOT::TFormula expressions
 
 # Installation
 
@@ -62,7 +58,7 @@ in OS X and Linux, and python bindings can be compiled against both python2 and 
 well as from within a CMSSW environment. The python bindings should be distributable as a
 pip-installable package, but we haven't decided exactly how that will look.
 
-To build in most environments:
+To build in most environments (tested in CMSSW 10_2 and 10_6):
 ```bash
 git clone --recursive git@github.com:nsmith-/correctionlib.git
 cd correctionlib

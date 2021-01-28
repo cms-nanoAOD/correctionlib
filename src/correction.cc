@@ -1,5 +1,6 @@
 #include <rapidjson/filereadstream.h>
 #include <algorithm>
+#include <cmath>
 #include "correction.h"
 
 Variable::Variable(const rapidjson::Value& json) :
@@ -9,7 +10,7 @@ Variable::Variable(const rapidjson::Value& json) :
   if (json["type"] == "string") { type_ = VarType::string; }
   else if (json["type"] == "int") { type_ = VarType::integer; }
   else if (json["type"] == "real") { type_ = VarType::real; }
-  else { throw std::runtime_error("Unrecognized variable type"); } 
+  else { throw std::runtime_error("Unrecognized variable type"); }
 }
 
 std::string Variable::type() const {
@@ -37,6 +38,56 @@ void Variable::validate(const Type& t) const {
   }
 }
 
+bool Formula::eager_compilation { true };
+std::map<Formula::ParserType, peg::parser> Formula::parsers_;
+std::mutex Formula::parsers_mutex_;
+
+constexpr auto TFormula_grammar_v1 = R"(
+EXPRESSION  <- ATOM (BINARYOP ATOM)* {
+                 precedence
+                   L - +
+                   L / *
+                   R ^
+               }
+UNARYOP     <- < '-' >
+BINARYOP    <- < [-+/*^] >
+UNARYF      <- <
+  'log' |
+  'log10' |
+  'exp' |
+  'erf' |
+  'sqrt' |
+  'abs' |
+  'cos' |
+  'sin' |
+  'tan' |
+  'acos' |
+  'asin' |
+  'atan' |
+  'cosh' |
+  'sinh' |
+  'tanh' |
+  'acosh' |
+  'asinh' |
+  'atanh'
+  >
+BINARYF     <- <
+  'atan2' |
+  'pow' |
+  'max' |
+  'min'
+  >
+PARAMETER   <- < '[' [0-9]+ ']' >
+VARIABLE    <- < [xyzt] >
+LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? >
+CALLU       <- UNARYF '(' EXPRESSION ')'
+CALLB       <- BINARYF '(' EXPRESSION ',' EXPRESSION ')'
+ATOM        <- LITERAL / UATOM
+UATOM       <- UNARYOP? ( NAME / CALLU / CALLB / '(' EXPRESSION ')' )
+NAME        <- PARAMETER / VARIABLE
+%whitespace <- [ \t]*
+)";
+
 Formula::Formula(const rapidjson::Value& json) :
   expression_(json["expression"].GetString())
 {
@@ -45,25 +96,186 @@ Formula::Formula(const rapidjson::Value& json) :
     type_ = ParserType::numexpr;
     throw std::runtime_error("numexpr formula parser is not yet supported");
   }
-  else { throw std::runtime_error("Unrecognized formula parser type"); } 
+  else { throw std::runtime_error("Unrecognized formula parser type"); }
 
   for (const auto& item : json["parameters"].GetArray()) {
-    parameterIdx_.push_back(item.GetInt());
+    variableIdx_.push_back(item.GetInt());
   }
+
+  if ( eager_compilation ) build_ast();
+}
+
+void Formula::build_ast() const {
+  std::shared_ptr<peg::Ast> peg_ast;
+  {
+    const std::lock_guard<std::mutex> lock(parsers_mutex_);
+    auto& parser = parsers_[type_];
+    if ( ! parser ) {
+      if ( type_ == ParserType::TFormula ) parser.load_grammar(TFormula_grammar_v1);
+      parser.enable_ast();
+      parser.enable_packrat_parsing();
+    }
+    int pos;
+    std::string msg;
+    parser.log = [&](size_t ln, size_t col, const std::string &themsg) {
+      pos = col;
+      msg = themsg;
+    };
+    if ( ! parser.parse(expression_, peg_ast) ) {
+      throw std::runtime_error(
+        "Failed to parse Formula expression at position " + std::to_string(pos) + ":\n"
+        + expression_ + "\n"
+        + std::string(pos, ' ') + "^\n"
+        + msg
+      );
+    }
+    peg_ast = parser.optimize_ast(peg_ast);
+  }
+  ast_ = std::make_unique<Ast>(translate_ast(*peg_ast));
+}
+
+const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
+  if (ast.is_token) {
+    if (ast.name == "LITERAL") {
+      return {Ast::NodeType::Literal, ast.token_to_number<double>(), {}};
+    }
+    else if (ast.name == "VARIABLE") {
+      if ( ast.token == "x" ) {
+        if ( variableIdx_.size() < (size_t) 1 ) {
+          throw std::runtime_error("Insufficient variables for formula");
+        }
+        return {Ast::NodeType::Variable, (size_t) 0, {}};
+      }
+      else if ( ast.token == "y" ) {
+        if ( variableIdx_.size() < (size_t) 2 ) {
+          throw std::runtime_error("Insufficient variables for formula");
+        }
+        return {Ast::NodeType::Variable, (size_t) 1, {}};
+      }
+      else if ( ast.token == "z" ) {
+        if ( variableIdx_.size() < (size_t) 3 ) {
+          throw std::runtime_error("Insufficient variables for formula");
+        }
+        return {Ast::NodeType::Variable, (size_t) 2, {}};
+      }
+      else if ( ast.token == "t" ) {
+        if ( variableIdx_.size() < (size_t) 4 ) {
+          throw std::runtime_error("Insufficient variables for formula");
+        }
+        return {Ast::NodeType::Variable, (size_t) 3, {}};
+      }
+    }
+    else if (ast.name == "PARAMETER") {
+      throw std::runtime_error("parameter not implemented");
+    }
+  }
+  else if (ast.name == "UATOM" ) {
+    if ( ast.nodes.size() != 2 ) { throw std::runtime_error("UATOM without 2 nodes?"); }
+    return {
+      Ast::NodeType::UAtom,
+      ast.nodes[0]->token[0],
+      {translate_ast(*ast.nodes[1])}
+    };
+  }
+  else if (ast.name == "CALLU" ) {
+    if ( ast.nodes.size() != 2 ) { throw std::runtime_error("CALLU without 2 nodes?"); }
+    Ast::UnaryFcn fun;
+    auto name = ast.nodes[0]->token;
+    if      ( name == "log" )   { fun = [](double x) { return std::log(x); }; }
+    else if ( name == "log10" ) { fun = [](double x) { return std::log10(x); }; }
+    else if ( name == "exp" )   { fun = [](double x) { return std::exp(x); }; }
+    else if ( name == "erf" )   { fun = [](double x) { return std::erf(x); }; }
+    else if ( name == "sqrt" )  { fun = [](double x) { return std::sqrt(x); }; }
+    else if ( name == "abs" )   { fun = [](double x) { return std::abs(x); }; }
+    else if ( name == "cos" )   { fun = [](double x) { return std::cos(x); }; }
+    else if ( name == "sin" )   { fun = [](double x) { return std::sin(x); }; }
+    else if ( name == "tan" )   { fun = [](double x) { return std::tan(x); }; }
+    else if ( name == "acos" )  { fun = [](double x) { return std::acos(x); }; }
+    else if ( name == "asin" )  { fun = [](double x) { return std::asin(x); }; }
+    else if ( name == "atan" )  { fun = [](double x) { return std::atan(x); }; }
+    else if ( name == "cosh" )  { fun = [](double x) { return std::cosh(x); }; }
+    else if ( name == "sinh" )  { fun = [](double x) { return std::sinh(x); }; }
+    else if ( name == "tanh" )  { fun = [](double x) { return std::tanh(x); }; }
+    else if ( name == "acosh" ) { fun = [](double x) { return std::acosh(x); }; }
+    else if ( name == "asinh" ) { fun = [](double x) { return std::asinh(x); }; }
+    else if ( name == "atanh" ) { fun = [](double x) { return std::atanh(x); }; }
+    else {
+      throw std::runtime_error("unrecognized unary function: " + std::string(name));
+    }
+    return {
+      Ast::NodeType::UnaryCall,
+      fun,
+      {translate_ast(*ast.nodes[1])}
+    };
+  }
+  else if (ast.name == "CALLB" ) {
+    if ( ast.nodes.size() != 3 ) { throw std::runtime_error("CALLB without 3 nodes?"); }
+    Ast::BinaryFcn fun;
+    auto name = ast.nodes[0]->token;
+    if      ( name == "atan2" ) { fun = [](double x, double y) { return std::atan2(x, y); }; }
+    else if ( name == "pow" )   { fun = [](double x, double y) { return std::pow(x, y); }; }
+    else if ( name == "max" )   { fun = [](double x, double y) { return std::max(x, y); }; }
+    else if ( name == "min" )   { fun = [](double x, double y) { return std::min(x, y); }; }
+    else {
+      throw std::runtime_error("unrecognized binary function: " + std::string(name));
+    }
+    return {
+      Ast::NodeType::BinaryCall,
+      fun,
+      {translate_ast(*ast.nodes[1]), translate_ast(*ast.nodes[2])}
+    };
+  }
+  else if (ast.name == "EXPRESSION" ) {
+    if ( ast.nodes.size() != 3 ) { throw std::runtime_error("EXPRESSION without 3 nodes?"); }
+    return {
+      Ast::NodeType::Expression,
+      ast.nodes[1]->token[0],
+      {translate_ast(*ast.nodes[0]), translate_ast(*ast.nodes[2])}
+    };
+  }
+  throw std::runtime_error("Unrecognized AST node");
 }
 
 double Formula::evaluate(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values) const {
-  if ( ! evaluator_ ) {
-    // TODO: thread-safety: should we acquire a lock when building?
-    evaluator_ = std::make_unique<TFormula>("formula", expression_.c_str(), false);
-    if ( evaluator_->Compile() != 0 ) {
-      throw std::runtime_error("Failed to compile expression " + expression_ + " into TFormula");
-    }
+  std::vector<double> variables;
+  variables.reserve(variableIdx_.size());
+  for ( auto idx : variableIdx_ ) { variables.push_back(std::get<double>(values[idx])); }
+  if ( ! ast_ ) build_ast();
+  return eval_ast(*ast_, variables);
+}
+
+double Formula::eval_ast(const Formula::Ast& ast, const std::vector<double>& variables) const {
+  switch (ast.nodetype) {
+    case Ast::NodeType::Literal:
+      return std::get<double>(ast.data);
+    case Ast::NodeType::Variable:
+      return variables[std::get<size_t>(ast.data)];
+    case Ast::NodeType::Parameter:
+      throw std::runtime_error("parameter not implemented");
+    case Ast::NodeType::UAtom:
+      switch (std::get<char>(ast.data)) {
+        case '-': return -eval_ast(ast.children[0], variables);
+      }
+    case Ast::NodeType::UnaryCall:
+      return std::get<Ast::UnaryFcn>(ast.data)(
+          eval_ast(ast.children[0], variables)
+          );
+    case Ast::NodeType::BinaryCall:
+      return std::get<Ast::BinaryFcn>(ast.data)(
+          eval_ast(ast.children[0], variables), eval_ast(ast.children[1], variables)
+          );
+    case Ast::NodeType::Expression:
+      auto left = eval_ast(ast.children[0], variables);
+      auto right = eval_ast(ast.children[1], variables);
+      switch (std::get<char>(ast.data)) {
+        case '+': return left + right;
+        case '-': return left - right;
+        case '*': return left * right;
+        case '/': return left / right;
+        case '^': return std::pow(left, right);
+      }
   }
-  std::vector<double> params;
-  for ( auto idx : parameterIdx_ ) { params.push_back(std::get<double>(values[idx])); }
-  // do we need a lock when evaluating?
-  return evaluator_->EvalPar(&params[0]);
+  throw std::runtime_error("Unrecognized AST node");
 }
 
 Content resolve_content(const rapidjson::Value& json) {
@@ -79,7 +291,7 @@ Content resolve_content(const rapidjson::Value& json) {
 
 Binning::Binning(const rapidjson::Value& json)
 {
-  if (json["nodetype"] != "binning") { throw std::runtime_error("Attempted to construct Binning node but data is not that type"); } 
+  if (json["nodetype"] != "binning") { throw std::runtime_error("Attempted to construct Binning node but data is not that type"); }
   for (const auto& item : json["edges"].GetArray()) {
     edges_.push_back(item.GetDouble());
   }
@@ -106,7 +318,7 @@ const Content& Binning::child(const std::vector<Variable>& inputs, const std::ve
 
 MultiBinning::MultiBinning(const rapidjson::Value& json)
 {
-  if (json["nodetype"] != "multibinning") { throw std::runtime_error("Attempted to construct MultiBinning node but data is not that type"); } 
+  if (json["nodetype"] != "multibinning") { throw std::runtime_error("Attempted to construct MultiBinning node but data is not that type"); }
   std::vector<size_t> dim_sizes;
   for (const auto& dimension : json["edges"].GetArray()) {
     std::vector<double> dim_edges;
@@ -150,18 +362,18 @@ const Content& MultiBinning::child(const std::vector<Variable>& inputs, const st
 
 Category::Category(const rapidjson::Value& json)
 {
-  if (json["nodetype"] != "category") { throw std::runtime_error("Attempted to construct Category node but data is not that type"); } 
+  if (json["nodetype"] != "category") { throw std::runtime_error("Attempted to construct Category node but data is not that type"); }
   const auto keys = json["keys"].GetArray();
   const auto vals = json["content"].GetArray();
   auto key=std::begin(keys);
   auto val=std::begin(vals);
-  for (; key != std::end(keys) && val != std::end(vals); ++key, ++val) 
+  for (; key != std::end(keys) && val != std::end(vals); ++key, ++val)
   {
     if ( key == std::end(keys) || val == std::end(vals) ) {
       throw std::runtime_error("Inconsistency in Category: number of keys does not match number of values");
     }
-    if ( key->IsString() ) { str_map_[key->GetString()] = resolve_content(*val); }
-    else if ( key->IsInt() ) { int_map_[key->GetInt()] = resolve_content(*val); }
+    if ( key->IsString() ) { str_map_.try_emplace(key->GetString(), resolve_content(*val)); }
+    else if ( key->IsInt() ) { int_map_.try_emplace(key->GetInt(), resolve_content(*val)); }
     else {
       throw std::runtime_error("Invalid key type in Category");
     }
