@@ -11,7 +11,9 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
 
     - name: Build SDist
       run: pipx run --spec build pyproject-build --sdist
@@ -29,9 +31,9 @@ jobs:
         os: [ubuntu-18.04, windows-latest, macos-latest]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: recursive
 
     - uses: joerick/cibuildwheel@v1.8.0
       env:
@@ -59,6 +61,6 @@ jobs:
       with:
         user: __token__
         # Remember to generate this and set it in "GitHub Secrets"
-        password: ${{ secrets.pypi_password }}
+        password: ${{ secrets.pypi_token }}
         # Remove this line
         repository_url: https://test.pypi.org/legacy/
