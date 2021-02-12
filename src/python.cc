@@ -4,14 +4,23 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(libcorrection, m) {
+PYBIND11_MODULE(_core, m) {
     m.doc() = "python binding for corrections evaluator";
+    m.doc() = R"pbdoc(
+        libcorrection python binding
+        ----------------------------
+        .. currentmodule:: python_example
+        .. autosummary::
+           :toctree: _generate
+           Correction
+           CorrectionSet
+    )pbdoc";
 
     py::class_<Correction>(m, "Correction")
         .def("name", &Correction::name)
         .def("evaluate", [](Correction& c, py::args args) {
           return c.evaluate(py::cast<std::vector<Variable::Type>>(args));
-        }); 
+        });
 
     py::class_<CorrectionSet>(m, "CorrectionSet")
         .def(py::init<const std::string &>())

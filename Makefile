@@ -10,7 +10,7 @@ OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
 CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib $(PYINC) -Iinclude
 LDFLAGS=-pthread
 
-all: build demo libcorrection
+all: build demo
 
 build:
 	mkdir -p build

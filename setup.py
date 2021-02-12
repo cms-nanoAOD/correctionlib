@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+# Copyright (c) 2021, Nick Smith
+#
+# Distributed under the 3-clause BSD license, see accompanying file LICENSE
+# or https://github.com/nsmith-/correctionlib for details.
+
+from setuptools import setup  # isort:skip
+
+# Available at setup time due to pyproject.toml
+from pybind11.setup_helpers import Pybind11Extension  # isort:skip
+
+# Note:
+#   Sort input source files if you glob sources to ensure bit-for-bit
+#   reproducible builds (https://github.com/pybind/python_example/pull/53)
+
+ext_modules = [
+    Pybind11Extension(
+        "correctionlib._core",
+        ["src/python.cc", "src/correction.cc"],
+        cxx_std=17,
+        include_pybind11=False,
+        include_dirs=["rapidjson/include", "pybind11/include", "cpp-peglib", "include"],
+    ),
+]
+
+
+setup(
+    ext_modules=ext_modules,
+)
