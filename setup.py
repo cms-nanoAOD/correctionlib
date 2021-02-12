@@ -20,7 +20,7 @@ ext_modules = [
         cxx_std=17,
         include_pybind11=False,
         include_dirs=["rapidjson/include", "pybind11/include", "cpp-peglib", "include"],
-        extra_compile_args=["-O3"],
+        extra_compile_args=["-O3", "/Zc:__cplusplus"],
         # TODO: Windows build needs /Zc:__cplusplus
     ),
 ]
