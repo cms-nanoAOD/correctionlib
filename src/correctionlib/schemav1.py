@@ -1,12 +1,9 @@
-from typing import (
-    List,
-    Optional,
-    Union,
-)
+from typing import List, Optional, Union
+
 from pydantic import BaseModel
 
 try:
-    from typing import Literal
+    from typing import Literal  # type: ignore
 except ImportError:
     from typing_extensions import Literal
 
@@ -90,5 +87,9 @@ class CorrectionSet(Model):
 
 
 if __name__ == "__main__":
-    with open(f"data/schemav{VERSION}.json", "w") as fout:
+    import os
+    import sys
+
+    dirname = sys.argv[-1]
+    with open(os.path.join(dirname, f"schemav{VERSION}.json"), "w") as fout:
         fout.write(CorrectionSet.schema_json(indent=4))
