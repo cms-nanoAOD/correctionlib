@@ -3,4 +3,7 @@ graft src
 graft tests
 
 include LICENSE README.md pyproject.toml setup.py setup.cfg
+include pybind11/include
+include rapidjson/include
+include cpp-peglib/*.h
 global-exclude __pycache__ *.py[cod] .*
