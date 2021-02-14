@@ -40,6 +40,7 @@ jobs:
         CIBW_SKIP: cp27*
         CIBW_TEST_EXTRAS: test
         CIBW_TEST_COMMAND: pytest {project}/tests
+        MACOSX_DEPLOYMENT_TARGET: 10.14
 
     - name: Upload wheels
       uses: actions/upload-artifact@v2
@@ -60,7 +61,4 @@ jobs:
     - uses: pypa/gh-action-pypi-publish@v1.4.1
       with:
         user: __token__
-        # Remember to generate this and set it in "GitHub Secrets"
         password: ${{ secrets.pypi_token }}
-        # Remove this line
-        repository_url: https://test.pypi.org/legacy/
