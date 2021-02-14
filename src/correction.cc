@@ -1,11 +1,14 @@
 #include <rapidjson/filereadstream.h>
+#include <rapidjson/error/en.h>
 #include <algorithm>
 #include <cmath>
 #include "correction.h"
 
+using namespace correction;
+
 Variable::Variable(const rapidjson::Value& json) :
   name_(json["name"].GetString()),
-  description_(json.HasMember("description") ? json["description"].GetString() : "")
+  description_(json.HasMember("description") && json["description"].IsString() ? json["description"].GetString() : "")
 {
   if (json["type"] == "string") { type_ = VarType::string; }
   else if (json["type"] == "int") { type_ = VarType::integer; }
@@ -439,7 +442,7 @@ double node_evaluate::operator() (const Formula& node) {
 
 Correction::Correction(const rapidjson::Value& json) :
   name_(json["name"].GetString()),
-  description_(json.HasMember("description") ? json["description"].GetString() : ""),
+  description_(json.HasMember("description") && json["description"].IsString() ? json["description"].GetString() : ""),
   version_(json["version"].GetInt()),
   output_(json["output"]),
   data_(resolve_content(json["data"]))
@@ -450,7 +453,10 @@ Correction::Correction(const rapidjson::Value& json) :
 }
 
 double Correction::evaluate(const std::vector<Variable::Type>& values) const {
-  if ( values.size() != inputs_.size() ) {
+  if ( values.size() > inputs_.size() ) {
+    throw std::runtime_error("Too many inputs");
+  }
+  else if ( values.size() < inputs_.size() ) {
     throw std::runtime_error("Insufficient inputs");
   }
   for (size_t i=0; i < inputs_.size(); ++i) {
@@ -459,19 +465,65 @@ double Correction::evaluate(const std::vector<Variable::Type>& values) const {
   return std::visit(node_evaluate{inputs_, values, 0}, data_);
 }
 
+std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
+  rapidjson::Document json;
+  FILE* fp = fopen(fn.c_str(), "rb");
+  char readBuffer[65536];
+  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+  rapidjson::ParseResult ok = json.ParseStream(is);
+  if (!ok) {
+    throw std::runtime_error(
+        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
+        + " at offset " + std::to_string(ok.Offset())
+        );
+  }
+  fclose(fp);
+  return std::make_unique<CorrectionSet>(json);
+}
+
+std::unique_ptr<CorrectionSet> CorrectionSet::from_string(const char * data) {
+  rapidjson::Document json;
+  rapidjson::ParseResult ok = json.Parse(data);
+  if (!ok) {
+    throw std::runtime_error(
+        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
+        + " at offset " + std::to_string(ok.Offset())
+        );
+  }
+  return std::make_unique<CorrectionSet>(json);
+}
+
+
+// deprecated
 CorrectionSet::CorrectionSet(const std::string& fn) {
   rapidjson::Document json;
-
   FILE* fp = fopen(fn.c_str(), "rb");
   char readBuffer[65536];
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
   json.ParseStream(is);
   fclose(fp);
-
   schema_version_ = json["schema_version"].GetInt();
   for (const auto& item : json["corrections"].GetArray()) {
-    corrections_.emplace_back(item);
+    auto corr = std::make_shared<Correction>(item);
+    corrections_[corr->name()] = corr;
   }
+}
+
+CorrectionSet::CorrectionSet(const rapidjson::Value& json) {
+  if ( json.HasMember("schema_version") && json["schema_version"].IsInt() ) {
+    schema_version_ = json["schema_version"].GetInt();
+    if ( schema_version_ > 1 ) {
+      throw std::runtime_error("Evaluator is designed for schema v1 and is not forward-compatible");
+    }
+  }
+  else { throw std::runtime_error("Missing schema_version in CorrectionSet document"); }
+  if ( json.HasMember("corrections") && json["corrections"].IsArray() ) {
+    for (const auto& item : json["corrections"].GetArray()) {
+      auto corr = std::make_shared<Correction>(item);
+      corrections_[corr->name()] = corr;
+    }
+  }
+  else { throw std::runtime_error("Missing corrections array in CorrectionSet document"); }
 }
 
 bool CorrectionSet::validate() {

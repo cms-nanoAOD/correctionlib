@@ -9,6 +9,8 @@
 #include <rapidjson/document.h>
 #include "peglib.h"
 
+namespace correction {
+
 class Variable {
   public:
     typedef std::variant<int, double, std::string> Type;
@@ -117,6 +119,9 @@ class Correction {
   public:
     Correction(const rapidjson::Value& json);
     std::string name() const { return name_; };
+    std::string description() const { return description_; };
+    int version() const { return version_; };
+    // TODO: expose inputs and output
     double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
@@ -128,24 +133,28 @@ class Correction {
     Content data_;
 };
 
+typedef std::shared_ptr<const Correction> CorrectionPtr;
+
 class CorrectionSet {
   public:
-    CorrectionSet(const std::string& fn);
+    static std::unique_ptr<CorrectionSet> from_file(const std::string& fn);
+    static std::unique_ptr<CorrectionSet> from_string(const char * data);
+
+    CorrectionSet(const std::string& fn);  // deprecated
+    CorrectionSet(const rapidjson::Value& json);
     bool validate();
     int schema_version() const { return schema_version_; };
     auto size() const { return corrections_.size(); };
     auto begin() const { return corrections_.cbegin(); };
     auto end() const { return corrections_.cend(); };
-    const Correction& operator[](const std::string& key) const {
-      for (auto& corr : corrections_) {
-        if ( corr.name() == key ) return corr;
-      }
-      throw std::runtime_error("No such correction");
-    };
+    CorrectionPtr at(const std::string& key) const { return corrections_.at(key); };
+    CorrectionPtr operator[](const std::string& key) const { return at(key); };
 
   private:
     int schema_version_;
-    std::vector<Correction> corrections_;
+    std::map<std::string, CorrectionPtr> corrections_;
 };
+
+} // namespace correction
 
 #endif // CORRECTION_H
