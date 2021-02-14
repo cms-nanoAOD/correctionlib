@@ -1,3 +1,4 @@
+import json
 import math
 
 import pytest
@@ -102,3 +103,38 @@ def test_evaluator_v1():
     assert sf.evaluate(12.0, "blah") == 1.1
     # Do we need pytest.approx? Maybe not
     assert sf.evaluate(31.0, "blah3") == 0.25 * 31.0 + math.exp(3.1)
+
+
+def test_tformula():
+    formulas = [
+        ("23.*x", lambda x: 23.0 * x),
+        ("23.*log(max(x, 0.1))", lambda x: 23.0 * math.log(max(x, 0.1))),
+    ]
+    cset = {
+        "schema_version": 1,
+        "corrections": [
+            {
+                "name": "test",
+                "version": 1,
+                "inputs": [
+                    {"name": "index", "type": "int"},
+                    {"name": "x", "type": "real"},
+                ],
+                "output": {"name": "f", "type": "real"},
+                "data": {
+                    "nodetype": "category",
+                    "keys": list(range(len(formulas))),
+                    "content": [
+                        {"expression": expr, "parser": "TFormula", "parameters": [1]}
+                        for expr, _ in formulas
+                    ],
+                },
+            }
+        ],
+    }
+    schemav1.CorrectionSet.parse_obj(cset)
+    corr = core.CorrectionSet.from_string(json.dumps(cset))["test"]
+    test_values = [1.0, 32.0, -3.0, 1550.0]
+    for i, (_, expected) in enumerate(formulas):
+        for x in test_values:
+            assert corr.evaluate(i, x) == expected(x)

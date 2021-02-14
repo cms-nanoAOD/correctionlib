@@ -512,6 +512,9 @@ CorrectionSet::CorrectionSet(const std::string& fn) {
 CorrectionSet::CorrectionSet(const rapidjson::Value& json) {
   if ( json.HasMember("schema_version") && json["schema_version"].IsInt() ) {
     schema_version_ = json["schema_version"].GetInt();
+    if ( schema_version_ > 1 ) {
+      throw std::runtime_error("Evaluator is designed for schema v1 and is not forward-compatible");
+    }
   }
   else { throw std::runtime_error("Missing schema_version in CorrectionSet document"); }
   if ( json.HasMember("corrections") && json["corrections"].IsArray() ) {
