@@ -88,7 +88,7 @@ class Formula {
 class Binning {
   public:
     Binning(const rapidjson::Value& json, const std::vector<Variable>& inputs);
-    const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
+    const Content& child(const std::vector<Variable::Type>& values) const;
 
   private:
     std::vector<std::tuple<double, Content>> bins_;
@@ -99,7 +99,7 @@ class MultiBinning {
   public:
     MultiBinning(const rapidjson::Value& json, const std::vector<Variable>& inputs);
     int ndimensions() const { return axes_.size(); };
-    const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
+    const Content& child(const std::vector<Variable::Type>& values) const;
 
   private:
     // variableIdx, stride, edges
@@ -110,7 +110,7 @@ class MultiBinning {
 class Category {
   public:
     Category(const rapidjson::Value& json, const std::vector<Variable>& inputs);
-    const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
+    const Content& child(const std::vector<Variable::Type>& values) const;
 
   private:
     typedef std::map<int, Content> IntMap;

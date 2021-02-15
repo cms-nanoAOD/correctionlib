@@ -334,7 +334,7 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
   variableIdx_ = find_variable_index(json["input"], inputs);
 }
 
-const Content& Binning::child(const std::vector<Variable>&, const std::vector<Variable::Type>& values, const int) const {
+const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   double value = std::get<double>(values[variableIdx_]);
   auto it = std::lower_bound(std::begin(bins_), std::end(bins_), value, [](const auto& a, auto b) { return std::get<0>(a) < b; });
   if ( it == std::begin(bins_) ) {
@@ -375,7 +375,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
   }
 }
 
-const Content& MultiBinning::child(const std::vector<Variable>&, const std::vector<Variable::Type>& values, const int) const {
+const Content& MultiBinning::child(const std::vector<Variable::Type>& values) const {
   size_t idx {0};
   for (const auto& [variableIdx, stride, edges] : axes_) {
     double value = std::get<double>(values[variableIdx]);
@@ -420,7 +420,7 @@ Category::Category(const rapidjson::Value& json, const std::vector<Variable>& in
   }
 }
 
-const Content& Category::child(const std::vector<Variable>&, const std::vector<Variable::Type>& values, const int) const {
+const Content& Category::child(const std::vector<Variable::Type>& values) const {
   if ( auto pval = std::get_if<std::string>(&values[variableIdx_]) ) {
     try {
       return std::get<StrMap>(map_).at(*pval);
@@ -442,29 +442,27 @@ struct node_evaluate {
   double operator() (double node) { return node; };
   double operator() (const Binning& node) {
     return std::visit(
-        node_evaluate{inputs, values, depth + 1},
-        node.child(inputs, values, depth)
+        node_evaluate{values},
+        node.child(values)
         );
   };
   double operator() (const MultiBinning& node) {
     return std::visit(
-        node_evaluate{inputs, values, depth + 1},
-        node.child(inputs, values, depth)
+        node_evaluate{values},
+        node.child(values)
         );
   };
   double operator() (const Category& node) {
     return std::visit(
-        node_evaluate{inputs, values, depth + 1},
-        node.child(inputs, values, depth)
+        node_evaluate{values},
+        node.child(values)
         );
   };
   double operator() (const Formula& node) {
     return node.evaluate(values);
   };
 
-  const std::vector<Variable>& inputs;
   const std::vector<Variable::Type>& values;
-  const int depth;
 };
 
 Correction::Correction(const rapidjson::Value& json) :
@@ -489,7 +487,7 @@ double Correction::evaluate(const std::vector<Variable::Type>& values) const {
   for (size_t i=0; i < inputs_.size(); ++i) {
     inputs_[i].validate(values[i]);
   }
-  return std::visit(node_evaluate{inputs_, values, 0}, data_);
+  return std::visit(node_evaluate{values}, data_);
 }
 
 std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
