@@ -93,7 +93,7 @@ BINARYF     <- <
   >
 PARAMETER   <- '[' < [0-9]+ > ']'
 VARIABLE    <- < [xyzt] >
-LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? >
+LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? ('e' '-'? [0-9]+)? >
 CALLU       <- UNARYF '(' EXPRESSION ')'
 CALLB       <- BINARYF '(' EXPRESSION ',' EXPRESSION ')'
 ATOM        <- LITERAL / UATOM

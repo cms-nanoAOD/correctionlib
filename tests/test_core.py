@@ -119,6 +119,8 @@ def test_tformula():
     formulas = [
         ("23.*x", lambda x: 23.0 * x),
         ("23.*log(max(x, 0.1))", lambda x: 23.0 * math.log(max(x, 0.1))),
+        ("2.2e3 + x", lambda x: 2.2e3 + x),
+        ("-2e-3 * x", lambda x: -2e-3 * x),
     ]
     cset = {
         "schema_version": 2,
