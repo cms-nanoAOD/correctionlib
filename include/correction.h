@@ -38,7 +38,6 @@ typedef std::variant<double, Binning, MultiBinning, Category, Formula> Content;
 class Formula {
   public:
     enum class ParserType {TFormula, numexpr};
-    static bool eager_compilation; // true by default
 
     Formula(const rapidjson::Value& json);
     std::string expression() const { return expression_; };
@@ -77,8 +76,8 @@ class Formula {
       NodeData data;
       std::vector<Ast> children;
     };
-    mutable std::unique_ptr<Ast> ast_;
-    void build_ast() const;
+    std::unique_ptr<const Ast> ast_;
+    void build_ast();
     const Ast translate_ast(const peg::Ast& ast) const;
     double eval_ast(const Ast& ast, const std::vector<double>& variables) const;
 };

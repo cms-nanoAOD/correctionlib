@@ -41,7 +41,6 @@ void Variable::validate(const Type& t) const {
   }
 }
 
-bool Formula::eager_compilation { true };
 std::map<Formula::ParserType, peg::parser> Formula::parsers_;
 std::mutex Formula::parsers_mutex_;
 
@@ -105,10 +104,10 @@ Formula::Formula(const rapidjson::Value& json) :
     variableIdx_.push_back(item.GetInt());
   }
 
-  if ( eager_compilation ) build_ast();
+  build_ast();
 }
 
-void Formula::build_ast() const {
+void Formula::build_ast() {
   std::shared_ptr<peg::Ast> peg_ast;
   {
     const std::lock_guard<std::mutex> lock(parsers_mutex_);
@@ -133,8 +132,8 @@ void Formula::build_ast() const {
       );
     }
     peg_ast = parser.optimize_ast(peg_ast);
+    ast_ = std::make_unique<Ast>(translate_ast(*peg_ast));
   }
-  ast_ = std::make_unique<Ast>(translate_ast(*peg_ast));
 }
 
 const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
@@ -243,7 +242,6 @@ double Formula::evaluate(const std::vector<Variable>& inputs, const std::vector<
   std::vector<double> variables;
   variables.reserve(variableIdx_.size());
   for ( auto idx : variableIdx_ ) { variables.push_back(std::get<double>(values[idx])); }
-  if ( ! ast_ ) build_ast();
   return eval_ast(*ast_, variables);
 }
 
