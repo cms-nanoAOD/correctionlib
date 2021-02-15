@@ -1,13 +1,9 @@
-from typing import (
-    List,
-    Dict,
-    Optional,
-    Union,
-)
+from typing import Dict, List, Optional, Union
+
 from pydantic import BaseModel
 
 try:
-    from typing import Literal
+    from typing import Literal  # type: ignore
 except ImportError:
     from typing_extensions import Literal
 

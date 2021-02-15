@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-# # Converting other formats to correctionlib json
-# An attempt to convert some of the correction types known to CMS coffea `lookup_tools`.
-import uproot
+import gzip
+
 import pandas
 import requests
-import gzip
-from correctionlib.schemav2 import CorrectionSet, Correction, Binning, Category, Formula
+import uproot
+
+from correctionlib.schemav2 import Binning, Category, Correction, CorrectionSet, Formula
 
 examples = "https://raw.githubusercontent.com/CoffeaTeam/coffea/master/tests/samples"
 
@@ -203,7 +203,7 @@ def build_pts(sf):
 
 def build_etas(sf):
     bins = [parse_str(s, "eta:") for s in sf]
-    edges = sorted(set(edge for bin in bins for edge in bin))
+    edges = sorted({edge for bin in bins for edge in bin})
     content = [None] * (len(edges) - 1)
     for s, data in sf.items():
         lo, hi = parse_str(s, "eta:")
@@ -212,6 +212,8 @@ def build_etas(sf):
             if bin[0] >= lo and bin[1] <= hi:
                 content[i] = build_pts(data)
                 found = True
+        if not found:
+            raise ValueError("eta edges not in binning?")
 
     return Binning.parse_obj(
         {
