@@ -7,6 +7,14 @@ import correctionlib._core as core
 from correctionlib import schemav2 as schema
 
 
+def wrap(*corrs):
+    cset = schema.CorrectionSet(
+        schema_version=schema.VERSION,
+        corrections=list(corrs),
+    )
+    return core.CorrectionSet.from_string(cset.json())
+
+
 def test_evaluator_v1():
     with pytest.raises(RuntimeError):
         cset = core.CorrectionSet.from_string("{")
@@ -16,13 +24,6 @@ def test_evaluator_v1():
 
     with pytest.raises(RuntimeError):
         cset = core.CorrectionSet.from_string('{"schema_version": "blah"}')
-
-    def wrap(*corrs):
-        cset = schema.CorrectionSet(
-            schema_version=2,
-            corrections=list(corrs),
-        )
-        return core.CorrectionSet.from_string(cset.json())
 
     cset = wrap(
         schema.Correction(
@@ -157,3 +158,25 @@ def test_tformula():
     for i, (_, expected) in enumerate(formulas):
         for x in test_values:
             assert corr.evaluate(i, x) == expected(x)
+
+
+def test_default_category():
+    cset = wrap(
+        schema.Correction(
+            name="test",
+            version=2,
+            inputs=[schema.Variable(name="cat", type="string")],
+            output=schema.Variable(name="a scale", type="real"),
+            data=schema.Category(
+                nodetype="category",
+                content=[
+                    {"key": "blah", "value": 1.2},
+                    {"key": "def", "value": 0.0},
+                ],
+                default="def",
+            ),
+        )
+    )
+    assert cset["test"].evaluate("blah") == 1.2
+    assert cset["test"].evaluate("asdf") == 0.0
+    assert cset["test"].evaluate("def") == 0.0

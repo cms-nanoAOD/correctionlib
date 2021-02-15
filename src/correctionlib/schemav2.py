@@ -64,6 +64,7 @@ class CategoryItem(Model):
 class Category(Model):
     nodetype: Literal["category"]
     content: List[CategoryItem]
+    default: Optional[Union[str, int]]
 
 
 Binning.update_forward_refs()

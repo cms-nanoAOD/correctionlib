@@ -114,6 +114,7 @@ class Category {
   private:
     std::map<int, Content> int_map_;
     std::map<std::string, Content> str_map_;
+    const Content * default_ { nullptr };
 };
 
 class Correction {
