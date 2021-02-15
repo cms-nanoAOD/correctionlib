@@ -79,16 +79,16 @@ def from_histogram(hist: Any) -> Correction:
             if var.type != "real":
                 break
             i += 1
-        if i > 0:
+        if i > 1:
             return MultiBinning.parse_obj(
                 {
                     "nodetype": "multibinning",
-                    "edges": [edges(ax) for ax in axes[: i + 1]],
+                    "edges": [edges(ax) for ax in axes[:i]],
                     "content": [
                         value
                         if isinstance(value, Real)
-                        else build_data(value, axes[i + 1 :], variables[i + 1 :])
-                        for value in flatten_to(values, i)
+                        else build_data(value, axes[i:], variables[i:])
+                        for value in flatten_to(values, i - 1)
                     ],
                 }
             )
