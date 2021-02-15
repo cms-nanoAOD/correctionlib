@@ -36,18 +36,19 @@ int main(int argc, char** argv) {
         {
             "expression": ")" + std::string(argv[1]) + R"( ",
             "parser": "TFormula",
-            "parameters": [ 0 ]
+            "parameters": [],
+            "variables": ["avariable"]
         },
         {
-            "name": "a_variable",
+            "name": "avariable",
             "type": "real"
         }
     ]
     )";
     json.Parse(doc.c_str());
-    auto f = Formula(json.GetArray()[0]);
     auto i = Variable(json.GetArray()[1]);
-    std::cout << f.evaluate({i}, {std::stod(argv[2])}) << '\n';
+    auto f = Formula(json.GetArray()[0], {i});
+    std::cout << f.evaluate({std::stod(argv[2])}) << '\n';
   } else {
     printf("Usage:%s filename.json\n", argv[0]);
   }

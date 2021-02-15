@@ -41,11 +41,22 @@ void Variable::validate(const Type& t) const {
   }
 }
 
-bool Formula::eager_compilation { true };
+size_t find_variable_index(const rapidjson::Value& item, const std::vector<Variable>& inputs) {
+  size_t idx = 0;
+  for (const auto& var : inputs) {
+    if ( item.GetString() == var.name() ) break;
+    idx++;
+  }
+  if ( idx == inputs.size() ) {
+    throw std::runtime_error("Error: could not find variable " + std::string(item.GetString()) + " in inputs");
+  }
+  return idx;
+}
+
 std::map<Formula::ParserType, peg::parser> Formula::parsers_;
 std::mutex Formula::parsers_mutex_;
 
-constexpr auto TFormula_grammar_v1 = R"(
+constexpr auto TFormula_grammar = R"(
 EXPRESSION  <- ATOM (BINARYOP ATOM)* {
                  precedence
                    L - +
@@ -80,9 +91,9 @@ BINARYF     <- <
   'max' |
   'min'
   >
-PARAMETER   <- < '[' [0-9]+ ']' >
+PARAMETER   <- '[' < [0-9]+ > ']'
 VARIABLE    <- < [xyzt] >
-LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? >
+LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? ('e' '-'? [0-9]+)? >
 CALLU       <- UNARYF '(' EXPRESSION ')'
 CALLB       <- BINARYF '(' EXPRESSION ',' EXPRESSION ')'
 ATOM        <- LITERAL / UATOM
@@ -91,7 +102,7 @@ NAME        <- PARAMETER / VARIABLE
 %whitespace <- [ \t]*
 )";
 
-Formula::Formula(const rapidjson::Value& json) :
+Formula::Formula(const rapidjson::Value& json, const std::vector<Variable>& inputs) :
   expression_(json["expression"].GetString())
 {
   if (json["parser"] == "TFormula") { type_ = ParserType::TFormula; }
@@ -101,20 +112,27 @@ Formula::Formula(const rapidjson::Value& json) :
   }
   else { throw std::runtime_error("Unrecognized formula parser type"); }
 
-  for (const auto& item : json["parameters"].GetArray()) {
-    variableIdx_.push_back(item.GetInt());
+  for (const auto& item : json["variables"].GetArray()) {
+    variableIdx_.push_back(find_variable_index(item, inputs));
   }
 
-  if ( eager_compilation ) build_ast();
+  std::vector<double> params;
+  if ( json.HasMember("parameters") && json["parameters"].IsArray() ) {
+    for (const auto& item : json["parameters"].GetArray()) {
+      params.push_back(item.GetDouble());
+    }
+  }
+
+  build_ast(params);
 }
 
-void Formula::build_ast() const {
+void Formula::build_ast(const std::vector<double>& params) {
   std::shared_ptr<peg::Ast> peg_ast;
   {
     const std::lock_guard<std::mutex> lock(parsers_mutex_);
     auto& parser = parsers_[type_];
     if ( ! parser ) {
-      if ( type_ == ParserType::TFormula ) parser.load_grammar(TFormula_grammar_v1);
+      if ( type_ == ParserType::TFormula ) parser.load_grammar(TFormula_grammar);
       parser.enable_ast();
       parser.enable_packrat_parsing();
     }
@@ -133,11 +151,11 @@ void Formula::build_ast() const {
       );
     }
     peg_ast = parser.optimize_ast(peg_ast);
+    ast_ = std::make_unique<Ast>(translate_ast(*peg_ast, params));
   }
-  ast_ = std::make_unique<Ast>(translate_ast(*peg_ast));
 }
 
-const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
+const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector<double>& params) const {
   if (ast.is_token) {
     if (ast.name == "LITERAL") {
       return {Ast::NodeType::Literal, ast.token_to_number<double>(), {}};
@@ -169,7 +187,11 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
       }
     }
     else if (ast.name == "PARAMETER") {
-      throw std::runtime_error("parameter not implemented");
+      auto pidx = ast.token_to_number<size_t>();
+      if ( pidx >= params.size() ) {
+        throw std::runtime_error("Insufficient parameters for formula");
+      }
+      return {Ast::NodeType::Literal, params[pidx], {}};
     }
   }
   else if (ast.name == "UATOM" ) {
@@ -177,13 +199,14 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
     return {
       Ast::NodeType::UAtom,
       ast.nodes[0]->token[0],
-      {translate_ast(*ast.nodes[1])}
+      {translate_ast(*ast.nodes[1], params)}
     };
   }
   else if (ast.name == "CALLU" ) {
     if ( ast.nodes.size() != 2 ) { throw std::runtime_error("CALLU without 2 nodes?"); }
     Ast::UnaryFcn fun;
     auto name = ast.nodes[0]->token;
+    // TODO: lookup in static map
     if      ( name == "log" )   { fun = [](double x) { return std::log(x); }; }
     else if ( name == "log10" ) { fun = [](double x) { return std::log10(x); }; }
     else if ( name == "exp" )   { fun = [](double x) { return std::exp(x); }; }
@@ -208,13 +231,14 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
     return {
       Ast::NodeType::UnaryCall,
       fun,
-      {translate_ast(*ast.nodes[1])}
+      {translate_ast(*ast.nodes[1], params)}
     };
   }
   else if (ast.name == "CALLB" ) {
     if ( ast.nodes.size() != 3 ) { throw std::runtime_error("CALLB without 3 nodes?"); }
     Ast::BinaryFcn fun;
     auto name = ast.nodes[0]->token;
+    // TODO: lookup in static map
     if      ( name == "atan2" ) { fun = [](double x, double y) { return std::atan2(x, y); }; }
     else if ( name == "pow" )   { fun = [](double x, double y) { return std::pow(x, y); }; }
     else if ( name == "max" )   { fun = [](double x, double y) { return std::max(x, y); }; }
@@ -225,7 +249,7 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
     return {
       Ast::NodeType::BinaryCall,
       fun,
-      {translate_ast(*ast.nodes[1]), translate_ast(*ast.nodes[2])}
+      {translate_ast(*ast.nodes[1], params), translate_ast(*ast.nodes[2], params)}
     };
   }
   else if (ast.name == "EXPRESSION" ) {
@@ -233,17 +257,16 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast) const {
     return {
       Ast::NodeType::Expression,
       ast.nodes[1]->token[0],
-      {translate_ast(*ast.nodes[0]), translate_ast(*ast.nodes[2])}
+      {translate_ast(*ast.nodes[0], params), translate_ast(*ast.nodes[2], params)}
     };
   }
   throw std::runtime_error("Unrecognized AST node");
 }
 
-double Formula::evaluate(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values) const {
+double Formula::evaluate(const std::vector<Variable::Type>& values) const {
   std::vector<double> variables;
   variables.reserve(variableIdx_.size());
   for ( auto idx : variableIdx_ ) { variables.push_back(std::get<double>(values[idx])); }
-  if ( ! ast_ ) build_ast();
   return eval_ast(*ast_, variables);
 }
 
@@ -253,8 +276,6 @@ double Formula::eval_ast(const Formula::Ast& ast, const std::vector<double>& var
       return std::get<double>(ast.data);
     case Ast::NodeType::Variable:
       return variables[std::get<size_t>(ast.data)];
-    case Ast::NodeType::Parameter:
-      throw std::runtime_error("parameter not implemented");
     case Ast::NodeType::UAtom:
       switch (std::get<char>(ast.data)) {
         case '-': return -eval_ast(ast.children[0], variables);
@@ -281,25 +302,25 @@ double Formula::eval_ast(const Formula::Ast& ast, const std::vector<double>& var
   throw std::runtime_error("Unrecognized AST node");
 }
 
-Content resolve_content(const rapidjson::Value& json) {
+Content resolve_content(const rapidjson::Value& json, const std::vector<Variable>& inputs) {
   if ( json.IsDouble() ) { return json.GetDouble(); }
-  else if ( json.HasMember("parser") ) { return Formula(json); }
   else if ( json.HasMember("nodetype") ) {
-    if ( json["nodetype"] == "binning" ) { return Binning(json); }
-    else if ( json["nodetype"] == "multibinning" ) { return MultiBinning(json); }
-    else if ( json["nodetype"] == "category" ) { return Category(json); }
+    if ( json["nodetype"] == "binning" ) { return Binning(json, inputs); }
+    else if ( json["nodetype"] == "multibinning" ) { return MultiBinning(json, inputs); }
+    else if ( json["nodetype"] == "category" ) { return Category(json, inputs); }
+    else if ( json["nodetype"] == "formula" ) { return Formula(json, inputs); }
   }
   throw std::runtime_error("Unrecognized Content node type");
 }
 
-Binning::Binning(const rapidjson::Value& json)
+Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inputs)
 {
   if (json["nodetype"] != "binning") { throw std::runtime_error("Attempted to construct Binning node but data is not that type"); }
   for (const auto& item : json["edges"].GetArray()) {
     edges_.push_back(item.GetDouble());
   }
   for (const auto& item : json["content"].GetArray()) {
-    content_.push_back(resolve_content(item));
+    content_.push_back(resolve_content(item, inputs));
   }
   if ( edges_.size() != content_.size() + 1 ) {
     throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
@@ -319,7 +340,7 @@ const Content& Binning::child(const std::vector<Variable>& inputs, const std::ve
   return content_.at(idx);
 }
 
-MultiBinning::MultiBinning(const rapidjson::Value& json)
+MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Variable>& inputs)
 {
   if (json["nodetype"] != "multibinning") { throw std::runtime_error("Attempted to construct MultiBinning node but data is not that type"); }
   std::vector<size_t> dim_sizes;
@@ -339,7 +360,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json)
   }
   size_t total = dim_strides_[0] * dim_sizes[0];
   for (const auto& item : json["content"].GetArray()) {
-    content_.push_back(resolve_content(item));
+    content_.push_back(resolve_content(item, inputs));
   }
   if ( content_.size() != total ) {
     throw std::runtime_error("Inconsistency in MultiBinning: number of content nodes does not match binning");
@@ -363,20 +384,17 @@ const Content& MultiBinning::child(const std::vector<Variable>& inputs, const st
   return content_.at(idx);
 }
 
-Category::Category(const rapidjson::Value& json)
+Category::Category(const rapidjson::Value& json, const std::vector<Variable>& inputs)
 {
   if (json["nodetype"] != "category") { throw std::runtime_error("Attempted to construct Category node but data is not that type"); }
-  const auto keys = json["keys"].GetArray();
-  const auto vals = json["content"].GetArray();
-  auto key=std::begin(keys);
-  auto val=std::begin(vals);
-  for (; key != std::end(keys) && val != std::end(vals); ++key, ++val)
+  for (const auto& kv_pair : json["content"].GetArray())
   {
-    if ( key == std::end(keys) || val == std::end(vals) ) {
-      throw std::runtime_error("Inconsistency in Category: number of keys does not match number of values");
+    if ( kv_pair["key"].IsString() ) {
+      str_map_.try_emplace(kv_pair["key"].GetString(), resolve_content(kv_pair["value"], inputs));
     }
-    if ( key->IsString() ) { str_map_.try_emplace(key->GetString(), resolve_content(*val)); }
-    else if ( key->IsInt() ) { int_map_.try_emplace(key->GetInt(), resolve_content(*val)); }
+    else if ( kv_pair["key"].IsInt() ) {
+      int_map_.try_emplace(kv_pair["key"].GetInt(), resolve_content(kv_pair["value"], inputs));
+    }
     else {
       throw std::runtime_error("Invalid key type in Category");
     }
@@ -402,54 +420,44 @@ const Content& Category::child(const std::vector<Variable>& inputs, const std::v
 }
 
 struct node_evaluate {
-  double operator() (double node);
-  double operator() (const Binning& node);
-  double operator() (const MultiBinning& node);
-  double operator() (const Category& node);
-  double operator() (const Formula& node);
+  double operator() (double node) { return node; };
+  double operator() (const Binning& node) {
+    return std::visit(
+        node_evaluate{inputs, values, depth + 1},
+        node.child(inputs, values, depth)
+        );
+  };
+  double operator() (const MultiBinning& node) {
+    return std::visit(
+        node_evaluate{inputs, values, depth + 1},
+        node.child(inputs, values, depth)
+        );
+  };
+  double operator() (const Category& node) {
+    return std::visit(
+        node_evaluate{inputs, values, depth + 1},
+        node.child(inputs, values, depth)
+        );
+  };
+  double operator() (const Formula& node) {
+    return node.evaluate(values);
+  };
 
   const std::vector<Variable>& inputs;
   const std::vector<Variable::Type>& values;
   const int depth;
 };
 
-double node_evaluate::operator() (double node) { return node; }
-
-double node_evaluate::operator() (const Binning& node) {
-  return std::visit(
-      node_evaluate{inputs, values, depth + 1},
-      node.child(inputs, values, depth)
-      );
-}
-
-double node_evaluate::operator() (const MultiBinning& node) {
-  return std::visit(
-      node_evaluate{inputs, values, depth + 1},
-      node.child(inputs, values, depth)
-      );
-}
-
-double node_evaluate::operator() (const Category& node) {
-  return std::visit(
-      node_evaluate{inputs, values, depth + 1},
-      node.child(inputs, values, depth)
-      );
-}
-
-double node_evaluate::operator() (const Formula& node) {
-  return node.evaluate(inputs, values);
-}
-
 Correction::Correction(const rapidjson::Value& json) :
   name_(json["name"].GetString()),
   description_(json.HasMember("description") && json["description"].IsString() ? json["description"].GetString() : ""),
   version_(json["version"].GetInt()),
-  output_(json["output"]),
-  data_(resolve_content(json["data"]))
+  output_(json["output"])
 {
   for (const auto& item : json["inputs"].GetArray()) {
     inputs_.emplace_back(item);
   }
+  data_ = resolve_content(json["data"], inputs_);
 }
 
 double Correction::evaluate(const std::vector<Variable::Type>& values) const {
@@ -493,27 +501,14 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_string(const char * data) {
   return std::make_unique<CorrectionSet>(json);
 }
 
-
-// deprecated
-CorrectionSet::CorrectionSet(const std::string& fn) {
-  rapidjson::Document json;
-  FILE* fp = fopen(fn.c_str(), "rb");
-  char readBuffer[65536];
-  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  json.ParseStream(is);
-  fclose(fp);
-  schema_version_ = json["schema_version"].GetInt();
-  for (const auto& item : json["corrections"].GetArray()) {
-    auto corr = std::make_shared<Correction>(item);
-    corrections_[corr->name()] = corr;
-  }
-}
-
 CorrectionSet::CorrectionSet(const rapidjson::Value& json) {
   if ( json.HasMember("schema_version") && json["schema_version"].IsInt() ) {
     schema_version_ = json["schema_version"].GetInt();
-    if ( schema_version_ > 1 ) {
-      throw std::runtime_error("Evaluator is designed for schema v1 and is not forward-compatible");
+    if ( schema_version_ > evaluator_version ) {
+      throw std::runtime_error("Evaluator is designed for schema v" + std::to_string(evaluator_version) + " and is not forward-compatible");
+    }
+    else if ( schema_version_ < evaluator_version ) {
+      throw std::runtime_error("Evaluator is designed for schema v" + std::to_string(evaluator_version) + " and is not backward-compatible");
     }
   }
   else { throw std::runtime_error("Missing schema_version in CorrectionSet document"); }

@@ -11,6 +11,8 @@
 
 namespace correction {
 
+constexpr int evaluator_version { 2 };
+
 class Variable {
   public:
     typedef std::variant<int, double, std::string> Type;
@@ -33,16 +35,15 @@ class Formula;
 class Binning;
 class MultiBinning;
 class Category;
-typedef std::variant<double, Binning, MultiBinning, Category, Formula> Content;
+typedef std::variant<double, Formula, Binning, MultiBinning, Category> Content;
 
 class Formula {
   public:
     enum class ParserType {TFormula, numexpr};
-    static bool eager_compilation; // true by default
 
-    Formula(const rapidjson::Value& json);
+    Formula(const rapidjson::Value& json, const std::vector<Variable>& inputs);
     std::string expression() const { return expression_; };
-    double evaluate(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values) const;
+    double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
     std::string expression_;
@@ -55,7 +56,6 @@ class Formula {
       enum class NodeType {
         Literal,
         Variable,
-        Parameter,
         UnaryCall,
         BinaryCall,
         UAtom,
@@ -66,8 +66,8 @@ class Formula {
       typedef double (*BinaryFcn)(double, double);
       typedef std::variant<
         std::monostate,
-        double, // literal
-        size_t, // variable/parameter index
+        double, // literal/parameter
+        size_t, // variable index
         char, // unary / binary op
         UnaryFcn,
         BinaryFcn
@@ -76,16 +76,17 @@ class Formula {
       NodeType nodetype;
       NodeData data;
       std::vector<Ast> children;
+      // TODO: try std::unique_ptr<const Ast> child1, child2 or std::array
     };
-    mutable std::unique_ptr<Ast> ast_;
-    void build_ast() const;
-    const Ast translate_ast(const peg::Ast& ast) const;
+    std::unique_ptr<const Ast> ast_;
+    void build_ast(const std::vector<double>& params);
+    const Ast translate_ast(const peg::Ast& ast, const std::vector<double>& params) const;
     double eval_ast(const Ast& ast, const std::vector<double>& variables) const;
 };
 
 class Binning {
   public:
-    Binning(const rapidjson::Value& json);
+    Binning(const rapidjson::Value& json, const std::vector<Variable>& inputs);
     const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
   private:
@@ -95,7 +96,7 @@ class Binning {
 
 class MultiBinning {
   public:
-    MultiBinning(const rapidjson::Value& json);
+    MultiBinning(const rapidjson::Value& json, const std::vector<Variable>& inputs);
     int ndimensions() const { return edges_.size(); };
     const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
@@ -107,7 +108,7 @@ class MultiBinning {
 
 class Category {
   public:
-    Category(const rapidjson::Value& json);
+    Category(const rapidjson::Value& json, const std::vector<Variable>& inputs);
     const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
   private:
@@ -140,7 +141,6 @@ class CorrectionSet {
     static std::unique_ptr<CorrectionSet> from_file(const std::string& fn);
     static std::unique_ptr<CorrectionSet> from_string(const char * data);
 
-    CorrectionSet(const std::string& fn);  // deprecated
     CorrectionSet(const rapidjson::Value& json);
     bool validate();
     int schema_version() const { return schema_version_; };

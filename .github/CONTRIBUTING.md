@@ -43,3 +43,7 @@ From inside your environment with the docs extra installed, run:
 ```bash
 sphinx-build -M html docs docs/_build
 ```
+
+# Maintainer notes
+A nice commit summary can be generated from the main branch via:
+`git log --pretty="format: - %s" $(git describe --tags --abbrev=0)..HEAD`
