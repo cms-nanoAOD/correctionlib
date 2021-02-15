@@ -99,6 +99,48 @@
             ],
             "additionalProperties": false
         },
+        "CategoryItem": {
+            "title": "CategoryItem",
+            "type": "object",
+            "properties": {
+                "key": {
+                    "title": "Key",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ]
+                },
+                "value": {
+                    "title": "Value",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "key",
+                "value"
+            ],
+            "additionalProperties": false
+        },
         "Category": {
             "title": "Category",
             "type": "object",
@@ -110,52 +152,10 @@
                 },
                 "content": {
                     "title": "Content",
-                    "anyOf": [
-                        {
-                            "type": "object",
-                            "additionalProperties": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/Binning"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/MultiBinning"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/Category"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/Formula"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "type": "object",
-                            "additionalProperties": {
-                                "anyOf": [
-                                    {
-                                        "$ref": "#/definitions/Binning"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/MultiBinning"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/Category"
-                                    },
-                                    {
-                                        "$ref": "#/definitions/Formula"
-                                    },
-                                    {
-                                        "type": "number"
-                                    }
-                                ]
-                            }
-                        }
-                    ]
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CategoryItem"
+                    }
                 }
             },
             "required": [

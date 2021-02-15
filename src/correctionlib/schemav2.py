@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -56,14 +56,19 @@ class MultiBinning(Model):
     content: List[Content]
 
 
+class CategoryItem(Model):
+    key: Union[str, int]
+    value: Content
+
+
 class Category(Model):
     nodetype: Literal["category"]
-    content: Union[Dict[str, Content], Dict[int, Content]]
+    content: List[CategoryItem]
 
 
 Binning.update_forward_refs()
 MultiBinning.update_forward_refs()
-Category.update_forward_refs()
+CategoryItem.update_forward_refs()
 
 
 class Correction(Model):
@@ -85,5 +90,9 @@ class CorrectionSet(Model):
 
 
 if __name__ == "__main__":
-    with open(f"data/schemav{VERSION}.json", "w") as fout:
+    import os
+    import sys
+
+    dirname = sys.argv[-1]
+    with open(os.path.join(dirname, f"schemav{VERSION}.json"), "w") as fout:
         fout.write(CorrectionSet.schema_json(indent=4))

@@ -3,40 +3,15 @@ import gzip
 
 import pandas
 import requests
-import uproot
 
+from correctionlib import convert
 from correctionlib.schemav2 import Binning, Category, Correction, CorrectionSet, Formula
 
 examples = "https://raw.githubusercontent.com/CoffeaTeam/coffea/master/tests/samples"
 
 # `sf` is a binned event weight to be applied as a function of $\eta$ and $p_T$
-sf = uproot.open(
+corr1 = convert.from_uproot_THx(
     f"{examples}/testSF2d.histo.root:scalefactors_Tight_Electron"
-).to_boost()
-
-
-corr1 = Correction.parse_obj(
-    {
-        "version": 0,
-        "name": "scalefactors_Tight_Electron",
-        "inputs": [
-            {
-                "type": "real",
-                "name": "eta",
-                "description": "possibly supercluster eta?",
-            },
-            {"name": "pt", "type": "real"},
-        ],
-        "output": {"name": "weight", "type": "real"},
-        "data": {
-            "nodetype": "multibinning",
-            "edges": [
-                list(sf.axes[0].edges),
-                list(sf.axes[1].edges),
-            ],
-            "content": list(sf.view().value.flatten()),
-        },
-    }
 )
 
 
@@ -112,9 +87,10 @@ def build_flavor(sf):
     return Category.parse_obj(
         {
             "nodetype": "category",
-            "content": {
-                key: build_etabinning(sf[sf["jetFlavor"] == key]) for key in keys
-            },
+            "content": [
+                {"key": key, "value": build_etabinning(sf[sf["jetFlavor"] == key])}
+                for key in keys
+            ],
         }
     )
 
@@ -124,7 +100,10 @@ def build_systs(sf):
     return Category.parse_obj(
         {
             "nodetype": "category",
-            "content": {key: build_flavor(sf[sf["sysType"] == key]) for key in keys},
+            "content": [
+                {"key": key, "value": build_flavor(sf[sf["sysType"] == key])}
+                for key in keys
+            ],
         }
     )
 
@@ -162,11 +141,11 @@ def build_syst(sf):
     return Category.parse_obj(
         {
             "nodetype": "category",
-            "content": {
-                "nominal": sf["value"],
-                "up": sf["value"] + sf["error"],
-                "down": sf["value"] - sf["error"],
-            },
+            "content": [
+                {"key": "nominal", "value": sf["value"]},
+                {"key": "up", "value": sf["value"] + sf["error"]},
+                {"key": "down", "value": sf["value"] - sf["error"]},
+            ],
         }
     )
 
