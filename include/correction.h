@@ -15,16 +15,17 @@ constexpr int evaluator_version { 2 };
 
 class Variable {
   public:
+    enum class VarType {string, integer, real};
     typedef std::variant<int, double, std::string> Type;
 
     Variable(const rapidjson::Value& json);
     std::string name() const { return name_; };
     std::string description() const { return description_; };
-    std::string type() const;
+    VarType type() const { return type_; };
+    std::string typeStr() const;
     void validate(const Type& t) const;
 
   private:
-    enum class VarType {string, integer, real};
     std::string name_;
     std::string description_;
     VarType type_;
@@ -48,7 +49,7 @@ class Formula {
   private:
     std::string expression_;
     ParserType type_;
-    std::vector<int> variableIdx_;
+    std::vector<size_t> variableIdx_;
 
     static std::map<ParserType, peg::parser> parsers_;
     static std::mutex parsers_mutex_; // could be one per parser, but this is good enough
@@ -90,19 +91,19 @@ class Binning {
     const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
   private:
-    std::vector<double> edges_;
-    std::vector<Content> content_;
+    std::vector<std::tuple<double, Content>> bins_;
+    size_t variableIdx_;
 };
 
 class MultiBinning {
   public:
     MultiBinning(const rapidjson::Value& json, const std::vector<Variable>& inputs);
-    int ndimensions() const { return edges_.size(); };
+    int ndimensions() const { return axes_.size(); };
     const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
   private:
-    std::vector<std::vector<double>> edges_;
-    std::vector<size_t> dim_strides_;
+    // variableIdx, stride, edges
+    std::vector<std::tuple<size_t, size_t, std::vector<double>>> axes_;
     std::vector<Content> content_;
 };
 
@@ -112,8 +113,10 @@ class Category {
     const Content& child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const;
 
   private:
-    std::map<int, Content> int_map_;
-    std::map<std::string, Content> str_map_;
+    typedef std::map<int, Content> IntMap;
+    typedef std::map<std::string, Content> StrMap;
+    std::variant<IntMap, StrMap> map_;
+    size_t variableIdx_;
 };
 
 class Correction {

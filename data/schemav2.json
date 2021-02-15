@@ -72,7 +72,7 @@
                 },
                 "parser": {
                     "title": "Parser",
-                    "const": "TFormula_v1",
+                    "const": "TFormula",
                     "type": "string"
                 },
                 "variables": {
@@ -94,8 +94,7 @@
                 "nodetype",
                 "expression",
                 "parser",
-                "variables",
-                "parameters"
+                "variables"
             ],
             "additionalProperties": false
         },
@@ -224,6 +223,10 @@
                     "const": "binning",
                     "type": "string"
                 },
+                "input": {
+                    "title": "Input",
+                    "type": "string"
+                },
                 "edges": {
                     "title": "Edges",
                     "type": "array",
@@ -257,6 +260,7 @@
             },
             "required": [
                 "nodetype",
+                "input",
                 "edges",
                 "content"
             ],

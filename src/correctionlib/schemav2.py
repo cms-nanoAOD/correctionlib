@@ -38,6 +38,7 @@ class Formula(Model):
 
 class Binning(Model):
     nodetype: Literal["binning"]
+    input: str
     edges: List[float]
     "Edges of the binning, where edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
     content: List[Content]
@@ -47,6 +48,7 @@ class MultiBinning(Model):
     """N-dimensional rectangular binning"""
 
     nodetype: Literal["multibinning"]
+    inputs: List[str]
     edges: List[List[float]]
     """Bin edges for each input
 
@@ -63,6 +65,7 @@ class CategoryItem(Model):
 
 class Category(Model):
     nodetype: Literal["category"]
+    input: str
     content: List[CategoryItem]
 
 
