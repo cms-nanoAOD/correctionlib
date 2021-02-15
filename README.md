@@ -5,7 +5,6 @@
 [![Code style: black][black-badge]][black-link]
 
 [![PyPI version][pypi-version]][pypi-link]
-[![Conda-Forge][conda-badge]][conda-link]
 [![PyPI platforms][pypi-platforms]][pypi-link]
 
 [![GitHub Discussion][github-discussions-badge]][github-discussions-link]
@@ -31,11 +30,11 @@ In C++, the evaluator implements this currently as:
 double Correction::evaluate(const std::vector<std::variant<int, double, std::string>>& values) const;
 ```
 
-Eventually, the supported function classes may include:
+The supported function classes may include:
 
   * multi-dimensional binned lookups;
   * binned lookups pointing to multi-argument formulas with a restricted
-    math function set (`exp`, `sqrt`, etc., TBD);
+    math function set (`exp`, `sqrt`, etc.);
   * categorical (string or integer enumeration) maps; and
   * compositions of the above.
 
@@ -44,7 +43,7 @@ of its parameters in a JSON structure, described by the JSON schema.
 Possible future extension nodes might include weigted sums (which, when composed with
 the others, could represent a BDT) and perhaps simple MLPs.
 
-Eventually, the tool should provide:
+The tool should provide:
 
   * standardized, versioned [JSON schemas](https://json-schema.org/);
   * forward-porting tools (to migrate data written in older schema versions); and
@@ -66,31 +65,31 @@ at levels other than the entrypoint.
 
 ## Installation
 
-Currently, the build process is entirely Makefile-based. Eventually it would be nice to use
-CMake or possibly setuptools in the context of the python bindings. Builds have been tested
-in OS X and Linux, and python bindings can be compiled against both python2 and python3, as
-well as from within a CMSSW environment. The python bindings should be distributable as a
-pip-installable package, but we haven't decided exactly how that will look.
+The build process is Makefile-based for the C++ evaluator and via setuptools for the python bindings.
+Builds have been tested in Windows, OS X, and Linux, and python bindings can be compiled against both
+python2 and python3, as well as from within a CMSSW environment. The python bindings are distributed as a
+pip-installable package.
 
-To build in most environments:
+If you use python 3, you can simply `pip install correctionlib` (possibly with `--user`, or in a virtualenv, etc.)
+
+To build the C++ evaluator in most environments:
 ```bash
 git clone --recursive git@github.com:nsmith-/correctionlib.git
 cd correctionlib
-python3 -m pip install -r requirements.txt
 make
 # demo C++ binding, main function at src/demo.cc
 ./demo data/examples.json
-# demo python binding
-python3 demo.py
 ```
 
-To compile with python2 support, use `make PYTHON=python2 all` (don't forget to `make clean` first).
-The pydantic schema tools only support python3, however the evaluator can still be used with JSON files
-that conform to the schema.
+To compile with python2 support, consider using python 3 :) If you considered that and still
+want to us python2, follow the C++ build instructions and then call `make PYTHON=python2 correctionlib` to compile.
+Inside CMSSW you should use `make PYTHON=python correctionlib` assuming `python` is the name of the scram tool you intend to link against.
+This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
+This package will only provide the `correctionlib._core` evaluator module, as the schema tools and high-level bindings are python3-only.
 
 ## Creating new corrections
 
-The `correctionlib` python package (as opposed to the `libcorrection` evaluator package) provides a helpful
+The `correctionlib` python package provides a helpful
 framework for defining correction objects. Nodes can be type-checked as they are constructed using the
 [parse_obj](https://pydantic-docs.helpmanual.io/usage/models/#helper-functions) class method.
 Some examples can be found in `convert.ipynb`.
