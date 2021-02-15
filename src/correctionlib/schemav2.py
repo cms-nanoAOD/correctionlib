@@ -31,9 +31,9 @@ Content = Union["Binning", "MultiBinning", "Category", "Formula", float]
 class Formula(Model):
     nodetype: Literal["formula"]
     expression: str
-    parser: Literal["TFormula_v1"]
+    parser: Literal["TFormula"]
     variables: List[str]
-    parameters: List[float]
+    parameters: Optional[List[float]]
 
 
 class Binning(Model):

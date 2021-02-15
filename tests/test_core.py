@@ -4,7 +4,7 @@ import math
 import pytest
 
 import correctionlib._core as core
-from correctionlib import schemav1
+from correctionlib import schemav2 as schema
 
 
 def test_evaluator_v1():
@@ -18,18 +18,18 @@ def test_evaluator_v1():
         cset = core.CorrectionSet.from_string('{"schema_version": "blah"}')
 
     def wrap(*corrs):
-        cset = schemav1.CorrectionSet(
-            schema_version=1,
+        cset = schema.CorrectionSet(
+            schema_version=2,
             corrections=list(corrs),
         )
         return core.CorrectionSet.from_string(cset.json())
 
     cset = wrap(
-        schemav1.Correction(
+        schema.Correction(
             name="test corr",
             version=2,
             inputs=[],
-            output=schemav1.Variable(name="a scale", type="real"),
+            output=schema.Variable(name="a scale", type="real"),
             data=1.234,
         )
     )
@@ -44,36 +44,46 @@ def test_evaluator_v1():
     assert sf.evaluate() == 1.234
 
     cset = wrap(
-        schemav1.Correction(
+        schema.Correction(
             name="test corr",
             version=2,
             inputs=[
-                schemav1.Variable(name="pt", type="real"),
-                schemav1.Variable(name="syst", type="string"),
+                schema.Variable(name="pt", type="real"),
+                schema.Variable(name="syst", type="string"),
             ],
-            output=schemav1.Variable(name="a scale", type="real"),
-            data=schemav1.Binning.parse_obj(
+            output=schema.Variable(name="a scale", type="real"),
+            data=schema.Binning.parse_obj(
                 {
                     "nodetype": "binning",
                     "edges": [0, 20, 40],
                     "content": [
-                        {
-                            "nodetype": "category",
-                            "keys": ["blah", "blah2"],
-                            "content": [1.1, 2.2],
-                        },
-                        {
-                            "nodetype": "category",
-                            "keys": ["blah2", "blah3"],
-                            "content": [
-                                1.3,
-                                {
-                                    "expression": "0.25*x + exp(3.1)",
-                                    "parser": "TFormula",
-                                    "parameters": [0],
-                                },
-                            ],
-                        },
+                        schema.Category.parse_obj(
+                            {
+                                "nodetype": "category",
+                                "content": [
+                                    {"key": "blah", "value": 1.1},
+                                    {"key": "blah2", "value": 2.2},
+                                ],
+                            }
+                        ),
+                        schema.Category.parse_obj(
+                            {
+                                "nodetype": "category",
+                                "content": [
+                                    {"key": "blah2", "value": 1.3},
+                                    {
+                                        "key": "blah3",
+                                        "value": {
+                                            "nodetype": "formula",
+                                            "expression": "0.25*x + exp([0])",
+                                            "parser": "TFormula",
+                                            "variables": ["pt"],
+                                            "parameters": [3.1],
+                                        },
+                                    },
+                                ],
+                            }
+                        ),
                     ],
                 }
             ),
@@ -111,7 +121,7 @@ def test_tformula():
         ("23.*log(max(x, 0.1))", lambda x: 23.0 * math.log(max(x, 0.1))),
     ]
     cset = {
-        "schema_version": 1,
+        "schema_version": 2,
         "corrections": [
             {
                 "name": "test",
@@ -123,16 +133,23 @@ def test_tformula():
                 "output": {"name": "f", "type": "real"},
                 "data": {
                     "nodetype": "category",
-                    "keys": list(range(len(formulas))),
                     "content": [
-                        {"expression": expr, "parser": "TFormula", "parameters": [1]}
-                        for expr, _ in formulas
+                        {
+                            "key": i,
+                            "value": {
+                                "nodetype": "formula",
+                                "expression": expr,
+                                "parser": "TFormula",
+                                "variables": ["x"],
+                            },
+                        }
+                        for i, (expr, _) in enumerate(formulas)
                     ],
                 },
             }
         ],
     }
-    schemav1.CorrectionSet.parse_obj(cset)
+    schema.CorrectionSet.parse_obj(cset)
     corr = core.CorrectionSet.from_string(json.dumps(cset))["test"]
     test_values = [1.0, 32.0, -3.0, 1550.0]
     for i, (_, expected) in enumerate(formulas):

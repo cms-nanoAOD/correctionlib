@@ -30,7 +30,7 @@ def build_formula(sf):
             {
                 "nodetype": "formula",
                 "expression": value,
-                "parser": "TFormula_v1",
+                "parser": "TFormula",
                 # For this case, since this is a "reshape" SF, we know the parameter is the discriminant
                 "variables": ["discriminant"],
                 "parameters": [],
