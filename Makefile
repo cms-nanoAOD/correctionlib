@@ -1,4 +1,4 @@
-PYTHON=python3
+PYTHON=python
 PYEXT=$(shell $(PYTHON)-config --extension-suffix 2>/dev/null || echo ".so")
 SCRAM := $(shell command -v scram)
 ifdef SCRAM
@@ -10,23 +10,23 @@ OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
 CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib $(PYINC) -Iinclude
 LDFLAGS=-pthread
 
-all: build demo
+.PHONY: build all clean
 
-build:
-	mkdir -p build
+all: demo
 
 build/%.o: src/%.cc
+	mkdir -p build
 	$(CXX) $(CFLAGS) -c $< -o $@
 
 demo: build/demo.o build/correction.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
-libcorrection: build/python.o build/correction.o
-	$(CXX) $(LDFLAGS) -fPIC -shared $(OSXFLAG) $^ -o $@$(PYEXT)
+correctionlib: build/python.o build/correction.o
+	mkdir -p correctionlib
+	$(CXX) $(LDFLAGS) -fPIC -shared $(OSXFLAG) $^ -o correctionlib/_core$(PYEXT)
+	touch correctionlib/__init__.py
 
 clean:
 	rm -rf build
 	rm -f demo
-	rm -f libcorrection*
-
-.PHONY: all clean
+	rm -rf correctionlib
