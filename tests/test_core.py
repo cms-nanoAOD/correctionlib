@@ -55,11 +55,13 @@ def test_evaluator_v1():
             data=schema.Binning.parse_obj(
                 {
                     "nodetype": "binning",
+                    "input": "pt",
                     "edges": [0, 20, 40],
                     "content": [
                         schema.Category.parse_obj(
                             {
                                 "nodetype": "category",
+                                "input": "syst",
                                 "content": [
                                     {"key": "blah", "value": 1.1},
                                     {"key": "blah2", "value": 2.2},
@@ -69,6 +71,7 @@ def test_evaluator_v1():
                         schema.Category.parse_obj(
                             {
                                 "nodetype": "category",
+                                "input": "syst",
                                 "content": [
                                     {"key": "blah2", "value": 1.3},
                                     {
@@ -135,6 +138,7 @@ def test_tformula():
                 "output": {"name": "f", "type": "real"},
                 "data": {
                     "nodetype": "category",
+                    "input": "index",
                     "content": [
                         {
                             "key": i,

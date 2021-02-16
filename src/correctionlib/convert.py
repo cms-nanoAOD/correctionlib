@@ -62,6 +62,7 @@ def from_histogram(hist: Any) -> Correction:
             return Category.parse_obj(
                 {
                     "nodetype": "category",
+                    "input": variables[0].name,
                     "content": [
                         {
                             "key": axes[0][i],
@@ -84,6 +85,7 @@ def from_histogram(hist: Any) -> Correction:
                 {
                     "nodetype": "multibinning",
                     "edges": [edges(ax) for ax in axes[:i]],
+                    "inputs": [var.name for var in variables[:i]],
                     "content": [
                         value
                         if isinstance(value, Real)
@@ -95,6 +97,7 @@ def from_histogram(hist: Any) -> Correction:
         return Binning.parse_obj(
             {
                 "nodetype": "binning",
+                "input": variables[0].name,
                 "edges": edges(axes[0]),
                 "content": [
                     value

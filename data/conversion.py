@@ -45,6 +45,7 @@ def build_discrbinning(sf):
     return Binning.parse_obj(
         {
             "nodetype": "binning",
+            "input": "discriminant",
             "edges": edges,
             "content": [
                 build_formula(sf[(sf["discrMin"] >= lo) & (sf["discrMax"] <= hi)])
@@ -59,6 +60,7 @@ def build_ptbinning(sf):
     return Binning.parse_obj(
         {
             "nodetype": "binning",
+            "input": "pt",
             "edges": edges,
             "content": [
                 build_discrbinning(sf[(sf["ptMin"] >= lo) & (sf["ptMax"] <= hi)])
@@ -73,6 +75,7 @@ def build_etabinning(sf):
     return Binning.parse_obj(
         {
             "nodetype": "binning",
+            "input": "abseta",
             "edges": edges,
             "content": [
                 build_ptbinning(sf[(sf["etaMin"] >= lo) & (sf["etaMax"] <= hi)])
@@ -87,6 +90,7 @@ def build_flavor(sf):
     return Category.parse_obj(
         {
             "nodetype": "category",
+            "input": "flavor",
             "content": [
                 {"key": key, "value": build_etabinning(sf[sf["jetFlavor"] == key])}
                 for key in keys
@@ -100,6 +104,7 @@ def build_systs(sf):
     return Category.parse_obj(
         {
             "nodetype": "category",
+            "input": "systematic",
             "content": [
                 {"key": key, "value": build_flavor(sf[sf["sysType"] == key])}
                 for key in keys
@@ -141,6 +146,7 @@ def build_syst(sf):
     return Category.parse_obj(
         {
             "nodetype": "category",
+            "input": "systematic",
             "content": [
                 {"key": "nominal", "value": sf["value"]},
                 {"key": "up", "value": sf["value"] + sf["error"]},
@@ -174,6 +180,7 @@ def build_pts(sf):
     return Binning.parse_obj(
         {
             "nodetype": "binning",
+            "input": "pt",
             "edges": edges,
             "content": content,
         }
@@ -197,6 +204,7 @@ def build_etas(sf):
     return Binning.parse_obj(
         {
             "nodetype": "binning",
+            "input": "eta",
             "edges": edges,
             "content": content,
         }
