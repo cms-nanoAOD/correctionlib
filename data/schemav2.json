@@ -149,6 +149,10 @@
                     "const": "category",
                     "type": "string"
                 },
+                "input": {
+                    "title": "Input",
+                    "type": "string"
+                },
                 "content": {
                     "title": "Content",
                     "type": "array",
@@ -159,6 +163,7 @@
             },
             "required": [
                 "nodetype",
+                "input",
                 "content"
             ],
             "additionalProperties": false
@@ -172,6 +177,13 @@
                     "title": "Nodetype",
                     "const": "multibinning",
                     "type": "string"
+                },
+                "inputs": {
+                    "title": "Inputs",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "edges": {
                     "title": "Edges",
@@ -205,12 +217,47 @@
                             }
                         ]
                     }
+                },
+                "flow": {
+                    "title": "Flow",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "title": "Flow Literal['Clamp', 'Error']",
+                            "anyOf": [
+                                {
+                                    "const": "clamp",
+                                    "type": "string"
+                                },
+                                {
+                                    "const": "error",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    ]
                 }
             },
             "required": [
                 "nodetype",
+                "inputs",
                 "edges",
-                "content"
+                "content",
+                "flow"
             ],
             "additionalProperties": false
         },
@@ -256,13 +303,47 @@
                             }
                         ]
                     }
+                },
+                "flow": {
+                    "title": "Flow",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "title": "Flow Literal['Clamp', 'Error']",
+                            "anyOf": [
+                                {
+                                    "const": "clamp",
+                                    "type": "string"
+                                },
+                                {
+                                    "const": "error",
+                                    "type": "string"
+                                }
+                            ]
+                        }
+                    ]
                 }
             },
             "required": [
                 "nodetype",
                 "input",
                 "edges",
-                "content"
+                "content",
+                "flow"
             ],
             "additionalProperties": false
         },

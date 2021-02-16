@@ -90,6 +90,7 @@ def from_histogram(hist: Any) -> Correction:
                         else build_data(value, axes[i:], variables[i:])
                         for value in flatten_to(values, i - 1)
                     ],
+                    "flow": "error",  # TODO: can also produce overflow guard bins and clamp
                 }
             )
         return Binning.parse_obj(
@@ -103,6 +104,7 @@ def from_histogram(hist: Any) -> Correction:
                     else build_data(value, axes[1:], variables[1:])
                     for value in values
                 ],
+                "flow": "error",  # TODO: can also produce overflow guard bins and clamp
             }
         )
 
