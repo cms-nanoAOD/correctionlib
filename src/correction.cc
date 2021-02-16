@@ -338,23 +338,48 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
     throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
   }
   bins_.reserve(edges.size());
-  // first bin is a dummy content node (represets lower_bound returning underflow)
-  // TODO: good spot to put overflow default behavior
+  // first bin is a dummy content node (represents upper_bound returning underflow)
   bins_.push_back({*edges.begin(), 0.});
   for (size_t i=0; i < content.Size(); ++i) {
     bins_.push_back({edges[i + 1], resolve_content(content[i], inputs)});
   }
   variableIdx_ = find_variable_index(json["input"], inputs);
+  if ( json["flow"] == "clamp" ) {
+    flow_ = _FlowBehavior::clamp;
+  }
+  else if ( json["flow"] == "error" ) {
+    flow_ = _FlowBehavior::error;
+  }
+  else { // Content node
+    flow_ = _FlowBehavior::value;
+    default_value_ = std::make_unique<const Content>(resolve_content(json["flow"], inputs));
+  }
 }
 
 const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   double value = std::get<double>(values[variableIdx_]);
-  auto it = std::lower_bound(std::begin(bins_), std::end(bins_), value, [](const auto& a, auto b) { return std::get<0>(a) < b; });
+  auto it = std::upper_bound(std::begin(bins_), std::end(bins_), value, [](const double& a, const auto& b) { return a < std::get<0>(b); });
   if ( it == std::begin(bins_) ) {
-    throw std::runtime_error("Index below bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
+    if ( flow_ == _FlowBehavior::value ) {
+      return *default_value_;
+    }
+    else if ( flow_ == _FlowBehavior::error ) {
+      throw std::runtime_error("Index below bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
+    }
+    else { // clamp
+      it++;
+    }
   }
   else if ( it == std::end(bins_) ) {
-    throw std::runtime_error("Index above bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
+    if ( flow_ == _FlowBehavior::value ) {
+      return *default_value_;
+    }
+    else if ( flow_ == _FlowBehavior::error ) {
+      throw std::runtime_error("Index above bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
+    }
+    else { // clamp
+      it--;
+    }
   }
   return std::get<1>(*it);
 }
@@ -386,18 +411,44 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
   if ( content_.size() != stride ) {
     throw std::runtime_error("Inconsistency in MultiBinning: number of content nodes does not match binning");
   }
+  if ( json["flow"] == "clamp" ) {
+    flow_ = _FlowBehavior::clamp;
+  }
+  else if ( json["flow"] == "error" ) {
+    flow_ = _FlowBehavior::error;
+  }
+  else { // Content node
+    flow_ = _FlowBehavior::value;
+    default_value_ = std::make_unique<const Content>(resolve_content(json["flow"], inputs));
+  }
 }
 
 const Content& MultiBinning::child(const std::vector<Variable::Type>& values) const {
   size_t idx {0};
   for (const auto& [variableIdx, stride, edges] : axes_) {
     double value = std::get<double>(values[variableIdx]);
-    auto it = std::lower_bound(std::begin(edges), std::end(edges), value);
+    auto it = std::upper_bound(std::begin(edges), std::end(edges), value);
     if ( it == std::begin(edges) ) {
-      throw std::runtime_error("Index below bounds in MultiBinning for input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
+      if ( flow_ == _FlowBehavior::value ) {
+        return *default_value_;
+      }
+      else if ( flow_ == _FlowBehavior::error ) {
+        throw std::runtime_error("Index below bounds in MultiBinning for input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
+      }
+      else { // clamp
+        it++;
+      }
     }
     else if ( it == std::end(edges) ) {
-      throw std::runtime_error("Index above bounds in MultiBinning input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
+      if ( flow_ == _FlowBehavior::value ) {
+        return *default_value_;
+      }
+      else if ( flow_ == _FlowBehavior::error ) {
+        throw std::runtime_error("Index above bounds in MultiBinning input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
+      }
+      else { // clamp
+        it--;
+      }
     }
     size_t localidx = std::distance(std::begin(edges), it) - 1;
     idx += localidx * stride;

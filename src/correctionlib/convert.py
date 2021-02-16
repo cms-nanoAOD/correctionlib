@@ -41,10 +41,8 @@ def from_histogram(hist: Any) -> Correction:
     # Here we could try to optimize the ordering
 
     def edges(axis: Any) -> List[float]:
-        n = len(axis)
-        # FIXME i - 1: https://github.com/scikit-hep/uproot4/issues/265
-        out = [axis[i - 1][0] for i in range(n)]
-        out.append(axis[n - 2][1])
+        out = [b[0] for b in axis]
+        out.append(axis[-1][1])
         return out
 
     def flatten_to(values: Sequence[Any], depth: int) -> Iterable[Any]:
@@ -92,6 +90,7 @@ def from_histogram(hist: Any) -> Correction:
                         else build_data(value, axes[i:], variables[i:])
                         for value in flatten_to(values, i - 1)
                     ],
+                    "flow": "error",  # TODO: can also produce overflow guard bins and clamp
                 }
             )
         return Binning.parse_obj(
@@ -105,6 +104,7 @@ def from_histogram(hist: Any) -> Correction:
                     else build_data(value, axes[1:], variables[1:])
                     for value in values
                 ],
+                "flow": "error",  # TODO: can also produce overflow guard bins and clamp
             }
         )
 

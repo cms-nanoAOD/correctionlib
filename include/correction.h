@@ -85,6 +85,9 @@ class Formula {
     double eval_ast(const Ast& ast, const std::vector<double>& variables) const;
 };
 
+// common internal for Binning and MultiBinning
+enum class _FlowBehavior {value, clamp, error};
+
 class Binning {
   public:
     Binning(const rapidjson::Value& json, const std::vector<Variable>& inputs);
@@ -93,6 +96,8 @@ class Binning {
   private:
     std::vector<std::tuple<double, Content>> bins_;
     size_t variableIdx_;
+    _FlowBehavior flow_;
+    std::unique_ptr<const Content> default_value_;
 };
 
 class MultiBinning {
@@ -105,6 +110,8 @@ class MultiBinning {
     // variableIdx, stride, edges
     std::vector<std::tuple<size_t, size_t, std::vector<double>>> axes_;
     std::vector<Content> content_;
+    _FlowBehavior flow_;
+    std::unique_ptr<const Content> default_value_;
 };
 
 class Category {
