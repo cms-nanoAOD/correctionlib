@@ -325,7 +325,7 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
     throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
   }
   bins_.reserve(edges.size());
-  // first bin is a dummy content node (represets lower_bound returning underflow)
+  // first bin is a dummy content node (represents upper_bound returning underflow)
   bins_.push_back({*edges.begin(), 0.});
   for (size_t i=0; i < content.Size(); ++i) {
     bins_.push_back({edges[i + 1], resolve_content(content[i], inputs)});
@@ -345,7 +345,7 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
 
 const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   double value = std::get<double>(values[variableIdx_]);
-  auto it = std::lower_bound(std::begin(bins_), std::end(bins_), value, [](const auto& a, auto b) { return std::get<0>(a) < b; });
+  auto it = std::upper_bound(std::begin(bins_), std::end(bins_), value, [](const double& a, const auto& b) { return a < std::get<0>(b); });
   if ( it == std::begin(bins_) ) {
     if ( flow_ == _FlowBehavior::value ) {
       return *default_value_;
@@ -414,7 +414,7 @@ const Content& MultiBinning::child(const std::vector<Variable::Type>& values) co
   size_t idx {0};
   for (const auto& [variableIdx, stride, edges] : axes_) {
     double value = std::get<double>(values[variableIdx]);
-    auto it = std::lower_bound(std::begin(edges), std::end(edges), value);
+    auto it = std::upper_bound(std::begin(edges), std::end(edges), value);
     if ( it == std::begin(edges) ) {
       if ( flow_ == _FlowBehavior::value ) {
         return *default_value_;
