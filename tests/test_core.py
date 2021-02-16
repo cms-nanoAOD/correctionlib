@@ -57,6 +57,7 @@ def test_evaluator_v1():
                     "nodetype": "binning",
                     "input": "pt",
                     "edges": [0, 20, 40],
+                    "flow": "error",
                     "content": [
                         schema.Category.parse_obj(
                             {

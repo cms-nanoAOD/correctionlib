@@ -51,6 +51,7 @@ def build_discrbinning(sf):
                 build_formula(sf[(sf["discrMin"] >= lo) & (sf["discrMax"] <= hi)])
                 for lo, hi in zip(edges[:-1], edges[1:])
             ],
+            "flow": "clamp",
         }
     )
 
@@ -66,6 +67,7 @@ def build_ptbinning(sf):
                 build_discrbinning(sf[(sf["ptMin"] >= lo) & (sf["ptMax"] <= hi)])
                 for lo, hi in zip(edges[:-1], edges[1:])
             ],
+            "flow": "clamp",
         }
     )
 
@@ -81,6 +83,7 @@ def build_etabinning(sf):
                 build_ptbinning(sf[(sf["etaMin"] >= lo) & (sf["etaMax"] <= hi)])
                 for lo, hi in zip(edges[:-1], edges[1:])
             ],
+            "flow": "error",
         }
     )
 
@@ -183,6 +186,7 @@ def build_pts(sf):
             "input": "pt",
             "edges": edges,
             "content": content,
+            "flow": "clamp",
         }
     )
 
@@ -207,6 +211,7 @@ def build_etas(sf):
             "input": "eta",
             "edges": edges,
             "content": content,
+            "flow": "error",
         }
     )
 

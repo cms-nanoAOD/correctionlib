@@ -42,6 +42,8 @@ class Binning(Model):
     edges: List[float]
     "Edges of the binning, where edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
     content: List[Content]
+    flow: Union[Content, Literal["clamp", "error"]]
+    "Overflow behavior for out-of-bounds values"
 
 
 class MultiBinning(Model):
@@ -56,6 +58,8 @@ class MultiBinning(Model):
     to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0]), etc.
     """
     content: List[Content]
+    flow: Union[Content, Literal["clamp", "error"]]
+    "Overflow behavior for out-of-bounds values"
 
 
 class CategoryItem(Model):
