@@ -173,6 +173,7 @@ def test_default_category():
             output=schema.Variable(name="a scale", type="real"),
             data=schema.Category(
                 nodetype="category",
+                input="cat",
                 content=[
                     {"key": "blah", "value": 1.2},
                     {"key": "def", "value": 0.0},
