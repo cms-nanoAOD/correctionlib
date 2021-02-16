@@ -29,7 +29,7 @@ Variable::Variable(const rapidjson::Value& json) :
   else { throw std::runtime_error("Unrecognized variable type"); }
 }
 
-std::string Variable::type() const {
+std::string Variable::typeStr() const {
   if ( type_ == VarType::string ) { return "string"; }
   else if ( type_ == VarType::integer ) { return "int"; }
   else if ( type_ == VarType::real ) { return "real"; }
@@ -39,17 +39,17 @@ std::string Variable::type() const {
 void Variable::validate(const Type& t) const {
   if ( std::holds_alternative<std::string>(t) ) {
     if ( type_ != VarType::string ) {
-      throw std::runtime_error("Input " + name() + " has wrong type: got string expected " + type());
+      throw std::runtime_error("Input " + name() + " has wrong type: got string expected " + typeStr());
     }
   }
   else if ( std::holds_alternative<int>(t) ) {
     if ( type_ != VarType::integer ) {
-      throw std::runtime_error("Input " + name() + " has wrong type: got int expected " + type());
+      throw std::runtime_error("Input " + name() + " has wrong type: got int expected " + typeStr());
     }
   }
   else if ( std::holds_alternative<double>(t) ) {
     if ( type_ != VarType::real ) {
-      throw std::runtime_error("Input " + name() + " has wrong type: got real-valued expected " + type());
+      throw std::runtime_error("Input " + name() + " has wrong type: got real-valued expected " + typeStr());
     }
   }
 }
@@ -329,70 +329,78 @@ Content resolve_content(const rapidjson::Value& json, const std::vector<Variable
 Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inputs)
 {
   if (json["nodetype"] != "binning") { throw std::runtime_error("Attempted to construct Binning node but data is not that type"); }
+  std::vector<double> edges;
   for (const auto& item : json["edges"].GetArray()) {
-    edges_.push_back(item.GetDouble());
+    edges.push_back(item.GetDouble());
   }
-  for (const auto& item : json["content"].GetArray()) {
-    content_.push_back(resolve_content(item, inputs));
-  }
-  if ( edges_.size() != content_.size() + 1 ) {
+  const auto& content = json["content"].GetArray();
+  if ( edges.size() != content.Size() + 1 ) {
     throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
   }
+  bins_.reserve(edges.size());
+  // first bin is a dummy content node (represets lower_bound returning underflow)
+  // TODO: good spot to put overflow default behavior
+  bins_.push_back({*edges.begin(), 0.});
+  for (size_t i=0; i < content.Size(); ++i) {
+    bins_.push_back({edges[i + 1], resolve_content(content[i], inputs)});
+  }
+  variableIdx_ = find_variable_index(json["input"], inputs);
 }
 
-const Content& Binning::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
-  double value = std::get<double>(values[depth]);
-  auto it = std::lower_bound(std::begin(edges_), std::end(edges_), value) - 1;
-  size_t idx = std::distance(std::begin(edges_), it);
-  if ( idx < 0 ) {
-    throw std::runtime_error("Index below bounds in Binning var: " + inputs[depth].name() + " val: " + std::to_string(value));
+const Content& Binning::child(const std::vector<Variable::Type>& values) const {
+  double value = std::get<double>(values[variableIdx_]);
+  auto it = std::lower_bound(std::begin(bins_), std::end(bins_), value, [](const auto& a, auto b) { return std::get<0>(a) < b; });
+  if ( it == std::begin(bins_) ) {
+    throw std::runtime_error("Index below bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
   }
-  else if ( idx >= edges_.size() - 1 ) {
-    throw std::runtime_error("Index above bounds in Binning var:" + inputs[depth].name() + " val: " + std::to_string(value));
+  else if ( it == std::end(bins_) ) {
+    throw std::runtime_error("Index above bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
   }
-  return content_.at(idx);
+  return std::get<1>(*it);
 }
 
 MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Variable>& inputs)
 {
   if (json["nodetype"] != "multibinning") { throw std::runtime_error("Attempted to construct MultiBinning node but data is not that type"); }
-  std::vector<size_t> dim_sizes;
+  axes_.reserve(json["edges"].GetArray().Size());
+  size_t idx {0};
   for (const auto& dimension : json["edges"].GetArray()) {
     std::vector<double> dim_edges;
+    dim_edges.reserve(dimension.GetArray().Size());
     for (const auto& item : dimension.GetArray()) {
       dim_edges.push_back(item.GetDouble());
     }
-    edges_.push_back(dim_edges);
-    dim_sizes.push_back(dim_edges.size() - 1);
+    const auto& input = json["inputs"].GetArray()[idx];
+    axes_.push_back({find_variable_index(input, inputs), 0, std::move(dim_edges)});
+    idx++;
   }
-  size_t n = dim_sizes.size();
-  dim_strides_.resize(n);
-  dim_strides_[n - 1] = 1;
-  for (size_t i=2; i <= n; ++i) {
-    dim_strides_[n - i] = dim_strides_[n - i + 1] * dim_sizes[n - i + 1];
+
+  size_t stride {1};
+  for (auto it=axes_.rbegin(); it != axes_.rend(); ++it) {
+    std::get<1>(*it) = stride;
+    stride *= std::get<2>(*it).size() - 1;
   }
-  size_t total = dim_strides_[0] * dim_sizes[0];
   for (const auto& item : json["content"].GetArray()) {
     content_.push_back(resolve_content(item, inputs));
   }
-  if ( content_.size() != total ) {
+  if ( content_.size() != stride ) {
     throw std::runtime_error("Inconsistency in MultiBinning: number of content nodes does not match binning");
   }
 }
 
-const Content& MultiBinning::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
+const Content& MultiBinning::child(const std::vector<Variable::Type>& values) const {
   size_t idx {0};
-  for (size_t i=0; i < edges_.size(); ++i) {
-    double value = std::get<double>(values[depth + i]);
-    auto it = std::lower_bound(std::begin(edges_[i]), std::end(edges_[i]), value) - 1;
-    size_t localidx = std::distance(std::begin(edges_[i]), it);
-    if ( localidx < 0 ) {
-      throw std::runtime_error("Index below bounds in MultiBinning var:" + inputs[depth + i].name() + " val: " + std::to_string(value));
+  for (const auto& [variableIdx, stride, edges] : axes_) {
+    double value = std::get<double>(values[variableIdx]);
+    auto it = std::lower_bound(std::begin(edges), std::end(edges), value);
+    if ( it == std::begin(edges) ) {
+      throw std::runtime_error("Index below bounds in MultiBinning for input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
     }
-    else if ( localidx >= edges_[i].size() - 1) {
-      throw std::runtime_error("Index above bounds in MultiBinning var:" + inputs[depth + i].name() + " val: " + std::to_string(value));
+    else if ( it == std::end(edges) ) {
+      throw std::runtime_error("Index above bounds in MultiBinning input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
     }
-    idx += localidx * dim_strides_[i];
+    size_t localidx = std::distance(std::begin(edges), it) - 1;
+    idx += localidx * stride;
   }
   return content_.at(idx);
 }
@@ -400,45 +408,62 @@ const Content& MultiBinning::child(const std::vector<Variable>& inputs, const st
 Category::Category(const rapidjson::Value& json, const std::vector<Variable>& inputs)
 {
   if (json["nodetype"] != "category") { throw std::runtime_error("Attempted to construct Category node but data is not that type"); }
+  variableIdx_ = find_variable_index(json["input"], inputs);
+  const auto& variable = inputs[variableIdx_];
+  if ( variable.type() == Variable::VarType::string ) {
+    map_ = StrMap();
+  } // (default-constructed as IntMap)
   for (const auto& kv_pair : json["content"].GetArray())
   {
     if ( kv_pair["key"].IsString() ) {
-      str_map_.try_emplace(kv_pair["key"].GetString(), resolve_content(kv_pair["value"], inputs));
+      if ( variable.type() != Variable::VarType::string ) {
+        throw std::runtime_error("Category got a key not of type string, but its input is string type");
+      }
+      std::get<StrMap>(map_).try_emplace(kv_pair["key"].GetString(), resolve_content(kv_pair["value"], inputs));
     }
     else if ( kv_pair["key"].IsInt() ) {
-      int_map_.try_emplace(kv_pair["key"].GetInt(), resolve_content(kv_pair["value"], inputs));
+      if ( variable.type() != Variable::VarType::integer ) {
+        throw std::runtime_error("Category got a key not of type int, but its input is int type");
+      }
+      std::get<IntMap>(map_).try_emplace(kv_pair["key"].GetInt(), resolve_content(kv_pair["value"], inputs));
     }
     else {
       throw std::runtime_error("Invalid key type in Category");
     }
   }
   if ( auto default_key = getOptional<const char*>(json, "default") ) {
-    default_ = &str_map_.at(*default_key);
+    if ( variable.type() != Variable::VarType::string ) {
+      throw std::runtime_error("Category got a default key not of type string, but its input is string type");
+    }
+    default_ = &std::get<StrMap>(map_).at(*default_key);
   }
   else if ( auto default_key = getOptional<int>(json, "default") ) {
-    default_ = &int_map_.at(*default_key);
+    if ( variable.type() != Variable::VarType::integer ) {
+      throw std::runtime_error("Category got a default key not of type int, but its input is int type");
+    }
+    default_ = &std::get<IntMap>(map_).at(*default_key);
   }
 }
 
-const Content& Category::child(const std::vector<Variable>& inputs, const std::vector<Variable::Type>& values, const int depth) const {
-  if ( auto pval = std::get_if<std::string>(&values[depth]) ) {
+const Content& Category::child(const std::vector<Variable::Type>& values) const {
+  if ( auto pval = std::get_if<std::string>(&values[variableIdx_]) ) {
     try {
-      return str_map_.at(*pval);
+      return std::get<StrMap>(map_).at(*pval);
     } catch (std::out_of_range ex) {
       if ( default_ == nullptr ) {
-        throw std::runtime_error("Index not available in Category var:" + inputs[depth].name() + " val: " + *pval);
+        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + *pval);
       }
       else {
         return *default_;
       }
     }
   }
-  else if ( auto pval = std::get_if<int>(&values[depth]) ) {
+  else if ( auto pval = std::get_if<int>(&values[variableIdx_]) ) {
     try {
-      return int_map_.at(*pval);
+      return std::get<IntMap>(map_).at(*pval);
     } catch (std::out_of_range ex) {
       if ( default_ == nullptr ) {
-        throw std::runtime_error("Index not available in Category var:" + inputs[depth].name() + " val: " + std::to_string(*pval));
+        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
       }
       else {
         return *default_;
@@ -452,29 +477,27 @@ struct node_evaluate {
   double operator() (double node) { return node; };
   double operator() (const Binning& node) {
     return std::visit(
-        node_evaluate{inputs, values, depth + 1},
-        node.child(inputs, values, depth)
+        node_evaluate{values},
+        node.child(values)
         );
   };
   double operator() (const MultiBinning& node) {
     return std::visit(
-        node_evaluate{inputs, values, depth + 1},
-        node.child(inputs, values, depth)
+        node_evaluate{values},
+        node.child(values)
         );
   };
   double operator() (const Category& node) {
     return std::visit(
-        node_evaluate{inputs, values, depth + 1},
-        node.child(inputs, values, depth)
+        node_evaluate{values},
+        node.child(values)
         );
   };
   double operator() (const Formula& node) {
     return node.evaluate(values);
   };
 
-  const std::vector<Variable>& inputs;
   const std::vector<Variable::Type>& values;
-  const int depth;
 };
 
 Correction::Correction(const rapidjson::Value& json) :
@@ -499,7 +522,7 @@ double Correction::evaluate(const std::vector<Variable::Type>& values) const {
   for (size_t i=0; i < inputs_.size(); ++i) {
     inputs_[i].validate(values[i]);
   }
-  return std::visit(node_evaluate{inputs_, values, 0}, data_);
+  return std::visit(node_evaluate{values}, data_);
 }
 
 std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
