@@ -112,8 +112,9 @@ Formula::Formula(const rapidjson::Value& json, const std::vector<Variable>& inpu
   }
   else { throw std::runtime_error("Unrecognized formula parser type"); }
 
+  std::vector<size_t> variableIdx;
   for (const auto& item : json["variables"].GetArray()) {
-    variableIdx_.push_back(find_variable_index(item, inputs));
+    variableIdx.push_back(find_variable_index(item, inputs));
   }
 
   std::vector<double> params;
@@ -123,10 +124,10 @@ Formula::Formula(const rapidjson::Value& json, const std::vector<Variable>& inpu
     }
   }
 
-  build_ast(params);
+  build_ast(params, variableIdx);
 }
 
-void Formula::build_ast(const std::vector<double>& params) {
+void Formula::build_ast(const std::vector<double>& params, const std::vector<size_t>& variableIdx) {
   std::shared_ptr<peg::Ast> peg_ast;
   {
     const std::lock_guard<std::mutex> lock(parsers_mutex_);
@@ -151,40 +152,28 @@ void Formula::build_ast(const std::vector<double>& params) {
       );
     }
     peg_ast = parser.optimize_ast(peg_ast);
-    ast_ = std::make_unique<Ast>(translate_ast(*peg_ast, params));
+    ast_ = std::make_unique<Ast>(translate_ast(*peg_ast, params, variableIdx));
   }
 }
 
-const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector<double>& params) const {
+const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector<double>& params, const std::vector<size_t>& variableIdx) const {
   if (ast.is_token) {
     if (ast.name == "LITERAL") {
       return {Ast::NodeType::Literal, ast.token_to_number<double>(), {}};
     }
     else if (ast.name == "VARIABLE") {
-      if ( ast.token == "x" ) {
-        if ( variableIdx_.size() < (size_t) 1 ) {
-          throw std::runtime_error("Insufficient variables for formula");
-        }
-        return {Ast::NodeType::Variable, (size_t) 0, {}};
+      size_t idx;
+      if ( ast.token == "x" ) idx = 0;
+      else if ( ast.token == "y" ) idx = 1;
+      else if ( ast.token == "z" ) idx = 2;
+      else if ( ast.token == "t" ) idx = 3;
+      else {
+        throw std::runtime_error("Unrecognized variable name in formula");
       }
-      else if ( ast.token == "y" ) {
-        if ( variableIdx_.size() < (size_t) 2 ) {
-          throw std::runtime_error("Insufficient variables for formula");
-        }
-        return {Ast::NodeType::Variable, (size_t) 1, {}};
+      if ( variableIdx.size() <= idx ) {
+        throw std::runtime_error("Insufficient variables for formula");
       }
-      else if ( ast.token == "z" ) {
-        if ( variableIdx_.size() < (size_t) 3 ) {
-          throw std::runtime_error("Insufficient variables for formula");
-        }
-        return {Ast::NodeType::Variable, (size_t) 2, {}};
-      }
-      else if ( ast.token == "t" ) {
-        if ( variableIdx_.size() < (size_t) 4 ) {
-          throw std::runtime_error("Insufficient variables for formula");
-        }
-        return {Ast::NodeType::Variable, (size_t) 3, {}};
-      }
+      return {Ast::NodeType::Variable, variableIdx[idx], {}};
     }
     else if (ast.name == "PARAMETER") {
       auto pidx = ast.token_to_number<size_t>();
@@ -199,7 +188,7 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
     return {
       Ast::NodeType::UAtom,
       ast.nodes[0]->token[0],
-      {translate_ast(*ast.nodes[1], params)}
+      {translate_ast(*ast.nodes[1], params, variableIdx)}
     };
   }
   else if (ast.name == "CALLU" ) {
@@ -231,7 +220,7 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
     return {
       Ast::NodeType::UnaryCall,
       fun,
-      {translate_ast(*ast.nodes[1], params)}
+      {translate_ast(*ast.nodes[1], params, variableIdx)}
     };
   }
   else if (ast.name == "CALLB" ) {
@@ -249,7 +238,7 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
     return {
       Ast::NodeType::BinaryCall,
       fun,
-      {translate_ast(*ast.nodes[1], params), translate_ast(*ast.nodes[2], params)}
+      {translate_ast(*ast.nodes[1], params, variableIdx), translate_ast(*ast.nodes[2], params, variableIdx)}
     };
   }
   else if (ast.name == "EXPRESSION" ) {
@@ -257,40 +246,37 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
     return {
       Ast::NodeType::Expression,
       ast.nodes[1]->token[0],
-      {translate_ast(*ast.nodes[0], params), translate_ast(*ast.nodes[2], params)}
+      {translate_ast(*ast.nodes[0], params, variableIdx), translate_ast(*ast.nodes[2], params, variableIdx)}
     };
   }
   throw std::runtime_error("Unrecognized AST node");
 }
 
 double Formula::evaluate(const std::vector<Variable::Type>& values) const {
-  std::vector<double> variables;
-  variables.reserve(variableIdx_.size());
-  for ( auto idx : variableIdx_ ) { variables.push_back(std::get<double>(values[idx])); }
-  return eval_ast(*ast_, variables);
+  return eval_ast(*ast_, values);
 }
 
-double Formula::eval_ast(const Formula::Ast& ast, const std::vector<double>& variables) const {
+double Formula::eval_ast(const Formula::Ast& ast, const std::vector<Variable::Type>& values) const {
   switch (ast.nodetype) {
     case Ast::NodeType::Literal:
       return std::get<double>(ast.data);
     case Ast::NodeType::Variable:
-      return variables[std::get<size_t>(ast.data)];
+      return std::get<double>(values[std::get<size_t>(ast.data)]);
     case Ast::NodeType::UAtom:
       switch (std::get<char>(ast.data)) {
-        case '-': return -eval_ast(ast.children[0], variables);
+        case '-': return -eval_ast(ast.children[0], values);
       }
     case Ast::NodeType::UnaryCall:
       return std::get<Ast::UnaryFcn>(ast.data)(
-          eval_ast(ast.children[0], variables)
+          eval_ast(ast.children[0], values)
           );
     case Ast::NodeType::BinaryCall:
       return std::get<Ast::BinaryFcn>(ast.data)(
-          eval_ast(ast.children[0], variables), eval_ast(ast.children[1], variables)
+          eval_ast(ast.children[0], values), eval_ast(ast.children[1], values)
           );
     case Ast::NodeType::Expression:
-      auto left = eval_ast(ast.children[0], variables);
-      auto right = eval_ast(ast.children[1], variables);
+      auto left = eval_ast(ast.children[0], values);
+      auto right = eval_ast(ast.children[1], values);
       switch (std::get<char>(ast.data)) {
         case '+': return left + right;
         case '-': return left - right;
@@ -492,22 +478,13 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
 struct node_evaluate {
   double operator() (double node) { return node; };
   double operator() (const Binning& node) {
-    return std::visit(
-        node_evaluate{values},
-        node.child(values)
-        );
+    return std::visit(*this, node.child(values));
   };
   double operator() (const MultiBinning& node) {
-    return std::visit(
-        node_evaluate{values},
-        node.child(values)
-        );
+    return std::visit(*this, node.child(values));
   };
   double operator() (const Category& node) {
-    return std::visit(
-        node_evaluate{values},
-        node.child(values)
-        );
+    return std::visit(*this, node.child(values));
   };
   double operator() (const Formula& node) {
     return node.evaluate(values);

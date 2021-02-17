@@ -49,7 +49,6 @@ class Formula {
   private:
     std::string expression_;
     ParserType type_;
-    std::vector<size_t> variableIdx_;
 
     static std::map<ParserType, peg::parser> parsers_;
     static std::mutex parsers_mutex_; // could be one per parser, but this is good enough
@@ -80,9 +79,9 @@ class Formula {
       // TODO: try std::unique_ptr<const Ast> child1, child2 or std::array
     };
     std::unique_ptr<const Ast> ast_;
-    void build_ast(const std::vector<double>& params);
-    const Ast translate_ast(const peg::Ast& ast, const std::vector<double>& params) const;
-    double eval_ast(const Ast& ast, const std::vector<double>& variables) const;
+    void build_ast(const std::vector<double>& params, const std::vector<size_t>& variableIdx);
+    const Ast translate_ast(const peg::Ast& ast, const std::vector<double>& params, const std::vector<size_t>& variableIdx) const;
+    double eval_ast(const Ast& ast, const std::vector<Variable::Type>& variables) const;
 };
 
 // common internal for Binning and MultiBinning
