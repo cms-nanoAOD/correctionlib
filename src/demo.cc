@@ -9,6 +9,7 @@ int main(int argc, char** argv) {
     printf("sizeof(MultiBinning): %lu\n", sizeof(MultiBinning));
     printf("sizeof(Category): %lu\n", sizeof(Category));
     printf("sizeof(Formula): %lu\n", sizeof(Formula));
+    printf("sizeof(Content): %lu\n", sizeof(Content));
   }
   else if ( argc == 2 ) {
     auto cset = CorrectionSet::from_file(std::string(argv[1]));
@@ -24,7 +25,7 @@ int main(int argc, char** argv) {
     out = deepcsv->evaluate({"central", 0, 1.2, 35., 0.01});
     printf("DeepCSV_2016LegacySF('central', 0, 1.2, 35., 0.5) = %f\n", out);
     double stuff {0.};
-    int n { 1000000 };
+    size_t n { 1000000 };
     for(size_t i=0; i<n; ++i) {
       stuff += deepcsv->evaluate({"central", 0, 1.2, 35., i / (double) n});
     }

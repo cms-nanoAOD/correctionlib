@@ -96,7 +96,6 @@ class Binning {
     std::vector<std::tuple<double, Content>> bins_;
     size_t variableIdx_;
     _FlowBehavior flow_;
-    std::unique_ptr<const Content> default_value_;
 };
 
 class MultiBinning {
@@ -110,7 +109,6 @@ class MultiBinning {
     std::vector<std::tuple<size_t, size_t, std::vector<double>>> axes_;
     std::vector<Content> content_;
     _FlowBehavior flow_;
-    std::unique_ptr<const Content> default_value_;
 };
 
 class Category {

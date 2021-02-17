@@ -310,13 +310,8 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
   if ( edges.size() != content.Size() + 1 ) {
     throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
   }
-  bins_.reserve(edges.size());
-  // first bin is a dummy content node (represents upper_bound returning underflow)
-  bins_.push_back({*edges.begin(), 0.});
-  for (size_t i=0; i < content.Size(); ++i) {
-    bins_.push_back({edges[i + 1], resolve_content(content[i], inputs)});
-  }
   variableIdx_ = find_variable_index(json["input"], inputs);
+  Content default_value{0.};
   if ( json["flow"] == "clamp" ) {
     flow_ = _FlowBehavior::clamp;
   }
@@ -325,7 +320,14 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
   }
   else { // Content node
     flow_ = _FlowBehavior::value;
-    default_value_ = std::make_unique<const Content>(resolve_content(json["flow"], inputs));
+    default_value = resolve_content(json["flow"], inputs);
+  }
+  bins_.reserve(edges.size());
+  // first bin is never accessed for content in range (corresponds to std::upper_bound underflow)
+  // use it to store default value
+  bins_.push_back({*edges.begin(), std::move(default_value)});
+  for (size_t i=0; i < content.Size(); ++i) {
+    bins_.push_back({edges[i + 1], resolve_content(content[i], inputs)});
   }
 }
 
@@ -334,7 +336,7 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   auto it = std::upper_bound(std::begin(bins_), std::end(bins_), value, [](const double& a, const auto& b) { return a < std::get<0>(b); });
   if ( it == std::begin(bins_) ) {
     if ( flow_ == _FlowBehavior::value ) {
-      return *default_value_;
+      // default value already at std::begin
     }
     else if ( flow_ == _FlowBehavior::error ) {
       throw std::runtime_error("Index below bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
@@ -345,7 +347,7 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   }
   else if ( it == std::end(bins_) ) {
     if ( flow_ == _FlowBehavior::value ) {
-      return *default_value_;
+      it = std::begin(bins_);
     }
     else if ( flow_ == _FlowBehavior::error ) {
       throw std::runtime_error("Index above bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
@@ -378,6 +380,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
     std::get<1>(*it) = stride;
     stride *= std::get<2>(*it).size() - 1;
   }
+  content_.reserve(json["content"].GetArray().Size() + 1); // + 1 for default value
   for (const auto& item : json["content"].GetArray()) {
     content_.push_back(resolve_content(item, inputs));
   }
@@ -392,7 +395,8 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
   }
   else { // Content node
     flow_ = _FlowBehavior::value;
-    default_value_ = std::make_unique<const Content>(resolve_content(json["flow"], inputs));
+    // store default value at end of content array
+    content_.push_back(resolve_content(json["flow"], inputs));
   }
 }
 
@@ -403,7 +407,7 @@ const Content& MultiBinning::child(const std::vector<Variable::Type>& values) co
     auto it = std::upper_bound(std::begin(edges), std::end(edges), value);
     if ( it == std::begin(edges) ) {
       if ( flow_ == _FlowBehavior::value ) {
-        return *default_value_;
+        return *content_.rbegin();
       }
       else if ( flow_ == _FlowBehavior::error ) {
         throw std::runtime_error("Index below bounds in MultiBinning for input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
@@ -414,7 +418,7 @@ const Content& MultiBinning::child(const std::vector<Variable::Type>& values) co
     }
     else if ( it == std::end(edges) ) {
       if ( flow_ == _FlowBehavior::value ) {
-        return *default_value_;
+        return *content_.rbegin();
       }
       else if ( flow_ == _FlowBehavior::error ) {
         throw std::runtime_error("Index above bounds in MultiBinning input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
