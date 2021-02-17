@@ -482,17 +482,9 @@ Category::Category(const rapidjson::Value& json, const std::vector<Variable>& in
       throw std::runtime_error("Invalid key type in Category");
     }
   }
-  if ( auto default_key = getOptional<const char*>(json, "default") ) {
-    if ( variable.type() != Variable::VarType::string ) {
-      throw std::runtime_error("Category got a default key not of type string, but its input is string type");
-    }
-    default_ = &std::get<StrMap>(map_).at(*default_key);
-  }
-  else if ( auto default_key = getOptional<int>(json, "default") ) {
-    if ( variable.type() != Variable::VarType::integer ) {
-      throw std::runtime_error("Category got a default key not of type int, but its input is int type");
-    }
-    default_ = &std::get<IntMap>(map_).at(*default_key);
+  const auto it = json.FindMember("default");
+  if ( it != json.MemberEnd() && !it->value.IsNull() ) {
+    default_ = std::make_unique<Content>(resolve_content(it->value, inputs));
   }
 }
 
@@ -501,11 +493,11 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
     try {
       return std::get<StrMap>(map_).at(*pval);
     } catch (std::out_of_range ex) {
-      if ( default_ == nullptr ) {
-        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + *pval);
+      if ( default_ ) {
+        return *default_;
       }
       else {
-        return *default_;
+        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + *pval);
       }
     }
   }
@@ -513,11 +505,11 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
     try {
       return std::get<IntMap>(map_).at(*pval);
     } catch (std::out_of_range ex) {
-      if ( default_ == nullptr ) {
-        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
+      if ( default_ ) {
+        return *default_;
       }
       else {
-        return *default_;
+        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
       }
     }
   }
@@ -616,7 +608,7 @@ CorrectionSet::CorrectionSet(const rapidjson::Value& json) {
   else {
     throw std::runtime_error("Missing schema_version in CorrectionSet document");
   }
-  if ( auto items = getOptional<rapidjson::Value::ConstArray>(json, "corrections") ) {
+  if ( const auto& items = getOptional<rapidjson::Value::ConstArray>(json, "corrections") ) {
     for (const auto& item : *items) {
       auto corr = std::make_shared<Correction>(item);
       corrections_[corr->name()] = corr;

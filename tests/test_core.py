@@ -165,27 +165,35 @@ def test_tformula():
             assert corr.evaluate(i, x) == expected(x)
 
 
-def test_default_category():
-    cset = wrap(
-        schema.Correction(
-            name="test",
-            version=2,
-            inputs=[schema.Variable(name="cat", type="string")],
-            output=schema.Variable(name="a scale", type="real"),
-            data=schema.Category(
-                nodetype="category",
-                input="cat",
-                content=[
-                    {"key": "blah", "value": 1.2},
-                    {"key": "def", "value": 0.0},
-                ],
-                default="def",
-            ),
+def test_category():
+    def make_cat(items, default):
+        cset = wrap(
+            schema.Correction(
+                name="test",
+                version=2,
+                inputs=[schema.Variable(name="cat", type="string")],
+                output=schema.Variable(name="a scale", type="real"),
+                data=schema.Category(
+                    nodetype="category",
+                    input="cat",
+                    content=[
+                        {"key": key, "value": value} for key, value in items.items()
+                    ],
+                    default=default,
+                ),
+            )
         )
-    )
-    assert cset["test"].evaluate("blah") == 1.2
-    assert cset["test"].evaluate("asdf") == 0.0
-    assert cset["test"].evaluate("def") == 0.0
+        return cset["test"]
+
+    corr = make_cat({"blah": 1.2}, None)
+    assert corr.evaluate("blah") == 1.2
+    with pytest.raises(RuntimeError):
+        corr.evaluate("asdf")
+
+    corr = make_cat({"blah": 1.2}, 0.1)
+    assert corr.evaluate("blah") == 1.2
+    assert corr.evaluate("asdf") == 0.1
+    assert corr.evaluate("def") == 0.1
 
 
 def test_binning():

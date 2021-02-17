@@ -71,12 +71,12 @@ class Category(Model):
     nodetype: Literal["category"]
     input: str
     content: List[CategoryItem]
-    default: Optional[Union[str, int]]
+    default: Optional[Content]
 
 
 Binning.update_forward_refs()
 MultiBinning.update_forward_refs()
-CategoryItem.update_forward_refs()
+Category.update_forward_refs()
 
 
 class Correction(Model):
