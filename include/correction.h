@@ -123,6 +123,7 @@ class Category {
     typedef std::map<int, Content> IntMap;
     typedef std::map<std::string, Content> StrMap;
     std::variant<IntMap, StrMap> map_;
+    std::unique_ptr<const Content> default_;
     size_t variableIdx_;
 };
 
