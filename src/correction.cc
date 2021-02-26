@@ -125,8 +125,9 @@ Formula::Formula(const rapidjson::Value& json, const std::vector<Variable>& inpu
   }
   else { throw std::runtime_error("Unrecognized formula parser type"); }
 
+  std::vector<size_t> variableIdx;
   for (const auto& item : json["variables"].GetArray()) {
-    variableIdx_.push_back(find_variable_index(item, inputs));
+    variableIdx.push_back(find_variable_index(item, inputs));
   }
 
   std::vector<double> params;
@@ -136,10 +137,10 @@ Formula::Formula(const rapidjson::Value& json, const std::vector<Variable>& inpu
     }
   }
 
-  build_ast(params);
+  build_ast(params, variableIdx);
 }
 
-void Formula::build_ast(const std::vector<double>& params) {
+void Formula::build_ast(const std::vector<double>& params, const std::vector<size_t>& variableIdx) {
   std::shared_ptr<peg::Ast> peg_ast;
   {
     const std::lock_guard<std::mutex> lock(parsers_mutex_);
@@ -164,40 +165,28 @@ void Formula::build_ast(const std::vector<double>& params) {
       );
     }
     peg_ast = parser.optimize_ast(peg_ast);
-    ast_ = std::make_unique<Ast>(translate_ast(*peg_ast, params));
+    ast_ = std::make_unique<Ast>(translate_ast(*peg_ast, params, variableIdx));
   }
 }
 
-const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector<double>& params) const {
+const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector<double>& params, const std::vector<size_t>& variableIdx) const {
   if (ast.is_token) {
     if (ast.name == "LITERAL") {
       return {Ast::NodeType::Literal, ast.token_to_number<double>(), {}};
     }
     else if (ast.name == "VARIABLE") {
-      if ( ast.token == "x" ) {
-        if ( variableIdx_.size() < (size_t) 1 ) {
-          throw std::runtime_error("Insufficient variables for formula");
-        }
-        return {Ast::NodeType::Variable, (size_t) 0, {}};
+      size_t idx;
+      if ( ast.token == "x" ) idx = 0;
+      else if ( ast.token == "y" ) idx = 1;
+      else if ( ast.token == "z" ) idx = 2;
+      else if ( ast.token == "t" ) idx = 3;
+      else {
+        throw std::runtime_error("Unrecognized variable name in formula");
       }
-      else if ( ast.token == "y" ) {
-        if ( variableIdx_.size() < (size_t) 2 ) {
-          throw std::runtime_error("Insufficient variables for formula");
-        }
-        return {Ast::NodeType::Variable, (size_t) 1, {}};
+      if ( variableIdx.size() <= idx ) {
+        throw std::runtime_error("Insufficient variables for formula");
       }
-      else if ( ast.token == "z" ) {
-        if ( variableIdx_.size() < (size_t) 3 ) {
-          throw std::runtime_error("Insufficient variables for formula");
-        }
-        return {Ast::NodeType::Variable, (size_t) 2, {}};
-      }
-      else if ( ast.token == "t" ) {
-        if ( variableIdx_.size() < (size_t) 4 ) {
-          throw std::runtime_error("Insufficient variables for formula");
-        }
-        return {Ast::NodeType::Variable, (size_t) 3, {}};
-      }
+      return {Ast::NodeType::Variable, variableIdx[idx], {}};
     }
     else if (ast.name == "PARAMETER") {
       auto pidx = ast.token_to_number<size_t>();
@@ -212,7 +201,7 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
     return {
       Ast::NodeType::UAtom,
       ast.nodes[0]->token[0],
-      {translate_ast(*ast.nodes[1], params)}
+      {translate_ast(*ast.nodes[1], params, variableIdx)}
     };
   }
   else if (ast.name == "CALLU" ) {
@@ -244,7 +233,7 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
     return {
       Ast::NodeType::UnaryCall,
       fun,
-      {translate_ast(*ast.nodes[1], params)}
+      {translate_ast(*ast.nodes[1], params, variableIdx)}
     };
   }
   else if (ast.name == "CALLB" ) {
@@ -262,7 +251,7 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
     return {
       Ast::NodeType::BinaryCall,
       fun,
-      {translate_ast(*ast.nodes[1], params), translate_ast(*ast.nodes[2], params)}
+      {translate_ast(*ast.nodes[1], params, variableIdx), translate_ast(*ast.nodes[2], params, variableIdx)}
     };
   }
   else if (ast.name == "EXPRESSION" ) {
@@ -270,40 +259,37 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
     return {
       Ast::NodeType::Expression,
       ast.nodes[1]->token[0],
-      {translate_ast(*ast.nodes[0], params), translate_ast(*ast.nodes[2], params)}
+      {translate_ast(*ast.nodes[0], params, variableIdx), translate_ast(*ast.nodes[2], params, variableIdx)}
     };
   }
   throw std::runtime_error("Unrecognized AST node");
 }
 
 double Formula::evaluate(const std::vector<Variable::Type>& values) const {
-  std::vector<double> variables;
-  variables.reserve(variableIdx_.size());
-  for ( auto idx : variableIdx_ ) { variables.push_back(std::get<double>(values[idx])); }
-  return eval_ast(*ast_, variables);
+  return eval_ast(*ast_, values);
 }
 
-double Formula::eval_ast(const Formula::Ast& ast, const std::vector<double>& variables) const {
+double Formula::eval_ast(const Formula::Ast& ast, const std::vector<Variable::Type>& values) const {
   switch (ast.nodetype) {
     case Ast::NodeType::Literal:
       return std::get<double>(ast.data);
     case Ast::NodeType::Variable:
-      return variables[std::get<size_t>(ast.data)];
+      return std::get<double>(values[std::get<size_t>(ast.data)]);
     case Ast::NodeType::UAtom:
       switch (std::get<char>(ast.data)) {
-        case '-': return -eval_ast(ast.children[0], variables);
+        case '-': return -eval_ast(ast.children[0], values);
       }
     case Ast::NodeType::UnaryCall:
       return std::get<Ast::UnaryFcn>(ast.data)(
-          eval_ast(ast.children[0], variables)
+          eval_ast(ast.children[0], values)
           );
     case Ast::NodeType::BinaryCall:
       return std::get<Ast::BinaryFcn>(ast.data)(
-          eval_ast(ast.children[0], variables), eval_ast(ast.children[1], variables)
+          eval_ast(ast.children[0], values), eval_ast(ast.children[1], values)
           );
     case Ast::NodeType::Expression:
-      auto left = eval_ast(ast.children[0], variables);
-      auto right = eval_ast(ast.children[1], variables);
+      auto left = eval_ast(ast.children[0], values);
+      auto right = eval_ast(ast.children[1], values);
       switch (std::get<char>(ast.data)) {
         case '+': return left + right;
         case '-': return left - right;
@@ -337,13 +323,8 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
   if ( edges.size() != content.Size() + 1 ) {
     throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
   }
-  bins_.reserve(edges.size());
-  // first bin is a dummy content node (represents upper_bound returning underflow)
-  bins_.push_back({*edges.begin(), 0.});
-  for (size_t i=0; i < content.Size(); ++i) {
-    bins_.push_back({edges[i + 1], resolve_content(content[i], inputs)});
-  }
   variableIdx_ = find_variable_index(json["input"], inputs);
+  Content default_value{0.};
   if ( json["flow"] == "clamp" ) {
     flow_ = _FlowBehavior::clamp;
   }
@@ -352,7 +333,14 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
   }
   else { // Content node
     flow_ = _FlowBehavior::value;
-    default_value_ = std::make_unique<const Content>(resolve_content(json["flow"], inputs));
+    default_value = resolve_content(json["flow"], inputs);
+  }
+  bins_.reserve(edges.size());
+  // first bin is never accessed for content in range (corresponds to std::upper_bound underflow)
+  // use it to store default value
+  bins_.push_back({*edges.begin(), std::move(default_value)});
+  for (size_t i=0; i < content.Size(); ++i) {
+    bins_.push_back({edges[i + 1], resolve_content(content[i], inputs)});
   }
 }
 
@@ -361,7 +349,7 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   auto it = std::upper_bound(std::begin(bins_), std::end(bins_), value, [](const double& a, const auto& b) { return a < std::get<0>(b); });
   if ( it == std::begin(bins_) ) {
     if ( flow_ == _FlowBehavior::value ) {
-      return *default_value_;
+      // default value already at std::begin
     }
     else if ( flow_ == _FlowBehavior::error ) {
       throw std::runtime_error("Index below bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
@@ -372,7 +360,7 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   }
   else if ( it == std::end(bins_) ) {
     if ( flow_ == _FlowBehavior::value ) {
-      return *default_value_;
+      it = std::begin(bins_);
     }
     else if ( flow_ == _FlowBehavior::error ) {
       throw std::runtime_error("Index above bounds in Binning for input " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
@@ -405,6 +393,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
     std::get<1>(*it) = stride;
     stride *= std::get<2>(*it).size() - 1;
   }
+  content_.reserve(json["content"].GetArray().Size() + 1); // + 1 for default value
   for (const auto& item : json["content"].GetArray()) {
     content_.push_back(resolve_content(item, inputs));
   }
@@ -419,7 +408,8 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
   }
   else { // Content node
     flow_ = _FlowBehavior::value;
-    default_value_ = std::make_unique<const Content>(resolve_content(json["flow"], inputs));
+    // store default value at end of content array
+    content_.push_back(resolve_content(json["flow"], inputs));
   }
 }
 
@@ -430,7 +420,7 @@ const Content& MultiBinning::child(const std::vector<Variable::Type>& values) co
     auto it = std::upper_bound(std::begin(edges), std::end(edges), value);
     if ( it == std::begin(edges) ) {
       if ( flow_ == _FlowBehavior::value ) {
-        return *default_value_;
+        return *content_.rbegin();
       }
       else if ( flow_ == _FlowBehavior::error ) {
         throw std::runtime_error("Index below bounds in MultiBinning for input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
@@ -441,7 +431,7 @@ const Content& MultiBinning::child(const std::vector<Variable::Type>& values) co
     }
     else if ( it == std::end(edges) ) {
       if ( flow_ == _FlowBehavior::value ) {
-        return *default_value_;
+        return *content_.rbegin();
       }
       else if ( flow_ == _FlowBehavior::error ) {
         throw std::runtime_error("Index above bounds in MultiBinning input " + std::to_string(variableIdx) + " val: " + std::to_string(value));
@@ -519,22 +509,13 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
 struct node_evaluate {
   double operator() (double node) { return node; };
   double operator() (const Binning& node) {
-    return std::visit(
-        node_evaluate{values},
-        node.child(values)
-        );
+    return std::visit(*this, node.child(values));
   };
   double operator() (const MultiBinning& node) {
-    return std::visit(
-        node_evaluate{values},
-        node.child(values)
-        );
+    return std::visit(*this, node.child(values));
   };
   double operator() (const Category& node) {
-    return std::visit(
-        node_evaluate{values},
-        node.child(values)
-        );
+    return std::visit(*this, node.child(values));
   };
   double operator() (const Formula& node) {
     return node.evaluate(values);
