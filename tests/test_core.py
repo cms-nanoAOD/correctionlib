@@ -9,7 +9,7 @@ from correctionlib import schemav2 as schema
 
 def wrap(*corrs):
     cset = schema.CorrectionSet(
-        schema_version=2,
+        schema_version=schema.VERSION,
         corrections=list(corrs),
     )
     return core.CorrectionSet.from_string(cset.json())
@@ -163,6 +163,37 @@ def test_tformula():
     for i, (_, expected) in enumerate(formulas):
         for x in test_values:
             assert corr.evaluate(i, x) == expected(x)
+
+
+def test_category():
+    def make_cat(items, default):
+        cset = wrap(
+            schema.Correction(
+                name="test",
+                version=2,
+                inputs=[schema.Variable(name="cat", type="string")],
+                output=schema.Variable(name="a scale", type="real"),
+                data=schema.Category(
+                    nodetype="category",
+                    input="cat",
+                    content=[
+                        {"key": key, "value": value} for key, value in items.items()
+                    ],
+                    default=default,
+                ),
+            )
+        )
+        return cset["test"]
+
+    corr = make_cat({"blah": 1.2}, None)
+    assert corr.evaluate("blah") == 1.2
+    with pytest.raises(RuntimeError):
+        corr.evaluate("asdf")
+
+    corr = make_cat({"blah": 1.2}, 0.1)
+    assert corr.evaluate("blah") == 1.2
+    assert corr.evaluate("asdf") == 0.1
+    assert corr.evaluate("def") == 0.1
 
 
 def test_binning():

@@ -1,14 +1,27 @@
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/error/en.h>
+#include <optional>
 #include <algorithm>
 #include <cmath>
 #include "correction.h"
 
 using namespace correction;
 
+// A helper for getting optional object attributes
+template<typename T>
+std::optional<T> getOptional(const rapidjson::Value& json, const char * key) {
+  const auto it = json.FindMember(key);
+  if ( it != json.MemberEnd() ) {
+    if ( it->value.template Is<T>() ) {
+      return it->value.template Get<T>();
+    }
+  }
+  return std::nullopt;
+}
+
 Variable::Variable(const rapidjson::Value& json) :
   name_(json["name"].GetString()),
-  description_(json.HasMember("description") && json["description"].IsString() ? json["description"].GetString() : "")
+  description_(getOptional<const char*>(json, "description").value_or(""))
 {
   if (json["type"] == "string") { type_ = VarType::string; }
   else if (json["type"] == "int") { type_ = VarType::integer; }
@@ -118,8 +131,8 @@ Formula::Formula(const rapidjson::Value& json, const std::vector<Variable>& inpu
   }
 
   std::vector<double> params;
-  if ( json.HasMember("parameters") && json["parameters"].IsArray() ) {
-    for (const auto& item : json["parameters"].GetArray()) {
+  if ( auto items = getOptional<rapidjson::Value::ConstArray>(json, "parameters") ) {
+    for (const auto& item : *items) {
       params.push_back(item.GetDouble());
     }
   }
@@ -459,6 +472,10 @@ Category::Category(const rapidjson::Value& json, const std::vector<Variable>& in
       throw std::runtime_error("Invalid key type in Category");
     }
   }
+  const auto it = json.FindMember("default");
+  if ( it != json.MemberEnd() && !it->value.IsNull() ) {
+    default_ = std::make_unique<Content>(resolve_content(it->value, inputs));
+  }
 }
 
 const Content& Category::child(const std::vector<Variable::Type>& values) const {
@@ -466,14 +483,24 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
     try {
       return std::get<StrMap>(map_).at(*pval);
     } catch (std::out_of_range ex) {
-      throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + *pval);
+      if ( default_ ) {
+        return *default_;
+      }
+      else {
+        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + *pval);
+      }
     }
   }
   else if ( auto pval = std::get_if<int>(&values[variableIdx_]) ) {
     try {
       return std::get<IntMap>(map_).at(*pval);
     } catch (std::out_of_range ex) {
-      throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
+      if ( default_ ) {
+        return *default_;
+      }
+      else {
+        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
+      }
     }
   }
   throw std::runtime_error("Invalid variable type");
@@ -499,7 +526,7 @@ struct node_evaluate {
 
 Correction::Correction(const rapidjson::Value& json) :
   name_(json["name"].GetString()),
-  description_(json.HasMember("description") && json["description"].IsString() ? json["description"].GetString() : ""),
+  description_(getOptional<const char*>(json, "description").value_or("")),
   version_(json["version"].GetInt()),
   output_(json["output"])
 {
@@ -551,8 +578,7 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_string(const char * data) {
 }
 
 CorrectionSet::CorrectionSet(const rapidjson::Value& json) {
-  if ( json.HasMember("schema_version") && json["schema_version"].IsInt() ) {
-    schema_version_ = json["schema_version"].GetInt();
+  if ( auto schema_version_ = getOptional<int>(json, "schema_version") ) {
     if ( schema_version_ > evaluator_version ) {
       throw std::runtime_error("Evaluator is designed for schema v" + std::to_string(evaluator_version) + " and is not forward-compatible");
     }
@@ -560,9 +586,11 @@ CorrectionSet::CorrectionSet(const rapidjson::Value& json) {
       throw std::runtime_error("Evaluator is designed for schema v" + std::to_string(evaluator_version) + " and is not backward-compatible");
     }
   }
-  else { throw std::runtime_error("Missing schema_version in CorrectionSet document"); }
-  if ( json.HasMember("corrections") && json["corrections"].IsArray() ) {
-    for (const auto& item : json["corrections"].GetArray()) {
+  else {
+    throw std::runtime_error("Missing schema_version in CorrectionSet document");
+  }
+  if ( const auto& items = getOptional<rapidjson::Value::ConstArray>(json, "corrections") ) {
+    for (const auto& item : *items) {
       auto corr = std::make_shared<Correction>(item);
       corrections_[corr->name()] = corr;
     }
