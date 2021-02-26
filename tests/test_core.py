@@ -595,6 +595,27 @@ def test_tformula():
     with pytest.raises(RuntimeError):
         evaluate("1 + 2 * 3 + 5 * doesNotExist(2) ", [], [])
 
+    # issue 40
+    v = [
+        -1.04614304,
+        29.09992313,
+        8.512377293,
+        -2.773443989,
+        4.913533881,
+        2.780409657,
+        0.2951616046,
+        19.72651073,
+        1.841689324,
+        2.013020835,
+    ]
+    for x in [5.0, 15.0]:
+        # would be nice to check output as well
+        evaluate(
+            "max(0.0001,((x<10)*([9]))+((x>=10)*([0]+([1]/(pow(log10(x),2)+[2]))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))+([6]*exp(-([7]*((log10(x)-[8])*(log10(x)-[8]))))))))",
+            [x],
+            v,
+        )
+
 
 def test_category():
     def make_cat(items, default):
