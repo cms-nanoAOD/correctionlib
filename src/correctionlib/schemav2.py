@@ -76,6 +76,7 @@ class Category(Model):
 
 Binning.update_forward_refs()
 MultiBinning.update_forward_refs()
+CategoryItem.update_forward_refs()
 Category.update_forward_refs()
 
 

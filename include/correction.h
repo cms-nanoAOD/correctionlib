@@ -61,6 +61,20 @@ class Formula {
         UAtom,
         Expression,
       };
+      enum class BinaryOp {
+        Equal,
+        NotEqual,
+        Greater,
+        Less,
+        GreaterEq,
+        LessEq,
+        Minus,
+        Plus,
+        Div,
+        Times,
+        Pow,
+      };
+      enum class UnaryOp { Negative };
 
       typedef double (*UnaryFcn)(double);
       typedef double (*BinaryFcn)(double, double);
@@ -68,7 +82,8 @@ class Formula {
         std::monostate,
         double, // literal/parameter
         size_t, // variable index
-        char, // unary / binary op
+        UnaryOp,
+        BinaryOp,
         UnaryFcn,
         BinaryFcn
       > NodeData;
