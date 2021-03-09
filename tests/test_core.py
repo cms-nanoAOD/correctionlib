@@ -498,16 +498,10 @@ def test_tformula():
     assert evaluate("(1+0.04432+(1.724+100.))-1", [], []) == 101.76832
     assert evaluate("(1+(1.724+100.)+0.04432)-1", [], []) == 101.76832
     assert evaluate("((1.724+100.)+1+0.04432)-1", [], []) == 101.76832
-    # TODO: is this an important rounding issue?
-    assert evaluate("(1+0.04432+1.724/100.)-1", [], []) == pytest.approx(
-        0.06156, abs=1e-15
-    )
-    assert evaluate("(1+1.724/100.+0.04432)-1", [], []) == pytest.approx(
-        0.06156, abs=1e-15
-    )
-    assert evaluate("(1.724/100.+1+0.04432)-1", [], []) == pytest.approx(
-        0.06156, abs=1e-15
-    )
+    # Note: was 0.06156 in reco::formulaEvaluator (float vs. double)
+    assert evaluate("(1+0.04432+1.724/100.)-1", [], []) == 0.06155999999999984
+    assert evaluate("(1+1.724/100.+0.04432)-1", [], []) == 0.06155999999999984
+    assert evaluate("(1.724/100.+1+0.04432)-1", [], []) == 0.06155999999999984
     assert (
         evaluate("(1+0.04432+(1.724/100.))-1", [], [])
         == (1 + 0.04432 + (1.724 / 100.0)) - 1
