@@ -72,45 +72,23 @@ std::mutex Formula::parsers_mutex_;
 constexpr auto TFormula_grammar = R"(
 EXPRESSION  <- ATOM (BINARYOP ATOM)* {
                  precedence
+                   L == !=
+                   L > < >= <=
                    L - +
                    L / *
                    R ^
                }
 UNARYOP     <- < '-' >
-BINARYOP    <- < [-+/*^] >
-UNARYF      <- <
-  'log' |
-  'log10' |
-  'exp' |
-  'erf' |
-  'sqrt' |
-  'abs' |
-  'cos' |
-  'sin' |
-  'tan' |
-  'acos' |
-  'asin' |
-  'atan' |
-  'cosh' |
-  'sinh' |
-  'tanh' |
-  'acosh' |
-  'asinh' |
-  'atanh'
-  >
-BINARYF     <- <
-  'atan2' |
-  'pow' |
-  'max' |
-  'min'
-  >
+BINARYOP    <- < '==' | '!=' | '>' | '<' | '>=' | '<=' | '-' | '+' | '/' | '*' | '^' >
+UNARYF      <- < 'log' | 'log10' | 'exp' | 'erf' | 'sqrt' | 'abs' | 'cos' | 'sin' | 'tan' | 'acos' | 'asin' | 'atan' | 'cosh' | 'sinh' | 'tanh' | 'acosh' | 'asinh' | 'atanh' >
+BINARYF     <- < 'atan2' | 'pow' | 'max' | 'min' >
 PARAMETER   <- '[' < [0-9]+ > ']'
 VARIABLE    <- < [xyzt] >
 LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? ('e' '-'? [0-9]+)? >
 CALLU       <- UNARYF '(' EXPRESSION ')'
 CALLB       <- BINARYF '(' EXPRESSION ',' EXPRESSION ')'
 ATOM        <- LITERAL / UATOM
-UATOM       <- UNARYOP? ( NAME / CALLU / CALLB / '(' EXPRESSION ')' )
+UATOM       <- UNARYOP? ( CALLU / CALLB / NAME / '(' EXPRESSION ')' )
 NAME        <- PARAMETER / VARIABLE
 %whitespace <- [ \t]*
 )";
@@ -198,9 +176,13 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
   }
   else if (ast.name == "UATOM" ) {
     if ( ast.nodes.size() != 2 ) { throw std::runtime_error("UATOM without 2 nodes?"); }
+    auto opname = ast.nodes[0]->token;
+    Ast::UnaryOp op;
+    if      ( opname == "-" ) { op = Ast::UnaryOp::Negative; }
+    else { throw std::runtime_error("Unrecognized unary operation: " + std::string(opname)); }
     return {
       Ast::NodeType::UAtom,
-      ast.nodes[0]->token[0],
+      op,
       {translate_ast(*ast.nodes[1], params, variableIdx)}
     };
   }
@@ -256,9 +238,23 @@ const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector
   }
   else if (ast.name == "EXPRESSION" ) {
     if ( ast.nodes.size() != 3 ) { throw std::runtime_error("EXPRESSION without 3 nodes?"); }
+    auto opname = ast.nodes[1]->token;
+    Ast::BinaryOp op;
+    if      ( opname == "==" ) { op = Ast::BinaryOp::Equal; }
+    else if ( opname == "!=" ) { op = Ast::BinaryOp::NotEqual; }
+    else if ( opname == ">"  ) { op = Ast::BinaryOp::Greater; }
+    else if ( opname == "<"  ) { op = Ast::BinaryOp::Less; }
+    else if ( opname == ">=" ) { op = Ast::BinaryOp::GreaterEq; }
+    else if ( opname == "<=" ) { op = Ast::BinaryOp::LessEq; }
+    else if ( opname == "-"  ) { op = Ast::BinaryOp::Minus; }
+    else if ( opname == "+"  ) { op = Ast::BinaryOp::Plus; }
+    else if ( opname == "/"  ) { op = Ast::BinaryOp::Div; }
+    else if ( opname == "*"  ) { op = Ast::BinaryOp::Times; }
+    else if ( opname == "^"  ) { op = Ast::BinaryOp::Pow; }
+    else { throw std::runtime_error("Unrecognized binary operation: " + std::string(opname)); }
     return {
       Ast::NodeType::Expression,
-      ast.nodes[1]->token[0],
+      op,
       {translate_ast(*ast.nodes[0], params, variableIdx), translate_ast(*ast.nodes[2], params, variableIdx)}
     };
   }
@@ -276,8 +272,8 @@ double Formula::eval_ast(const Formula::Ast& ast, const std::vector<Variable::Ty
     case Ast::NodeType::Variable:
       return std::get<double>(values[std::get<size_t>(ast.data)]);
     case Ast::NodeType::UAtom:
-      switch (std::get<char>(ast.data)) {
-        case '-': return -eval_ast(ast.children[0], values);
+      switch (std::get<Ast::UnaryOp>(ast.data)) {
+        case Ast::UnaryOp::Negative: return -eval_ast(ast.children[0], values);
       }
     case Ast::NodeType::UnaryCall:
       return std::get<Ast::UnaryFcn>(ast.data)(
@@ -290,12 +286,18 @@ double Formula::eval_ast(const Formula::Ast& ast, const std::vector<Variable::Ty
     case Ast::NodeType::Expression:
       auto left = eval_ast(ast.children[0], values);
       auto right = eval_ast(ast.children[1], values);
-      switch (std::get<char>(ast.data)) {
-        case '+': return left + right;
-        case '-': return left - right;
-        case '*': return left * right;
-        case '/': return left / right;
-        case '^': return std::pow(left, right);
+      switch (std::get<Ast::BinaryOp>(ast.data)) {
+        case Ast::BinaryOp::Equal: return (left == right) ? 1. : 0.;
+        case Ast::BinaryOp::NotEqual: return (left != right) ? 1. : 0.;
+        case Ast::BinaryOp::Greater: return (left > right) ? 1. : 0.;
+        case Ast::BinaryOp::Less: return (left < right) ? 1. : 0.;
+        case Ast::BinaryOp::GreaterEq: return (left >= right) ? 1. : 0.;
+        case Ast::BinaryOp::LessEq: return (left <= right) ? 1. : 0.;
+        case Ast::BinaryOp::Minus: return left - right;
+        case Ast::BinaryOp::Plus: return left + right;
+        case Ast::BinaryOp::Div: return left / right;
+        case Ast::BinaryOp::Times: return left * right;
+        case Ast::BinaryOp::Pow: return std::pow(left, right);
       }
   }
   throw std::runtime_error("Unrecognized AST node");
