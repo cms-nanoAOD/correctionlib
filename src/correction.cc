@@ -2,21 +2,57 @@
 #include <rapidjson/error/en.h>
 #include <optional>
 #include <algorithm>
-#include <cmath>
+#include <stdexcept>
 #include "correction.h"
 
 using namespace correction;
 
-// A helper for getting optional object attributes
-template<typename T>
-std::optional<T> getOptional(const rapidjson::Value& json, const char * key) {
-  const auto it = json.FindMember(key);
-  if ( it != json.MemberEnd() ) {
-    if ( it->value.template Is<T>() ) {
-      return it->value.template Get<T>();
+namespace {
+  // A helper for getting optional object attributes
+  template<typename T>
+  std::optional<T> getOptional(const rapidjson::Value& json, const char * key) {
+    const auto it = json.FindMember(key);
+    if ( it != json.MemberEnd() ) {
+      if ( it->value.template Is<T>() ) {
+        return it->value.template Get<T>();
+      }
     }
+    return std::nullopt;
   }
-  return std::nullopt;
+
+  Content resolve_content(const rapidjson::Value& json, const Correction& context) {
+    if ( json.IsDouble() ) { return json.GetDouble(); }
+    else if ( json.HasMember("nodetype") ) {
+      if ( json["nodetype"] == "binning" ) { return Binning(json, context); }
+      else if ( json["nodetype"] == "multibinning" ) { return MultiBinning(json, context); }
+      else if ( json["nodetype"] == "category" ) { return Category(json, context); }
+      else if ( json["nodetype"] == "formula" ) { return Formula(json, context); }
+      else if ( json["nodetype"] == "formularef" ) { return FormulaRef(json, context); }
+    }
+    throw std::runtime_error("Unrecognized Content node type");
+  }
+
+  struct node_evaluate {
+    double operator() (double node) { return node; };
+    double operator() (const Binning& node) {
+      return std::visit(*this, node.child(values));
+    };
+    double operator() (const MultiBinning& node) {
+      return std::visit(*this, node.child(values));
+    };
+    double operator() (const Category& node) {
+      return std::visit(*this, node.child(values));
+    };
+    double operator() (const Formula& node) {
+      return node.evaluate(values);
+    };
+    double operator() (const FormulaRef& node) {
+      return node.evaluate(values);
+    };
+
+    const std::vector<Variable::Type>& values;
+  };
+
 }
 
 Variable::Variable(const rapidjson::Value& json) :
@@ -54,58 +90,20 @@ void Variable::validate(const Type& t) const {
   }
 }
 
-size_t find_variable_index(const rapidjson::Value& item, const std::vector<Variable>& inputs) {
-  size_t idx = 0;
-  for (const auto& var : inputs) {
-    if ( item.GetString() == var.name() ) break;
-    idx++;
-  }
-  if ( idx == inputs.size() ) {
-    throw std::runtime_error("Error: could not find variable " + std::string(item.GetString()) + " in inputs");
-  }
-  return idx;
-}
-
-std::map<Formula::ParserType, peg::parser> Formula::parsers_;
-std::mutex Formula::parsers_mutex_;
-
-constexpr auto TFormula_grammar = R"(
-EXPRESSION  <- ATOM (BINARYOP ATOM)* {
-                 precedence
-                   L == !=
-                   L > < >= <=
-                   L - +
-                   L / *
-                   R ^
-               }
-UNARYOP     <- < '-' >
-BINARYOP    <- < '==' | '!=' | '>' | '<' | '>=' | '<=' | '-' | '+' | '/' | '*' | '^' >
-UNARYF      <- < 'log' | 'log10' | 'exp' | 'erf' | 'sqrt' | 'abs' | 'cos' | 'sin' | 'tan' | 'acos' | 'asin' | 'atan' | 'cosh' | 'sinh' | 'tanh' | 'acosh' | 'asinh' | 'atanh' >
-BINARYF     <- < 'atan2' | 'pow' | 'max' | 'min' >
-PARAMETER   <- '[' < [0-9]+ > ']'
-VARIABLE    <- < [xyzt] >
-LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? ('e' '-'? [0-9]+)? >
-CALLU       <- UNARYF '(' EXPRESSION ')'
-CALLB       <- BINARYF '(' EXPRESSION ',' EXPRESSION ')'
-ATOM        <- LITERAL / UATOM
-UATOM       <- UNARYOP? ( CALLU / CALLB / NAME / '(' EXPRESSION ')' )
-NAME        <- PARAMETER / VARIABLE
-%whitespace <- [ \t]*
-)";
-
-Formula::Formula(const rapidjson::Value& json, const std::vector<Variable>& inputs) :
-  expression_(json["expression"].GetString())
+Formula::Formula(const rapidjson::Value& json, const Correction& context, bool generic) :
+  expression_(json["expression"].GetString()),
+  generic_(generic)
 {
-  if (json["parser"] == "TFormula") { type_ = ParserType::TFormula; }
+  if (json["parser"] == "TFormula") { type_ = FormulaAst::ParserType::TFormula; }
   else if (json["parser"] == "numexpr") {
-    type_ = ParserType::numexpr;
+    type_ = FormulaAst::ParserType::numexpr;
     throw std::runtime_error("numexpr formula parser is not yet supported");
   }
   else { throw std::runtime_error("Unrecognized formula parser type"); }
 
   std::vector<size_t> variableIdx;
   for (const auto& item : json["variables"].GetArray()) {
-    variableIdx.push_back(find_variable_index(item, inputs));
+    variableIdx.push_back(context.input_index(item.GetString()));
   }
 
   std::vector<double> params;
@@ -115,206 +113,32 @@ Formula::Formula(const rapidjson::Value& json, const std::vector<Variable>& inpu
     }
   }
 
-  build_ast(params, variableIdx);
-}
-
-void Formula::build_ast(const std::vector<double>& params, const std::vector<size_t>& variableIdx) {
-  std::shared_ptr<peg::Ast> peg_ast;
-  {
-    const std::lock_guard<std::mutex> lock(parsers_mutex_);
-    auto& parser = parsers_[type_];
-    if ( ! parser ) {
-      if ( type_ == ParserType::TFormula ) parser.load_grammar(TFormula_grammar);
-      parser.enable_ast();
-      parser.enable_packrat_parsing();
-    }
-    int pos;
-    std::string msg;
-    parser.log = [&](size_t ln, size_t col, const std::string &themsg) {
-      pos = col;
-      msg = themsg;
-    };
-    if ( ! parser.parse(expression_, peg_ast) ) {
-      throw std::runtime_error(
-        "Failed to parse Formula expression at position " + std::to_string(pos) + ":\n"
-        + expression_ + "\n"
-        + std::string(pos, ' ') + "^\n"
-        + msg
-      );
-    }
-    peg_ast = parser.optimize_ast(peg_ast);
-    ast_ = std::make_unique<Ast>(translate_ast(*peg_ast, params, variableIdx));
-  }
-}
-
-const Formula::Ast Formula::translate_ast(const peg::Ast& ast, const std::vector<double>& params, const std::vector<size_t>& variableIdx) const {
-  if (ast.is_token) {
-    if (ast.name == "LITERAL") {
-      return {Ast::NodeType::Literal, ast.token_to_number<double>(), {}};
-    }
-    else if (ast.name == "VARIABLE") {
-      size_t idx;
-      if ( ast.token == "x" ) idx = 0;
-      else if ( ast.token == "y" ) idx = 1;
-      else if ( ast.token == "z" ) idx = 2;
-      else if ( ast.token == "t" ) idx = 3;
-      else {
-        throw std::runtime_error("Unrecognized variable name in formula");
-      }
-      if ( variableIdx.size() <= idx ) {
-        throw std::runtime_error("Insufficient variables for formula");
-      }
-      return {Ast::NodeType::Variable, variableIdx[idx], {}};
-    }
-    else if (ast.name == "PARAMETER") {
-      auto pidx = ast.token_to_number<size_t>();
-      if ( pidx >= params.size() ) {
-        throw std::runtime_error("Insufficient parameters for formula");
-      }
-      return {Ast::NodeType::Literal, params[pidx], {}};
-    }
-  }
-  else if (ast.name == "UATOM" ) {
-    if ( ast.nodes.size() != 2 ) { throw std::runtime_error("UATOM without 2 nodes?"); }
-    auto opname = ast.nodes[0]->token;
-    Ast::UnaryOp op;
-    if      ( opname == "-" ) { op = Ast::UnaryOp::Negative; }
-    else { throw std::runtime_error("Unrecognized unary operation: " + std::string(opname)); }
-    return {
-      Ast::NodeType::UAtom,
-      op,
-      {translate_ast(*ast.nodes[1], params, variableIdx)}
-    };
-  }
-  else if (ast.name == "CALLU" ) {
-    if ( ast.nodes.size() != 2 ) { throw std::runtime_error("CALLU without 2 nodes?"); }
-    Ast::UnaryFcn fun;
-    auto name = ast.nodes[0]->token;
-    // TODO: lookup in static map
-    if      ( name == "log" )   { fun = [](double x) { return std::log(x); }; }
-    else if ( name == "log10" ) { fun = [](double x) { return std::log10(x); }; }
-    else if ( name == "exp" )   { fun = [](double x) { return std::exp(x); }; }
-    else if ( name == "erf" )   { fun = [](double x) { return std::erf(x); }; }
-    else if ( name == "sqrt" )  { fun = [](double x) { return std::sqrt(x); }; }
-    else if ( name == "abs" )   { fun = [](double x) { return std::abs(x); }; }
-    else if ( name == "cos" )   { fun = [](double x) { return std::cos(x); }; }
-    else if ( name == "sin" )   { fun = [](double x) { return std::sin(x); }; }
-    else if ( name == "tan" )   { fun = [](double x) { return std::tan(x); }; }
-    else if ( name == "acos" )  { fun = [](double x) { return std::acos(x); }; }
-    else if ( name == "asin" )  { fun = [](double x) { return std::asin(x); }; }
-    else if ( name == "atan" )  { fun = [](double x) { return std::atan(x); }; }
-    else if ( name == "cosh" )  { fun = [](double x) { return std::cosh(x); }; }
-    else if ( name == "sinh" )  { fun = [](double x) { return std::sinh(x); }; }
-    else if ( name == "tanh" )  { fun = [](double x) { return std::tanh(x); }; }
-    else if ( name == "acosh" ) { fun = [](double x) { return std::acosh(x); }; }
-    else if ( name == "asinh" ) { fun = [](double x) { return std::asinh(x); }; }
-    else if ( name == "atanh" ) { fun = [](double x) { return std::atanh(x); }; }
-    else {
-      throw std::runtime_error("unrecognized unary function: " + std::string(name));
-    }
-    return {
-      Ast::NodeType::UnaryCall,
-      fun,
-      {translate_ast(*ast.nodes[1], params, variableIdx)}
-    };
-  }
-  else if (ast.name == "CALLB" ) {
-    if ( ast.nodes.size() != 3 ) { throw std::runtime_error("CALLB without 3 nodes?"); }
-    Ast::BinaryFcn fun;
-    auto name = ast.nodes[0]->token;
-    // TODO: lookup in static map
-    if      ( name == "atan2" ) { fun = [](double x, double y) { return std::atan2(x, y); }; }
-    else if ( name == "pow" )   { fun = [](double x, double y) { return std::pow(x, y); }; }
-    else if ( name == "max" )   { fun = [](double x, double y) { return std::max(x, y); }; }
-    else if ( name == "min" )   { fun = [](double x, double y) { return std::min(x, y); }; }
-    else {
-      throw std::runtime_error("unrecognized binary function: " + std::string(name));
-    }
-    return {
-      Ast::NodeType::BinaryCall,
-      fun,
-      {translate_ast(*ast.nodes[1], params, variableIdx), translate_ast(*ast.nodes[2], params, variableIdx)}
-    };
-  }
-  else if (ast.name == "EXPRESSION" ) {
-    if ( ast.nodes.size() != 3 ) { throw std::runtime_error("EXPRESSION without 3 nodes?"); }
-    auto opname = ast.nodes[1]->token;
-    Ast::BinaryOp op;
-    if      ( opname == "==" ) { op = Ast::BinaryOp::Equal; }
-    else if ( opname == "!=" ) { op = Ast::BinaryOp::NotEqual; }
-    else if ( opname == ">"  ) { op = Ast::BinaryOp::Greater; }
-    else if ( opname == "<"  ) { op = Ast::BinaryOp::Less; }
-    else if ( opname == ">=" ) { op = Ast::BinaryOp::GreaterEq; }
-    else if ( opname == "<=" ) { op = Ast::BinaryOp::LessEq; }
-    else if ( opname == "-"  ) { op = Ast::BinaryOp::Minus; }
-    else if ( opname == "+"  ) { op = Ast::BinaryOp::Plus; }
-    else if ( opname == "/"  ) { op = Ast::BinaryOp::Div; }
-    else if ( opname == "*"  ) { op = Ast::BinaryOp::Times; }
-    else if ( opname == "^"  ) { op = Ast::BinaryOp::Pow; }
-    else { throw std::runtime_error("Unrecognized binary operation: " + std::string(opname)); }
-    return {
-      Ast::NodeType::Expression,
-      op,
-      {translate_ast(*ast.nodes[0], params, variableIdx), translate_ast(*ast.nodes[2], params, variableIdx)}
-    };
-  }
-  throw std::runtime_error("Unrecognized AST node");
+  ast_ = std::make_unique<FormulaAst>(FormulaAst::parse(type_, expression_, params, variableIdx, !generic));
 }
 
 double Formula::evaluate(const std::vector<Variable::Type>& values) const {
-  return eval_ast(*ast_, values);
-}
-
-double Formula::eval_ast(const Formula::Ast& ast, const std::vector<Variable::Type>& values) const {
-  switch (ast.nodetype) {
-    case Ast::NodeType::Literal:
-      return std::get<double>(ast.data);
-    case Ast::NodeType::Variable:
-      return std::get<double>(values[std::get<size_t>(ast.data)]);
-    case Ast::NodeType::UAtom:
-      switch (std::get<Ast::UnaryOp>(ast.data)) {
-        case Ast::UnaryOp::Negative: return -eval_ast(ast.children[0], values);
-      }
-    case Ast::NodeType::UnaryCall:
-      return std::get<Ast::UnaryFcn>(ast.data)(
-          eval_ast(ast.children[0], values)
-          );
-    case Ast::NodeType::BinaryCall:
-      return std::get<Ast::BinaryFcn>(ast.data)(
-          eval_ast(ast.children[0], values), eval_ast(ast.children[1], values)
-          );
-    case Ast::NodeType::Expression:
-      auto left = eval_ast(ast.children[0], values);
-      auto right = eval_ast(ast.children[1], values);
-      switch (std::get<Ast::BinaryOp>(ast.data)) {
-        case Ast::BinaryOp::Equal: return (left == right) ? 1. : 0.;
-        case Ast::BinaryOp::NotEqual: return (left != right) ? 1. : 0.;
-        case Ast::BinaryOp::Greater: return (left > right) ? 1. : 0.;
-        case Ast::BinaryOp::Less: return (left < right) ? 1. : 0.;
-        case Ast::BinaryOp::GreaterEq: return (left >= right) ? 1. : 0.;
-        case Ast::BinaryOp::LessEq: return (left <= right) ? 1. : 0.;
-        case Ast::BinaryOp::Minus: return left - right;
-        case Ast::BinaryOp::Plus: return left + right;
-        case Ast::BinaryOp::Div: return left / right;
-        case Ast::BinaryOp::Times: return left * right;
-        case Ast::BinaryOp::Pow: return std::pow(left, right);
-      }
+  if ( generic_ ) {
+    throw std::runtime_error("Generic formulas must be evaluated with parameters");
   }
-  throw std::runtime_error("Unrecognized AST node");
+  return ast_->evaluate(values, {});
 }
 
-Content resolve_content(const rapidjson::Value& json, const std::vector<Variable>& inputs) {
-  if ( json.IsDouble() ) { return json.GetDouble(); }
-  else if ( json.HasMember("nodetype") ) {
-    if ( json["nodetype"] == "binning" ) { return Binning(json, inputs); }
-    else if ( json["nodetype"] == "multibinning" ) { return MultiBinning(json, inputs); }
-    else if ( json["nodetype"] == "category" ) { return Category(json, inputs); }
-    else if ( json["nodetype"] == "formula" ) { return Formula(json, inputs); }
+double Formula::evaluate(const std::vector<Variable::Type>& values, const std::vector<double>& params) const {
+  return ast_->evaluate(values, params);
+}
+
+FormulaRef::FormulaRef(const rapidjson::Value& json, const Correction& context) {
+  formula_ = context.formula_ref(json["index"].GetInt());
+  for (const auto& item : json["parameters"].GetArray()) {
+    parameters_.push_back(item.GetDouble());
   }
-  throw std::runtime_error("Unrecognized Content node type");
 }
 
-Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inputs)
+double FormulaRef::evaluate(const std::vector<Variable::Type>& values) const {
+  return formula_->evaluate(values, parameters_);
+}
+
+Binning::Binning(const rapidjson::Value& json, const Correction& context)
 {
   if (json["nodetype"] != "binning") { throw std::runtime_error("Attempted to construct Binning node but data is not that type"); }
   std::vector<double> edges;
@@ -325,7 +149,7 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
   if ( edges.size() != content.Size() + 1 ) {
     throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
   }
-  variableIdx_ = find_variable_index(json["input"], inputs);
+  variableIdx_ = context.input_index(json["input"].GetString());
   Content default_value{0.};
   if ( json["flow"] == "clamp" ) {
     flow_ = _FlowBehavior::clamp;
@@ -335,14 +159,14 @@ Binning::Binning(const rapidjson::Value& json, const std::vector<Variable>& inpu
   }
   else { // Content node
     flow_ = _FlowBehavior::value;
-    default_value = resolve_content(json["flow"], inputs);
+    default_value = resolve_content(json["flow"], context);
   }
   bins_.reserve(edges.size());
   // first bin is never accessed for content in range (corresponds to std::upper_bound underflow)
   // use it to store default value
   bins_.push_back({*edges.begin(), std::move(default_value)});
   for (size_t i=0; i < content.Size(); ++i) {
-    bins_.push_back({edges[i + 1], resolve_content(content[i], inputs)});
+    bins_.push_back({edges[i + 1], resolve_content(content[i], context)});
   }
 }
 
@@ -374,7 +198,7 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   return std::get<1>(*it);
 }
 
-MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Variable>& inputs)
+MultiBinning::MultiBinning(const rapidjson::Value& json, const Correction& context)
 {
   if (json["nodetype"] != "multibinning") { throw std::runtime_error("Attempted to construct MultiBinning node but data is not that type"); }
   axes_.reserve(json["edges"].GetArray().Size());
@@ -386,7 +210,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
       dim_edges.push_back(item.GetDouble());
     }
     const auto& input = json["inputs"].GetArray()[idx];
-    axes_.push_back({find_variable_index(input, inputs), 0, std::move(dim_edges)});
+    axes_.push_back({context.input_index(input.GetString()), 0, std::move(dim_edges)});
     idx++;
   }
 
@@ -397,7 +221,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
   }
   content_.reserve(json["content"].GetArray().Size() + 1); // + 1 for default value
   for (const auto& item : json["content"].GetArray()) {
-    content_.push_back(resolve_content(item, inputs));
+    content_.push_back(resolve_content(item, context));
   }
   if ( content_.size() != stride ) {
     throw std::runtime_error("Inconsistency in MultiBinning: number of content nodes does not match binning");
@@ -411,7 +235,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const std::vector<Varia
   else { // Content node
     flow_ = _FlowBehavior::value;
     // store default value at end of content array
-    content_.push_back(resolve_content(json["flow"], inputs));
+    content_.push_back(resolve_content(json["flow"], context));
   }
 }
 
@@ -448,11 +272,11 @@ const Content& MultiBinning::child(const std::vector<Variable::Type>& values) co
   return content_.at(idx);
 }
 
-Category::Category(const rapidjson::Value& json, const std::vector<Variable>& inputs)
+Category::Category(const rapidjson::Value& json, const Correction& context)
 {
   if (json["nodetype"] != "category") { throw std::runtime_error("Attempted to construct Category node but data is not that type"); }
-  variableIdx_ = find_variable_index(json["input"], inputs);
-  const auto& variable = inputs[variableIdx_];
+  variableIdx_ = context.input_index(json["input"].GetString());
+  const auto& variable = context.inputs()[variableIdx_];
   if ( variable.type() == Variable::VarType::string ) {
     map_ = StrMap();
   } // (default-constructed as IntMap)
@@ -462,13 +286,13 @@ Category::Category(const rapidjson::Value& json, const std::vector<Variable>& in
       if ( variable.type() != Variable::VarType::string ) {
         throw std::runtime_error("Category got a key not of type string, but its input is string type");
       }
-      std::get<StrMap>(map_).try_emplace(kv_pair["key"].GetString(), resolve_content(kv_pair["value"], inputs));
+      std::get<StrMap>(map_).try_emplace(kv_pair["key"].GetString(), resolve_content(kv_pair["value"], context));
     }
     else if ( kv_pair["key"].IsInt() ) {
       if ( variable.type() != Variable::VarType::integer ) {
         throw std::runtime_error("Category got a key not of type int, but its input is int type");
       }
-      std::get<IntMap>(map_).try_emplace(kv_pair["key"].GetInt(), resolve_content(kv_pair["value"], inputs));
+      std::get<IntMap>(map_).try_emplace(kv_pair["key"].GetInt(), resolve_content(kv_pair["value"], context));
     }
     else {
       throw std::runtime_error("Invalid key type in Category");
@@ -476,7 +300,7 @@ Category::Category(const rapidjson::Value& json, const std::vector<Variable>& in
   }
   const auto it = json.FindMember("default");
   if ( it != json.MemberEnd() && !it->value.IsNull() ) {
-    default_ = std::make_unique<Content>(resolve_content(it->value, inputs));
+    default_ = std::make_unique<Content>(resolve_content(it->value, context));
   }
 }
 
@@ -508,24 +332,6 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
   throw std::runtime_error("Invalid variable type");
 }
 
-struct node_evaluate {
-  double operator() (double node) { return node; };
-  double operator() (const Binning& node) {
-    return std::visit(*this, node.child(values));
-  };
-  double operator() (const MultiBinning& node) {
-    return std::visit(*this, node.child(values));
-  };
-  double operator() (const Category& node) {
-    return std::visit(*this, node.child(values));
-  };
-  double operator() (const Formula& node) {
-    return node.evaluate(values);
-  };
-
-  const std::vector<Variable::Type>& values;
-};
-
 Correction::Correction(const rapidjson::Value& json) :
   name_(json["name"].GetString()),
   description_(getOptional<const char*>(json, "description").value_or("")),
@@ -535,10 +341,29 @@ Correction::Correction(const rapidjson::Value& json) :
   for (const auto& item : json["inputs"].GetArray()) {
     inputs_.emplace_back(item);
   }
-  data_ = resolve_content(json["data"], inputs_);
+  if ( const auto& items = getOptional<rapidjson::Value::ConstArray>(json, "generic_formulas") ) {
+    for (const auto& item : *items) {
+      formula_refs_.push_back(std::make_shared<Formula>(item, *this, true));
+    }
+  }
+
+  data_ = resolve_content(json["data"], *this);
+  initialized_ = true;
+}
+
+size_t Correction::input_index(const std::string_view name) const {
+  size_t idx = 0;
+  for (const auto& var : inputs_) {
+    if ( name == var.name() ) return idx;
+    idx++;
+  }
+  throw std::runtime_error("Error: could not find variable " + std::string(name) + " in inputs");
 }
 
 double Correction::evaluate(const std::vector<Variable::Type>& values) const {
+  if ( ! initialized_ ) {
+    throw std::logic_error("Not initialized");
+  }
   if ( values.size() > inputs_.size() ) {
     throw std::runtime_error("Too many inputs");
   }
