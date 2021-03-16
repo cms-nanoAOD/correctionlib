@@ -142,7 +142,7 @@ class Binning {
 class MultiBinning {
   public:
     MultiBinning(const rapidjson::Value& json, const Correction& context);
-    int ndimensions() const { return axes_.size(); };
+    size_t ndimensions() const { return axes_.size(); };
     const Content& child(const std::vector<Variable::Type>& values) const;
 
   private:

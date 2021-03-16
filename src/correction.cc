@@ -2,6 +2,7 @@
 #include <rapidjson/error/en.h>
 #include <optional>
 #include <algorithm>
+#include <stdexcept>
 #include "correction.h"
 
 using namespace correction;
