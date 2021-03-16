@@ -5,6 +5,7 @@
 #include <vector>
 #include <variant>
 #include <map>
+#include <memory>
 #include <rapidjson/document.h>
 
 
