@@ -23,7 +23,7 @@ else:
 ext_modules = [
     Pybind11Extension(
         "correctionlib._core",
-        ["src/python.cc", "src/correction.cc"],
+        ["src/python.cc", "src/correction.cc", "src/formula_ast.cc"],
         cxx_std=17,
         include_pybind11=False,
         include_dirs=["rapidjson/include", "pybind11/include", "cpp-peglib", "include"],

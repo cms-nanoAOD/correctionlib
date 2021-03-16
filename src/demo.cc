@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <iostream>
 #include "correction.h"
 
 using namespace correction;
@@ -30,27 +31,7 @@ int main(int argc, char** argv) {
       stuff += deepcsv->evaluate({"central", 0, 1.2, 35., i / (double) n});
     }
   }
-  else if ( argc == 3 ) {
-    rapidjson::Document json;
-    std::string doc = R"(
-    [
-        {
-            "expression": ")" + std::string(argv[1]) + R"( ",
-            "parser": "TFormula",
-            "parameters": [],
-            "variables": ["avariable"]
-        },
-        {
-            "name": "avariable",
-            "type": "real"
-        }
-    ]
-    )";
-    json.Parse(doc.c_str());
-    auto i = Variable(json.GetArray()[1]);
-    auto f = Formula(json.GetArray()[0], {i});
-    std::cout << f.evaluate({std::stod(argv[2])}) << '\n';
-  } else {
+  else {
     printf("Usage:%s filename.json\n", argv[0]);
   }
 }

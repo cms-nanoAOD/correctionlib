@@ -21,11 +21,10 @@ class Variable(Model):
     type: Literal["string", "int", "real"]
     "Implicitly 64 bit integer and double-precision floating point?"
     description: Optional[str]
-    # TODO: clamping behavior for out of range?
 
 
 # py3.7+: ForwardRef can be used instead of strings
-Content = Union["Binning", "MultiBinning", "Category", "Formula", float]
+Content = Union["Binning", "MultiBinning", "Category", "Formula", "FormulaRef", float]
 
 
 class Formula(Model):
@@ -34,6 +33,13 @@ class Formula(Model):
     parser: Literal["TFormula"]
     variables: List[str]
     parameters: Optional[List[float]]
+
+
+class FormulaRef(Model):
+    nodetype: Literal["formularef"]
+    index: int
+    "Indexes the Correction.generic_formulas list"
+    parameters: List[float]
 
 
 class Binning(Model):
@@ -89,6 +95,7 @@ class Correction(Model):
     "Version"
     inputs: List[Variable]
     output: Variable
+    generic_formulas: Optional[List[Formula]]
     data: Content
 
 

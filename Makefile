@@ -18,10 +18,10 @@ build/%.o: src/%.cc
 	mkdir -p build
 	$(CXX) $(CFLAGS) -c $< -o $@
 
-demo: build/demo.o build/correction.o
+demo: build/demo.o build/correction.o build/formula_ast.o
 	$(CXX) $(LDFLAGS) $^ -o $@
 
-correctionlib: build/python.o build/correction.o
+correctionlib: build/python.o build/correction.o build/formula_ast.o
 	mkdir -p correctionlib
 	$(CXX) $(LDFLAGS) -fPIC -shared $(OSXFLAG) $^ -o correctionlib/_core$(PYEXT)
 	touch correctionlib/__init__.py
