@@ -1,4 +1,5 @@
 #include <mutex>
+#include <cmath>
 #include "peglib.h"
 #include "correction.h"
 
