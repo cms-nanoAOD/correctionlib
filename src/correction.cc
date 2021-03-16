@@ -7,16 +7,52 @@
 
 using namespace correction;
 
-// A helper for getting optional object attributes
-template<typename T>
-std::optional<T> getOptional(const rapidjson::Value& json, const char * key) {
-  const auto it = json.FindMember(key);
-  if ( it != json.MemberEnd() ) {
-    if ( it->value.template Is<T>() ) {
-      return it->value.template Get<T>();
+namespace {
+  // A helper for getting optional object attributes
+  template<typename T>
+  std::optional<T> getOptional(const rapidjson::Value& json, const char * key) {
+    const auto it = json.FindMember(key);
+    if ( it != json.MemberEnd() ) {
+      if ( it->value.template Is<T>() ) {
+        return it->value.template Get<T>();
+      }
     }
+    return std::nullopt;
   }
-  return std::nullopt;
+
+  Content resolve_content(const rapidjson::Value& json, const Correction& context) {
+    if ( json.IsDouble() ) { return json.GetDouble(); }
+    else if ( json.HasMember("nodetype") ) {
+      if ( json["nodetype"] == "binning" ) { return Binning(json, context); }
+      else if ( json["nodetype"] == "multibinning" ) { return MultiBinning(json, context); }
+      else if ( json["nodetype"] == "category" ) { return Category(json, context); }
+      else if ( json["nodetype"] == "formula" ) { return Formula(json, context); }
+      else if ( json["nodetype"] == "formularef" ) { return FormulaRef(json, context); }
+    }
+    throw std::runtime_error("Unrecognized Content node type");
+  }
+
+  struct node_evaluate {
+    double operator() (double node) { return node; };
+    double operator() (const Binning& node) {
+      return std::visit(*this, node.child(values));
+    };
+    double operator() (const MultiBinning& node) {
+      return std::visit(*this, node.child(values));
+    };
+    double operator() (const Category& node) {
+      return std::visit(*this, node.child(values));
+    };
+    double operator() (const Formula& node) {
+      return node.evaluate(values);
+    };
+    double operator() (const FormulaRef& node) {
+      return node.evaluate(values);
+    };
+
+    const std::vector<Variable::Type>& values;
+  };
+
 }
 
 Variable::Variable(const rapidjson::Value& json) :
@@ -54,32 +90,9 @@ void Variable::validate(const Type& t) const {
   }
 }
 
-size_t find_variable_index(const rapidjson::Value& item, const std::vector<Variable>& inputs) {
-  size_t idx = 0;
-  for (const auto& var : inputs) {
-    if ( item.GetString() == var.name() ) break;
-    idx++;
-  }
-  if ( idx == inputs.size() ) {
-    throw std::runtime_error("Error: could not find variable " + std::string(item.GetString()) + " in inputs");
-  }
-  return idx;
-}
-
-Content resolve_content(const rapidjson::Value& json, const Correction& context) {
-  if ( json.IsDouble() ) { return json.GetDouble(); }
-  else if ( json.HasMember("nodetype") ) {
-    if ( json["nodetype"] == "binning" ) { return Binning(json, context); }
-    else if ( json["nodetype"] == "multibinning" ) { return MultiBinning(json, context); }
-    else if ( json["nodetype"] == "category" ) { return Category(json, context); }
-    else if ( json["nodetype"] == "formula" ) { return Formula(json, context); }
-    else if ( json["nodetype"] == "formularef" ) { return FormulaRef(json, context); }
-  }
-  throw std::runtime_error("Unrecognized Content node type");
-}
-
-Formula::Formula(const rapidjson::Value& json, const Correction& context, bool bind_parameters) :
-  expression_(json["expression"].GetString())
+Formula::Formula(const rapidjson::Value& json, const Correction& context, bool generic) :
+  expression_(json["expression"].GetString()),
+  generic_(generic)
 {
   if (json["parser"] == "TFormula") { type_ = FormulaAst::ParserType::TFormula; }
   else if (json["parser"] == "numexpr") {
@@ -90,7 +103,7 @@ Formula::Formula(const rapidjson::Value& json, const Correction& context, bool b
 
   std::vector<size_t> variableIdx;
   for (const auto& item : json["variables"].GetArray()) {
-    variableIdx.push_back(find_variable_index(item, context.inputs()));
+    variableIdx.push_back(context.input_index(item.GetString()));
   }
 
   std::vector<double> params;
@@ -100,19 +113,29 @@ Formula::Formula(const rapidjson::Value& json, const Correction& context, bool b
     }
   }
 
-  ast_ = FormulaAst::parse(type_, expression_, params, variableIdx, bind_parameters);
+  ast_ = std::make_unique<FormulaAst>(FormulaAst::parse(type_, expression_, params, variableIdx, !generic));
 }
 
 double Formula::evaluate(const std::vector<Variable::Type>& values) const {
-  return ast_->evaluate(values);
+  if ( generic_ ) {
+    throw std::runtime_error("Generic formulas must be evaluated with parameters");
+  }
+  return ast_->evaluate(values, {});
+}
+
+double Formula::evaluate(const std::vector<Variable::Type>& values, const std::vector<double>& params) const {
+  return ast_->evaluate(values, params);
 }
 
 FormulaRef::FormulaRef(const rapidjson::Value& json, const Correction& context) {
-  // TODO
+  formula_ = context.formula_ref(json["index"].GetInt());
+  for (const auto& item : json["parameters"].GetArray()) {
+    parameters_.push_back(item.GetDouble());
+  }
 }
 
 double FormulaRef::evaluate(const std::vector<Variable::Type>& values) const {
-  return formula_->evaluate(values);
+  return formula_->evaluate(values, parameters_);
 }
 
 Binning::Binning(const rapidjson::Value& json, const Correction& context)
@@ -126,7 +149,7 @@ Binning::Binning(const rapidjson::Value& json, const Correction& context)
   if ( edges.size() != content.Size() + 1 ) {
     throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
   }
-  variableIdx_ = find_variable_index(json["input"], context.inputs());
+  variableIdx_ = context.input_index(json["input"].GetString());
   Content default_value{0.};
   if ( json["flow"] == "clamp" ) {
     flow_ = _FlowBehavior::clamp;
@@ -187,7 +210,7 @@ MultiBinning::MultiBinning(const rapidjson::Value& json, const Correction& conte
       dim_edges.push_back(item.GetDouble());
     }
     const auto& input = json["inputs"].GetArray()[idx];
-    axes_.push_back({find_variable_index(input, context.inputs()), 0, std::move(dim_edges)});
+    axes_.push_back({context.input_index(input.GetString()), 0, std::move(dim_edges)});
     idx++;
   }
 
@@ -252,7 +275,7 @@ const Content& MultiBinning::child(const std::vector<Variable::Type>& values) co
 Category::Category(const rapidjson::Value& json, const Correction& context)
 {
   if (json["nodetype"] != "category") { throw std::runtime_error("Attempted to construct Category node but data is not that type"); }
-  variableIdx_ = find_variable_index(json["input"], context.inputs());
+  variableIdx_ = context.input_index(json["input"].GetString());
   const auto& variable = context.inputs()[variableIdx_];
   if ( variable.type() == Variable::VarType::string ) {
     map_ = StrMap();
@@ -309,27 +332,6 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
   throw std::runtime_error("Invalid variable type");
 }
 
-struct node_evaluate {
-  double operator() (double node) { return node; };
-  double operator() (const Binning& node) {
-    return std::visit(*this, node.child(values));
-  };
-  double operator() (const MultiBinning& node) {
-    return std::visit(*this, node.child(values));
-  };
-  double operator() (const Category& node) {
-    return std::visit(*this, node.child(values));
-  };
-  double operator() (const Formula& node) {
-    return node.evaluate(values);
-  };
-  double operator() (const FormulaRef& node) {
-    return node.evaluate(values);
-  };
-
-  const std::vector<Variable::Type>& values;
-};
-
 Correction::Correction(const rapidjson::Value& json) :
   name_(json["name"].GetString()),
   description_(getOptional<const char*>(json, "description").value_or("")),
@@ -339,8 +341,23 @@ Correction::Correction(const rapidjson::Value& json) :
   for (const auto& item : json["inputs"].GetArray()) {
     inputs_.emplace_back(item);
   }
+  if ( const auto& items = getOptional<rapidjson::Value::ConstArray>(json, "generic_formulas") ) {
+    for (const auto& item : *items) {
+      formula_refs_.push_back(std::make_shared<Formula>(item, *this, true));
+    }
+  }
+
   data_ = resolve_content(json["data"], *this);
   initialized_ = true;
+}
+
+size_t Correction::input_index(const std::string_view name) const {
+  size_t idx = 0;
+  for (const auto& var : inputs_) {
+    if ( name == var.name() ) return idx;
+    idx++;
+  }
+  throw std::runtime_error("Error: could not find variable " + std::string(name) + " in inputs");
 }
 
 double Correction::evaluate(const std::vector<Variable::Type>& values) const {

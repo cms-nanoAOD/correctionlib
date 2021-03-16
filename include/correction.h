@@ -49,6 +49,7 @@ class FormulaAst {
       BinaryCall,
       UAtom,
       Expression,
+      Undefined,
     };
     enum class BinaryOp {
       Equal,
@@ -64,7 +65,6 @@ class FormulaAst {
       Pow,
     };
     enum class UnaryOp { Negative };
-    typedef std::shared_ptr<const FormulaAst> AstPtr;
     typedef double (*UnaryFcn)(double);
     typedef double (*BinaryFcn)(double, double);
     typedef std::variant<
@@ -79,7 +79,7 @@ class FormulaAst {
     // TODO: try std::unique_ptr<const Ast> child1, child2 or std::array
     typedef std::vector<FormulaAst> Children;
 
-    static AstPtr parse(
+    static FormulaAst parse(
         ParserType type,
         const std::string_view expression,
         const std::vector<double>& params,
@@ -87,9 +87,9 @@ class FormulaAst {
         bool bind_parameters
         );
 
+    FormulaAst() : nodetype_(NodeType::Undefined) {};
     FormulaAst(NodeType nodetype, NodeData data, Children children) :
       nodetype_(nodetype), data_(data), children_(children) {};
-    double evaluate(const std::vector<Variable::Type>& variables) const;
     double evaluate(const std::vector<Variable::Type>& variables, const std::vector<double>& parameters) const;
 
   private:
@@ -100,14 +100,18 @@ class FormulaAst {
 
 class Formula {
   public:
-    Formula(const rapidjson::Value& json, const Correction& context, bool bind_parameters = true);
+    typedef std::shared_ptr<const Formula> Ref;
+
+    Formula(const rapidjson::Value& json, const Correction& context, bool generic = false);
     std::string expression() const { return expression_; };
     double evaluate(const std::vector<Variable::Type>& values) const;
+    double evaluate(const std::vector<Variable::Type>& values, const std::vector<double>& parameters) const;
 
   private:
     std::string expression_;
     FormulaAst::ParserType type_;
-    FormulaAst::AstPtr ast_;
+    std::unique_ptr<FormulaAst> ast_;
+    bool generic_;
 };
 
 class FormulaRef {
@@ -116,7 +120,7 @@ class FormulaRef {
     double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
-    std::shared_ptr<const Formula> formula_;
+    Formula::Ref formula_;
     std::vector<double> parameters_;
 };
 
@@ -167,6 +171,8 @@ class Correction {
     std::string description() const { return description_; };
     int version() const { return version_; };
     const std::vector<Variable>& inputs() const { return inputs_; };
+    size_t input_index(const std::string_view name) const;
+    Formula::Ref formula_ref(size_t idx) const { return formula_refs_.at(idx); };
     const Variable& output() const { return output_; };
     double evaluate(const std::vector<Variable::Type>& values) const;
 
@@ -176,6 +182,7 @@ class Correction {
     int version_;
     std::vector<Variable> inputs_;
     Variable output_;
+    std::vector<Formula::Ref> formula_refs_;
     bool initialized_; // is data_ filled?
     Content data_;
 };

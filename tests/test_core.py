@@ -212,6 +212,8 @@ def test_tformula():
     assert evaluate("z", [0.0, 0.0, 3.0], []) == 3.0
     assert evaluate("t", [0.0, 0.0, 0.0, 3.0], []) == 3.0
     assert evaluate("[0]", [], [3.0]) == 3.0
+    with pytest.raises(RuntimeError):
+        evaluate("[0] + 3.", [], [])
     assert evaluate("[1]", [], [0.0, 3.0]) == 3.0
     assert evaluate("[0]+[1]*3", [], [1.0, 3.0]) == 10.0
     assert evaluate("log(2)", [], []) == math.log(2.0)
@@ -786,3 +788,45 @@ def test_binning():
     )
     assert corr.evaluate(-1.0, 5.0) == 2.0 * -1 + 5.0 * 5.0
     assert corr.evaluate(0.0, 10.0) == 0.0
+
+
+def test_formularef():
+    cset = wrap(
+        schema.Correction(
+            name="reftest",
+            version=2,
+            inputs=[
+                schema.Variable(name="x", type="real"),
+            ],
+            output=schema.Variable(name="a scale", type="real"),
+            generic_formulas=[
+                schema.Formula(
+                    nodetype="formula",
+                    expression="[0] + [1]*x",
+                    parser="TFormula",
+                    variables=["x"],
+                ),
+            ],
+            data=schema.Binning(
+                nodetype="binning",
+                input="x",
+                edges=[0, 1, 2, 3],
+                content=[
+                    schema.FormulaRef(
+                        nodetype="formularef", index=0, parameters=[0.1, 0.2]
+                    ),
+                    schema.FormulaRef(
+                        nodetype="formularef", index=0, parameters=[1.1, -0.2]
+                    ),
+                    schema.FormulaRef(
+                        nodetype="formularef", index=0, parameters=[3.1, 0.5]
+                    ),
+                ],
+                flow="error",
+            ),
+        )
+    )
+    corr = cset["reftest"]
+    assert corr.evaluate(0.5) == 0.1 + 0.2 * 0.5
+    assert corr.evaluate(1.5) == 1.1 + -0.2 * 1.5
+    assert corr.evaluate(2.5) == 3.1 + 0.5 * 2.5
