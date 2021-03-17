@@ -108,5 +108,5 @@ Some examples can be found in `convert.ipynb`.
 [pypi-link]:                https://pypi.org/project/correctionlib/
 [pypi-platforms]:           https://img.shields.io/pypi/pyversions/correctionlib
 [pypi-version]:             https://badge.fury.io/py/correctionlib.svg
-[rtd-badge]:                https://readthedocs.org/projects/correctionlib/badge/?version=latest
-[rtd-link]:                 https://correctionlib.readthedocs.io/en/latest/?badge=latest
+[rtd-badge]:                https://github.com/nsmith-/correctionlib/actions/workflows/docs.yml/badge.svg
+[rtd-link]:                 https://nsmith-.github.io/correctionlib/
