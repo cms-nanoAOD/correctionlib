@@ -84,6 +84,7 @@ git clone --recursive git@github.com:nsmith-/correctionlib.git
 cd correctionlib
 make
 # demo C++ binding, main function at src/demo.cc
+gunzip data/examples.json.gz
 ./demo data/examples.json
 ```
 Eventually this will be simplified to a pip install and a `correction-config` utility to retrieve the
