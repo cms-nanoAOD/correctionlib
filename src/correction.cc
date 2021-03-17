@@ -4,6 +4,10 @@
 #include <algorithm>
 #include <stdexcept>
 #include "correction.h"
+#if __has_include(<zlib.h>)
+#include <zlib.h>
+#define WITH_ZLIB 1
+#endif
 
 using namespace correction;
 
@@ -408,8 +412,23 @@ double Correction::evaluate(const std::vector<Variable::Type>& values) const {
 
 std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
   rapidjson::Document json;
-  FILE* fp = fopen(fn.c_str(), "rb");
   char readBuffer[65536];
+#ifdef WITH_ZLIB
+  gzFile zfp = gzopen(fn.c_str(), "rb");
+  FILE* fp;
+
+  if (zfp == NULL) {
+    fp = fopen(fn.c_str(), "rb");
+  } else {
+    fp = funopen(zfp,
+                (int(*)(void*,char*,int))gzread,
+                (int(*)(void*,const char*,int))gzwrite,
+                (fpos_t(*)(void*,fpos_t,int))gzseek,
+                (int(*)(void*))gzclose);
+  }
+#else
+  FILE* fp = fopen(fn.c_str(), "rb");
+#endif
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
   rapidjson::ParseResult ok = json.ParseStream(is);
   if (!ok) {

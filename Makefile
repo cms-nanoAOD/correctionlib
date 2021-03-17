@@ -8,7 +8,7 @@ else
 endif
 OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
 CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib $(PYINC) -Iinclude
-LDFLAGS=-pthread
+LDFLAGS=-pthread -lz
 
 .PHONY: build all clean
 
