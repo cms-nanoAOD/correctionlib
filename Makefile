@@ -12,7 +12,7 @@ LDFLAGS=-pthread
 
 .PHONY: build all clean
 
-all: demo
+all: demo examples
 
 build/%.o: src/%.cc
 	mkdir -p build
@@ -20,6 +20,9 @@ build/%.o: src/%.cc
 
 demo: build/demo.o build/correction.o build/formula_ast.o
 	$(CXX) $(LDFLAGS) $^ -o $@
+
+examples: data/conversion.py
+	python $^
 
 correctionlib: build/python.o build/correction.o build/formula_ast.o
 	mkdir -p correctionlib
@@ -29,4 +32,5 @@ correctionlib: build/python.o build/correction.o build/formula_ast.o
 clean:
 	rm -rf build
 	rm -f demo
+	rm -f data/examples.json*
 	rm -rf correctionlib

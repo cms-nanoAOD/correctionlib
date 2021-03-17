@@ -2,7 +2,8 @@ prune *
 graft src
 graft tests
 
-include LICENSE README.md pyproject.toml setup.py setup.cfg
+include LICENSE pyproject.toml setup.py setup.cfg
+include *.md
 recursive-include include *.h
 recursive-include pybind11/include *
 include pybind11/LICENSE

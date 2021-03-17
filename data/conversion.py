@@ -5,7 +5,14 @@ import pandas
 import requests
 
 from correctionlib import convert
-from correctionlib.schemav2 import Binning, Category, Correction, CorrectionSet, Formula
+from correctionlib.schemav2 import (
+    VERSION,
+    Binning,
+    Category,
+    Correction,
+    CorrectionSet,
+    Formula,
+)
 
 examples = "https://raw.githubusercontent.com/CoffeaTeam/coffea/master/tests/samples"
 
@@ -234,7 +241,7 @@ corr3 = Correction.parse_obj(
 
 cset = CorrectionSet.parse_obj(
     {
-        "schema_version": 2,
+        "schema_version": VERSION,
         "corrections": [
             corr1,
             corr2,
