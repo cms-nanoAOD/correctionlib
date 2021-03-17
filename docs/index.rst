@@ -19,6 +19,7 @@ scalar inputs that produce a scalar output.
     schemav1
     schemav2
     core
+    convert
 
 
 Indices and tables
