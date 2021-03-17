@@ -56,9 +56,9 @@ This tool will definitely not provide:
     as a higher-level tool depending on this library as a low-level tool)
 
 Formula support currently includes a mostly-complete subset of the ROOT library `TFormula` class,
-and is implemented in a threadsafe standalone manner. The parsing grammar is formually defined
+and is implemented in a threadsafe standalone manner. The parsing grammar is formally defined
 and parsed through the use of a header-only [PEG parser library](https://github.com/yhirose/cpp-peglib).
-The supported features mirror CMSSW's [expression parser](https://github.com/cms-sw/cmssw/blob/master/CommonTools/Utils/src/Grammar.h)
+The supported features mirror CMSSW's [reco::formulaEvaluator](https://github.com/cms-sw/cmssw/pull/11516)
 and fully passes the test suite for that utility with the purposeful exception of the `TMath::` namespace.
 The python bindings may be able to call into [numexpr](https://numexpr.readthedocs.io/en/latest/user_guide.html),
 though, due to the tree-like structure of the corrections, it may prove difficult to exploit vectorization
@@ -72,7 +72,10 @@ python2 and python3, as well as from within a CMSSW environment. The python bind
 pip-installable package.
 
 To build in an environment that has python 3, you can simply
-`pip install correctionlib` (possibly with `--user`, or in a virtualenv, etc.)
+```bash
+pip install correctionlib
+```
+(possibly with `--user`, or in a virtualenv, etc.)
 Note that CMSSW 11_2_X and above has ROOT accessible from python 3.
 
 If you have a pure C++ framework, you can build the C++ evaluator in most environments via:
@@ -87,7 +90,7 @@ Eventually this will be simplified to a pip install and a `correction-config` ut
 header and linking flags.
 
 To compile with python2 support, consider using python 3 :) If you considered that and still
-want to us python2, follow the C++ build instructions and then call `make PYTHON=python2 correctionlib` to compile.
+want to use python2, follow the C++ build instructions and then call `make PYTHON=python2 correctionlib` to compile.
 Inside CMSSW you should use `make PYTHON=python correctionlib` assuming `python` is the name of the scram tool you intend to link against.
 This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
 This package will only provide the `correctionlib._core` evaluator module, as the schema tools and high-level bindings are python3-only.
