@@ -1,0 +1,6 @@
+correctionlib.convert.from\_histogram
+=====================================
+
+.. currentmodule:: correctionlib.convert
+
+.. autofunction:: from_histogram

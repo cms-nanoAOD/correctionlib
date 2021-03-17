@@ -1,0 +1,6 @@
+correctionlib.convert.from\_uproot\_THx
+=======================================
+
+.. currentmodule:: correctionlib.convert
+
+.. autofunction:: from_uproot_THx
