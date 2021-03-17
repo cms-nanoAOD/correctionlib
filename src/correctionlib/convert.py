@@ -3,25 +3,41 @@
 Mostly TODO right now
 """
 from numbers import Real
-from typing import Any, Iterable, List, Sequence
+from typing import TYPE_CHECKING, Any, Iterable, List, Sequence
 
 from .schemav2 import Binning, Category, Content, Correction, MultiBinning, Variable
 
+if TYPE_CHECKING:
+    from numpy import ndarray
+    from uhi.typing.plottable import PlottableAxis, PlottableHistogram
+
 
 def from_uproot_THx(path: str) -> Correction:
+    """Convert a ROOT histogram
+
+    This function attempts to open a ROOT file with uproot
+    and extract the TH1 or TH2 as specified by the object path
+
+    Example::
+
+        corr = convert.from_uproot_THx(
+            "testSF2d.histo.root:scalefactors_Tight_Electron"
+        )
+
+    """
     import uproot
 
     return from_histogram(uproot.open(path))
 
 
-def from_histogram(hist: Any) -> Correction:
+def from_histogram(hist: "PlottableHistogram") -> Correction:
     """Read any object with PlottableHistogram interface protocol
 
     Interface as defined in
     https://github.com/scikit-hep/uhi/blob/v0.1.1/src/uhi/typing/plottable.py
     """
 
-    def read_axis(axis: Any, pos: int) -> Variable:
+    def read_axis(axis: "PlottableAxis", pos: int) -> Variable:
         axtype = "real"
         if len(axis) == 0:
             raise ValueError(f"Zero-length axis {axis}, what to do?")
@@ -40,12 +56,16 @@ def from_histogram(hist: Any) -> Correction:
     variables = [read_axis(ax, i) for i, ax in enumerate(hist.axes)]
     # Here we could try to optimize the ordering
 
-    def edges(axis: Any) -> List[float]:
-        out = [b[0] for b in axis]
-        out.append(axis[-1][1])
+    def edges(axis: "PlottableAxis") -> List[float]:
+        out = []
+        for i, b in enumerate(axis):
+            assert isinstance(b, tuple)
+            out.append(b[0])
+            if i == len(axis) - 1:
+                out.append(b[1])
         return out
 
-    def flatten_to(values: Sequence[Any], depth: int) -> Iterable[Any]:
+    def flatten_to(values: "ndarray", depth: int) -> Iterable[Any]:
         for value in values:
             if depth > 0:
                 yield from flatten_to(value, depth - 1)
@@ -53,7 +73,7 @@ def from_histogram(hist: Any) -> Correction:
                 yield value
 
     def build_data(
-        values: Sequence[Any], axes: List[Any], variables: List[Variable]
+        values: "ndarray", axes: Sequence["PlottableAxis"], variables: List[Variable]
     ) -> Content:
         vartype = variables[0].type
         if vartype in {"string", "int"}:
@@ -113,7 +133,7 @@ def from_histogram(hist: Any) -> Correction:
             "version": 0,
             "name": getattr(hist, "name", "unknown"),
             "inputs": variables,
-            "output": {"name": hist.title, "type": "real"},
+            "output": {"name": getattr(hist, "label", "out"), "type": "real"},
             "data": build_data(hist.values(), hist.axes, variables),
         }
     )
