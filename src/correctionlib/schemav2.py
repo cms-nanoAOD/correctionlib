@@ -1,6 +1,6 @@
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 
 try:
     from typing import Literal  # type: ignore
@@ -17,10 +17,15 @@ class Model(BaseModel):
 
 
 class Variable(Model):
+    """An input or output variable"""
+
     name: str
-    type: Literal["string", "int", "real"]
-    "Implicitly 64 bit integer and double-precision floating point?"
-    description: Optional[str]
+    type: Literal["string", "int", "real"] = Field(
+        description="A string, a 64 bit integer, or a double-precision floating point value"
+    )
+    description: Optional[str] = Field(
+        description="A nice description of what this variable means"
+    )
 
 
 # py3.7+: ForwardRef can be used instead of strings
@@ -28,54 +33,123 @@ Content = Union["Binning", "MultiBinning", "Category", "Formula", "FormulaRef", 
 
 
 class Formula(Model):
+    """A general formula type"""
+
     nodetype: Literal["formula"]
     expression: str
     parser: Literal["TFormula"]
-    variables: List[str]
-    parameters: Optional[List[float]]
+    variables: List[str] = Field(
+        description="The names of the correction input variables this formula applies to"
+    )
+    parameters: Optional[List[float]] = Field(
+        description="Parameters, if the parser supports them (e.g. [0] for TFormula)"
+    )
 
 
 class FormulaRef(Model):
+    """A reference to one of the Correction generic_formula items, with specific parameters"""
+
     nodetype: Literal["formularef"]
-    index: int
-    "Indexes the Correction.generic_formulas list"
-    parameters: List[float]
+    index: int = Field(
+        description="Index into the Correction.generic_formulas list", ge=0
+    )
+    parameters: List[float] = Field(
+        description="Same interpretation as Formula.parameters"
+    )
 
 
 class Binning(Model):
+    """1-dimensional binning in an input variable"""
+
     nodetype: Literal["binning"]
-    input: str
-    edges: List[float]
-    "Edges of the binning, where edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
+    input: str = Field(
+        description="The name of the correction input variable this binning applies to"
+    )
+    edges: List[float] = Field(
+        description="Edges of the binning, where edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
+    )
     content: List[Content]
-    flow: Union[Content, Literal["clamp", "error"]]
-    "Overflow behavior for out-of-bounds values"
+    flow: Union[Content, Literal["clamp", "error"]] = Field(
+        description="Overflow behavior for out-of-bounds values"
+    )
+
+    @validator("edges")
+    def validate_edges(cls, edges: List[float], values: Any) -> List[float]:
+        for lo, hi in zip(edges[:-1], edges[1:]):
+            if hi <= lo:
+                raise ValueError(f"Binning edges not monotone increasing: {edges}")
+        return edges
+
+    @validator("content")
+    def validate_content(cls, content: List[Content], values: Any) -> List[Content]:
+        if "edges" in values:
+            nbins = len(values["edges"]) - 1
+            if nbins != len(content):
+                raise ValueError(
+                    f"Binning content length ({len(content)}) is not one larger than edges ({nbins + 1})"
+                )
+        return content
 
 
 class MultiBinning(Model):
     """N-dimensional rectangular binning"""
 
     nodetype: Literal["multibinning"]
-    inputs: List[str]
-    edges: List[List[float]]
-    """Bin edges for each input
-
-    C-ordered array, e.g. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
-    to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0]), etc.
+    inputs: List[str] = Field(
+        description="The names of the correction input variables this binning applies to",
+        min_items=1,
+    )
+    edges: List[List[float]] = Field(description="Bin edges for each input")
+    content: List[Content] = Field(
+        description="""Bin contents as a flattened array
+        This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
+        to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0]), etc.
     """
-    content: List[Content]
-    flow: Union[Content, Literal["clamp", "error"]]
-    "Overflow behavior for out-of-bounds values"
+    )
+    flow: Union[Content, Literal["clamp", "error"]] = Field(
+        description="Overflow behavior for out-of-bounds values"
+    )
+
+    @validator("edges")
+    def validate_edges(cls, edges: List[List[float]], values: Any) -> List[List[float]]:
+        for i, dim in enumerate(edges):
+            for lo, hi in zip(dim[:-1], dim[1:]):
+                if hi <= lo:
+                    raise ValueError(
+                        f"MultiBinning edges for axis {i} are not monotone increasing: {dim}"
+                    )
+        return edges
+
+    @validator("content")
+    def validate_content(cls, content: List[Content], values: Any) -> List[Content]:
+        if "edges" in values:
+            nbins = 1
+            for dim in values["edges"]:
+                nbins *= len(dim) - 1
+            if nbins != len(content):
+                raise ValueError(
+                    f"MultiBinning content length ({len(content)}) does not match the product of dimension sizes ({nbins})"
+                )
+        return content
 
 
 class CategoryItem(Model):
+    """A key-value pair
+
+    The key type must match the type of the Category input variable
+    """
+
     key: Union[str, int]
     value: Content
 
 
 class Category(Model):
+    """A categorical lookup"""
+
     nodetype: Literal["category"]
-    input: str
+    input: str = Field(
+        description="The name of the correction input variable this category node applies to"
+    )
     content: List[CategoryItem]
     default: Optional[Content]
 
@@ -88,20 +162,38 @@ Category.update_forward_refs()
 
 class Correction(Model):
     name: str
-    "A useful name"
-    description: Optional[str]
-    "Detailed description of the correction"
-    version: int
-    "Version"
-    inputs: List[Variable]
-    output: Variable
-    generic_formulas: Optional[List[Formula]]
-    data: Content
+    description: Optional[str] = Field(
+        description="Detailed description of the correction"
+    )
+    version: int = Field(
+        description="Some value that may increase over time due to bugfixes"
+    )
+    inputs: List[Variable] = Field(
+        description="The function signature of the correction"
+    )
+    output: Variable = Field(description="Output type for this correction")
+    generic_formulas: Optional[List[Formula]] = Field(
+        description="""A list of common formulas that may be used
+
+        For corrections with many parameterized formulas that follow a regular pattern,
+        the expression and inputs can be declared once with a generic formula, deferring the parameter
+        declaration to the more lightweight FormulaRef nodes. This can speed up both loading and evaluation
+        of the correction object
+        """
+    )
+    data: Content = Field(description="The root content node")
+
+    @validator("output")
+    def validate_output(cls, output: Variable) -> Variable:
+        if output.type != "real":
+            raise ValueError(
+                "Output types other than real are not supported. See https://github.com/nsmith-/correctionlib/issues/12"
+            )
+        return output
 
 
 class CorrectionSet(Model):
-    schema_version: Literal[VERSION]
-    "Schema version"
+    schema_version: Literal[VERSION] = Field(description="The overall schema version")
     corrections: List[Correction]
 
 
