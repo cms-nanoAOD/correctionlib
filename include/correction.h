@@ -33,10 +33,11 @@ class Variable {
 
 class Formula;
 class FormulaRef;
+class Transform;
 class Binning;
 class MultiBinning;
 class Category;
-typedef std::variant<double, Formula, FormulaRef, Binning, MultiBinning, Category> Content;
+typedef std::variant<double, Formula, FormulaRef, Transform, Binning, MultiBinning, Category> Content;
 class Correction;
 
 class FormulaAst {
@@ -123,6 +124,17 @@ class FormulaRef {
   private:
     Formula::Ref formula_;
     std::vector<double> parameters_;
+};
+
+class Transform {
+  public:
+    Transform(const rapidjson::Value& json, const Correction& context);
+    double evaluate(const std::vector<Variable::Type>& values) const;
+
+  private:
+    size_t variableIdx_;
+    std::unique_ptr<const Content> rule_;
+    std::unique_ptr<const Content> content_;
 };
 
 // common internal for Binning and MultiBinning

@@ -29,7 +29,9 @@ class Variable(Model):
 
 
 # py3.7+: ForwardRef can be used instead of strings
-Content = Union["Binning", "MultiBinning", "Category", "Formula", "FormulaRef", float]
+Content = Union[
+    "Binning", "MultiBinning", "Category", "Formula", "FormulaRef", "Transform", float
+]
 
 
 class Formula(Model):
@@ -55,6 +57,23 @@ class FormulaRef(Model):
     )
     parameters: List[float] = Field(
         description="Same interpretation as Formula.parameters"
+    )
+
+
+class Transform(Model):
+    """A node that rewrites one real or integer input according to a rule as given by a content node
+
+    Any downstream nodes will see a different value for the rewritten input
+    If the input is an integer type, the rule output will be cast from a
+    double to integer type before using. These should be used sparingly and at
+    high levels in the tree, since they require an allocation.
+    """
+
+    nodetype: Literal["transform"]
+    input: str = Field(description="The name of the input to rewrite")
+    rule: Content = Field(description="A subtree that implements the rewrite rule")
+    content: Content = Field(
+        description="A subtree that will be evaluated with transformed values"
     )
 
 
@@ -139,7 +158,7 @@ class CategoryItem(Model):
     The key type must match the type of the Category input variable
     """
 
-    key: Union[str, int]
+    key: Union[int, str]
     value: Content
 
 
@@ -154,6 +173,7 @@ class Category(Model):
     default: Optional[Content]
 
 
+Transform.update_forward_refs()
 Binning.update_forward_refs()
 MultiBinning.update_forward_refs()
 CategoryItem.update_forward_refs()

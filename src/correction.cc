@@ -28,6 +28,7 @@ namespace {
       else if ( json["nodetype"] == "category" ) { return Category(json, context); }
       else if ( json["nodetype"] == "formula" ) { return Formula(json, context); }
       else if ( json["nodetype"] == "formularef" ) { return FormulaRef(json, context); }
+      else if ( json["nodetype"] == "transform" ) { return Transform(json, context); }
     }
     throw std::runtime_error("Unrecognized Content node type");
   }
@@ -47,6 +48,9 @@ namespace {
       return node.evaluate(values);
     };
     double operator() (const FormulaRef& node) {
+      return node.evaluate(values);
+    };
+    double operator() (const Transform& node) {
       return node.evaluate(values);
     };
 
@@ -136,6 +140,32 @@ FormulaRef::FormulaRef(const rapidjson::Value& json, const Correction& context) 
 
 double FormulaRef::evaluate(const std::vector<Variable::Type>& values) const {
   return formula_->evaluate(values, parameters_);
+}
+
+Transform::Transform(const rapidjson::Value& json, const Correction& context) {
+  variableIdx_ = context.input_index(json["input"].GetString());
+  const auto& variable = context.inputs()[variableIdx_];
+  if ( variable.type() == Variable::VarType::string ) {
+    throw std::runtime_error("Transform cannot rewrite string inputs");
+  }
+  rule_ = std::make_unique<Content>(resolve_content(json["rule"], context));
+  content_ = std::make_unique<Content>(resolve_content(json["content"], context));
+}
+
+double Transform::evaluate(const std::vector<Variable::Type>& values) const {
+  std::vector<Variable::Type> new_values(values);
+  double vnew = std::visit(node_evaluate{values}, *rule_);
+  auto& v = new_values[variableIdx_];
+  if ( std::holds_alternative<double>(v) ) {
+    v = vnew;
+  }
+  else if ( std::holds_alternative<int>(v) ) {
+    v = (int) vnew;
+  }
+  else {
+    throw std::logic_error("I should not have ever seen a string");
+  }
+  return std::visit(node_evaluate{new_values}, *content_);
 }
 
 Binning::Binning(const rapidjson::Value& json, const Correction& context)
@@ -313,7 +343,7 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
         return *default_;
       }
       else {
-        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + *pval);
+        throw std::out_of_range("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + *pval);
       }
     }
   }
@@ -325,7 +355,7 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
         return *default_;
       }
       else {
-        throw std::runtime_error("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
+        throw std::out_of_range("Index not available in Category for index " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
       }
     }
   }

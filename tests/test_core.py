@@ -653,7 +653,12 @@ def test_category():
             schema.Correction(
                 name="test",
                 version=2,
-                inputs=[schema.Variable(name="cat", type="string")],
+                inputs=[
+                    schema.Variable(
+                        name="cat",
+                        type="string" if isinstance(next(iter(items)), str) else "int",
+                    )
+                ],
                 output=schema.Variable(name="a scale", type="real"),
                 data=schema.Category(
                     nodetype="category",
@@ -669,13 +674,21 @@ def test_category():
 
     corr = make_cat({"blah": 1.2}, None)
     assert corr.evaluate("blah") == 1.2
-    with pytest.raises(RuntimeError):
+    with pytest.raises(IndexError):
         corr.evaluate("asdf")
 
     corr = make_cat({"blah": 1.2}, 0.1)
     assert corr.evaluate("blah") == 1.2
     assert corr.evaluate("asdf") == 0.1
     assert corr.evaluate("def") == 0.1
+
+    corr = make_cat({0: 1.2, 13: 1.4}, None)
+    assert corr.evaluate(0) == 1.2
+    assert corr.evaluate(13) == 1.4
+    with pytest.raises(IndexError):
+        corr.evaluate(1)
+    with pytest.raises(RuntimeError):
+        corr.evaluate("one")
 
 
 def test_binning():
@@ -830,3 +843,68 @@ def test_formularef():
     assert corr.evaluate(0.5) == 0.1 + 0.2 * 0.5
     assert corr.evaluate(1.5) == 1.1 + -0.2 * 1.5
     assert corr.evaluate(2.5) == 3.1 + 0.5 * 2.5
+
+
+def test_transform():
+    cset = wrap(
+        schema.Correction(
+            name="test",
+            version=2,
+            inputs=[
+                schema.Variable(name="torewrite", type="real"),
+            ],
+            output=schema.Variable(name="a scale", type="real"),
+            data=schema.Transform(
+                nodetype="transform",
+                input="torewrite",
+                rule=0.1,
+                content=schema.Formula(
+                    nodetype="formula",
+                    expression="x",
+                    parser="TFormula",
+                    variables=["torewrite"],
+                ),
+            ),
+        )
+    )
+    corr = cset["test"]
+    assert corr.evaluate(0.5) == 0.1
+
+    cset = wrap(
+        schema.Correction(
+            name="test",
+            version=2,
+            inputs=[
+                schema.Variable(name="torewrite", type="int"),
+            ],
+            output=schema.Variable(name="a scale", type="real"),
+            data=schema.Transform(
+                nodetype="transform",
+                input="torewrite",
+                rule=schema.Category(
+                    nodetype="category",
+                    input="torewrite",
+                    content=[
+                        {"key": 0, "value": 0},
+                        {"key": 1, "value": 4},
+                        {"key": 2, "value": 0},
+                    ],
+                ),
+                content=schema.Category(
+                    nodetype="category",
+                    input="torewrite",
+                    content=[
+                        {"key": 0, "value": 0.0},
+                        {"key": 3, "value": 0.1},
+                        {"key": 4, "value": 0.2},
+                    ],
+                ),
+            ),
+        )
+    )
+    corr = cset["test"]
+    assert corr.evaluate(0) == 0.0
+    assert corr.evaluate(1) == 0.2
+    assert corr.evaluate(2) == 0.0
+    with pytest.raises(IndexError):
+        corr.evaluate(3)
