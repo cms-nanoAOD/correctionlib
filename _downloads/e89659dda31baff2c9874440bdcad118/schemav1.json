@@ -1,0 +1,300 @@
+{
+    "title": "CorrectionSet",
+    "type": "object",
+    "properties": {
+        "schema_version": {
+            "title": "Schema Version",
+            "enum": [
+                1
+            ],
+            "type": "integer"
+        },
+        "corrections": {
+            "title": "Corrections",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Correction"
+            }
+        }
+    },
+    "required": [
+        "schema_version",
+        "corrections"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "Variable": {
+            "title": "Variable",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "title": "Type",
+                    "enum": [
+                        "string",
+                        "int",
+                        "real"
+                    ],
+                    "type": "string"
+                },
+                "description": {
+                    "title": "Description",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "additionalProperties": false
+        },
+        "Formula": {
+            "title": "Formula",
+            "type": "object",
+            "properties": {
+                "expression": {
+                    "title": "Expression",
+                    "type": "string"
+                },
+                "parser": {
+                    "title": "Parser",
+                    "enum": [
+                        "TFormula",
+                        "numexpr"
+                    ],
+                    "type": "string"
+                },
+                "parameters": {
+                    "title": "Parameters",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "required": [
+                "expression",
+                "parser",
+                "parameters"
+            ],
+            "additionalProperties": false
+        },
+        "Category": {
+            "title": "Category",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "category"
+                    ],
+                    "type": "string"
+                },
+                "keys": {
+                    "title": "Keys",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ]
+                    }
+                },
+                "content": {
+                    "title": "Content",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/Binning"
+                            },
+                            {
+                                "$ref": "#/definitions/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/definitions/Category"
+                            },
+                            {
+                                "$ref": "#/definitions/Formula"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "nodetype",
+                "keys",
+                "content"
+            ],
+            "additionalProperties": false
+        },
+        "MultiBinning": {
+            "title": "MultiBinning",
+            "description": "N-dimensional rectangular binning",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "multibinning"
+                    ],
+                    "type": "string"
+                },
+                "edges": {
+                    "title": "Edges",
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "content": {
+                    "title": "Content",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/Binning"
+                            },
+                            {
+                                "$ref": "#/definitions/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/definitions/Category"
+                            },
+                            {
+                                "$ref": "#/definitions/Formula"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "nodetype",
+                "edges",
+                "content"
+            ],
+            "additionalProperties": false
+        },
+        "Binning": {
+            "title": "Binning",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "binning"
+                    ],
+                    "type": "string"
+                },
+                "edges": {
+                    "title": "Edges",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "content": {
+                    "title": "Content",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/Binning"
+                            },
+                            {
+                                "$ref": "#/definitions/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/definitions/Category"
+                            },
+                            {
+                                "$ref": "#/definitions/Formula"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    }
+                }
+            },
+            "required": [
+                "nodetype",
+                "edges",
+                "content"
+            ],
+            "additionalProperties": false
+        },
+        "Correction": {
+            "title": "Correction",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "description": {
+                    "title": "Description",
+                    "type": "string"
+                },
+                "version": {
+                    "title": "Version",
+                    "type": "integer"
+                },
+                "inputs": {
+                    "title": "Inputs",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                },
+                "output": {
+                    "$ref": "#/definitions/Variable"
+                },
+                "data": {
+                    "title": "Data",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "name",
+                "version",
+                "inputs",
+                "output",
+                "data"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

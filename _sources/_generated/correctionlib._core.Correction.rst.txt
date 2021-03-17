@@ -1,0 +1,31 @@
+correctionlib.\_core.Correction
+===============================
+
+.. currentmodule:: correctionlib._core
+
+.. autoclass:: Correction
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Correction.__init__
+      ~Correction.evaluate
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Correction.description
+      ~Correction.name
+      ~Correction.version
+   
+   

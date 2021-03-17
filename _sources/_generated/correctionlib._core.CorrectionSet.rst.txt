@@ -1,0 +1,30 @@
+correctionlib.\_core.CorrectionSet
+==================================
+
+.. currentmodule:: correctionlib._core
+
+.. autoclass:: CorrectionSet
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~CorrectionSet.__init__
+      ~CorrectionSet.from_file
+      ~CorrectionSet.from_string
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CorrectionSet.schema_version
+   
+   

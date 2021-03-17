@@ -1,0 +1,511 @@
+{
+    "title": "CorrectionSet",
+    "type": "object",
+    "properties": {
+        "schema_version": {
+            "title": "Schema Version",
+            "description": "The overall schema version",
+            "enum": [
+                2
+            ],
+            "type": "integer"
+        },
+        "corrections": {
+            "title": "Corrections",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/Correction"
+            }
+        }
+    },
+    "required": [
+        "schema_version",
+        "corrections"
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "Variable": {
+            "title": "Variable",
+            "description": "An input or output variable",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "title": "Type",
+                    "description": "A string, a 64 bit integer, or a double-precision floating point value",
+                    "enum": [
+                        "string",
+                        "int",
+                        "real"
+                    ],
+                    "type": "string"
+                },
+                "description": {
+                    "title": "Description",
+                    "description": "A nice description of what this variable means",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "additionalProperties": false
+        },
+        "Formula": {
+            "title": "Formula",
+            "description": "A general formula type",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "formula"
+                    ],
+                    "type": "string"
+                },
+                "expression": {
+                    "title": "Expression",
+                    "type": "string"
+                },
+                "parser": {
+                    "title": "Parser",
+                    "enum": [
+                        "TFormula"
+                    ],
+                    "type": "string"
+                },
+                "variables": {
+                    "title": "Variables",
+                    "description": "The names of the correction input variables this formula applies to",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "parameters": {
+                    "title": "Parameters",
+                    "description": "Parameters, if the parser supports them (e.g. [0] for TFormula)",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                }
+            },
+            "required": [
+                "nodetype",
+                "expression",
+                "parser",
+                "variables"
+            ],
+            "additionalProperties": false
+        },
+        "FormulaRef": {
+            "title": "FormulaRef",
+            "description": "A reference to one of the Correction generic_formula items, with specific parameters",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "formularef"
+                    ],
+                    "type": "string"
+                },
+                "index": {
+                    "title": "Index",
+                    "description": "Index into the Correction.generic_formulas list",
+                    "minimum": 0,
+                    "type": "integer"
+                },
+                "parameters": {
+                    "title": "Parameters",
+                    "description": "Same interpretation as Formula.parameters",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                }
+            },
+            "required": [
+                "nodetype",
+                "index",
+                "parameters"
+            ],
+            "additionalProperties": false
+        },
+        "CategoryItem": {
+            "title": "CategoryItem",
+            "description": "A key-value pair\n\nThe key type must match the type of the Category input variable",
+            "type": "object",
+            "properties": {
+                "key": {
+                    "title": "Key",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ]
+                },
+                "value": {
+                    "title": "Value",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "key",
+                "value"
+            ],
+            "additionalProperties": false
+        },
+        "Category": {
+            "title": "Category",
+            "description": "A categorical lookup",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "category"
+                    ],
+                    "type": "string"
+                },
+                "input": {
+                    "title": "Input",
+                    "description": "The name of the correction input variable this category node applies to",
+                    "type": "string"
+                },
+                "content": {
+                    "title": "Content",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/CategoryItem"
+                    }
+                },
+                "default": {
+                    "title": "Default",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "nodetype",
+                "input",
+                "content"
+            ],
+            "additionalProperties": false
+        },
+        "MultiBinning": {
+            "title": "MultiBinning",
+            "description": "N-dimensional rectangular binning",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "multibinning"
+                    ],
+                    "type": "string"
+                },
+                "inputs": {
+                    "title": "Inputs",
+                    "description": "The names of the correction input variables this binning applies to",
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "edges": {
+                    "title": "Edges",
+                    "description": "Bin edges for each input",
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "number"
+                        }
+                    }
+                },
+                "content": {
+                    "title": "Content",
+                    "description": "Bin contents as a flattened array\n        This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds\n        to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0]), etc.\n    ",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/Binning"
+                            },
+                            {
+                                "$ref": "#/definitions/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/definitions/Category"
+                            },
+                            {
+                                "$ref": "#/definitions/Formula"
+                            },
+                            {
+                                "$ref": "#/definitions/FormulaRef"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    }
+                },
+                "flow": {
+                    "title": "Flow",
+                    "description": "Overflow behavior for out-of-bounds values",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "enum": [
+                                "clamp",
+                                "error"
+                            ],
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "nodetype",
+                "inputs",
+                "edges",
+                "content",
+                "flow"
+            ],
+            "additionalProperties": false
+        },
+        "Binning": {
+            "title": "Binning",
+            "description": "1-dimensional binning in an input variable",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "binning"
+                    ],
+                    "type": "string"
+                },
+                "input": {
+                    "title": "Input",
+                    "description": "The name of the correction input variable this binning applies to",
+                    "type": "string"
+                },
+                "edges": {
+                    "title": "Edges",
+                    "description": "Edges of the binning, where edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)",
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "content": {
+                    "title": "Content",
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/definitions/Binning"
+                            },
+                            {
+                                "$ref": "#/definitions/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/definitions/Category"
+                            },
+                            {
+                                "$ref": "#/definitions/Formula"
+                            },
+                            {
+                                "$ref": "#/definitions/FormulaRef"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    }
+                },
+                "flow": {
+                    "title": "Flow",
+                    "description": "Overflow behavior for out-of-bounds values",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "enum": [
+                                "clamp",
+                                "error"
+                            ],
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "nodetype",
+                "input",
+                "edges",
+                "content",
+                "flow"
+            ],
+            "additionalProperties": false
+        },
+        "Correction": {
+            "title": "Correction",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "description": {
+                    "title": "Description",
+                    "description": "Detailed description of the correction",
+                    "type": "string"
+                },
+                "version": {
+                    "title": "Version",
+                    "description": "Some value that may increase over time due to bugfixes",
+                    "type": "integer"
+                },
+                "inputs": {
+                    "title": "Inputs",
+                    "description": "The function signature of the correction",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                },
+                "output": {
+                    "title": "Output",
+                    "description": "Output type for this correction",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    ]
+                },
+                "generic_formulas": {
+                    "title": "Generic Formulas",
+                    "description": "A list of common formulas that may be used\n\n        For corrections with many parameterized formulas that follow a regular pattern,\n        the expression and inputs can be declared once with a generic formula, deferring the parameter\n        declaration to the more lightweight FormulaRef nodes. This can speed up both loading and evaluation\n        of the correction object\n        ",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Formula"
+                    }
+                },
+                "data": {
+                    "title": "Data",
+                    "description": "The root content node",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "name",
+                "version",
+                "inputs",
+                "output",
+                "data"
+            ],
+            "additionalProperties": false
+        }
+    }
+}
