@@ -30,12 +30,13 @@ In C++, the evaluator implements this currently as:
 double Correction::evaluate(const std::vector<std::variant<int, double, std::string>>& values) const;
 ```
 
-The supported function classes may include:
+The supported function classes include:
 
   * multi-dimensional binned lookups;
   * binned lookups pointing to multi-argument formulas with a restricted
     math function set (`exp`, `sqrt`, etc.);
-  * categorical (string or integer enumeration) maps; and
+  * categorical (string or integer enumeration) maps;
+  * input transforms (updating one input value in place); and
   * compositions of the above.
 
 Each function type is represented by a "node" in a call graph and holds all
@@ -54,12 +55,12 @@ This tool will definitely not provide:
   * support for `TLorentzVector` or other object-type inputs (such tools should be written
     as a higher-level tool depending on this library as a low-level tool)
 
-Formula support is currently planned via linking to ROOT libraries and using `TFormula`,
-however if possible we would like to avoid this external dependency. One alternative could
-be using the [boost.spirit](http://boost-spirit.com/home/) parser with some reasonable grammar--
-this is the approach used for CMSSW's [expression parser](https://github.com/cms-sw/cmssw/blob/master/CommonTools/Utils/src/Grammar.h).
-There are also various C++ formula parsers such as [ExprTk](http://www.partow.net/programming/exprtk/index.html),
-and the python bindings may be able to call into [numexpr](https://numexpr.readthedocs.io/en/latest/user_guide.html),
+Formula support currently includes a mostly-complete subset of the ROOT library `TFormula` class,
+and is implemented in a threadsafe standalone manner. The parsing grammar is formally defined
+and parsed through the use of a header-only [PEG parser library](https://github.com/yhirose/cpp-peglib).
+The supported features mirror CMSSW's [reco::formulaEvaluator](https://github.com/cms-sw/cmssw/pull/11516)
+and fully passes the test suite for that utility with the purposeful exception of the `TMath::` namespace.
+The python bindings may be able to call into [numexpr](https://numexpr.readthedocs.io/en/latest/user_guide.html),
 though, due to the tree-like structure of the corrections, it may prove difficult to exploit vectorization
 at levels other than the entrypoint.
 
@@ -70,9 +71,14 @@ Builds have been tested in Windows, OS X, and Linux, and python bindings can be 
 python2 and python3, as well as from within a CMSSW environment. The python bindings are distributed as a
 pip-installable package.
 
-If you use python 3, you can simply `pip install correctionlib` (possibly with `--user`, or in a virtualenv, etc.)
+To build in an environment that has python 3, you can simply
+```bash
+pip install correctionlib
+```
+(possibly with `--user`, or in a virtualenv, etc.)
+Note that CMSSW 11_2_X and above has ROOT accessible from python 3.
 
-To build the C++ evaluator in most environments:
+If you have a pure C++ framework, you can build the C++ evaluator in most environments via:
 ```bash
 git clone --recursive git@github.com:nsmith-/correctionlib.git
 cd correctionlib
@@ -80,20 +86,25 @@ make
 # demo C++ binding, main function at src/demo.cc
 ./demo data/examples.json
 ```
+Eventually this will be simplified to a pip install and a `correction-config` utility to retrieve the
+header and linking flags.
 
 To compile with python2 support, consider using python 3 :) If you considered that and still
-want to us python2, follow the C++ build instructions and then call `make PYTHON=python2 correctionlib` to compile.
+want to use python2, follow the C++ build instructions and then call `make PYTHON=python2 correctionlib` to compile.
 Inside CMSSW you should use `make PYTHON=python correctionlib` assuming `python` is the name of the scram tool you intend to link against.
 This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
 This package will only provide the `correctionlib._core` evaluator module, as the schema tools and high-level bindings are python3-only.
 
 ## Creating new corrections
 
-The `correctionlib` python package provides a helpful
-framework for defining correction objects. Nodes can be type-checked as they are constructed using the
-[parse_obj](https://pydantic-docs.helpmanual.io/usage/models/#helper-functions) class method.
-Some examples can be found in `convert.ipynb`.
+The `correctionlib.schemav2` module provides a helpful framework for defining correction objects
+and `correctionlib.convert` includes select conversion routines for common types. Nodes can be type-checked as they are
+constructed using the [parse_obj](https://pydantic-docs.helpmanual.io/usage/models/#helper-functions)
+class method or by directly constructing them using keyword arguments.
+Some examples can be found in `data/conversion.py`. The `tests/` directory may also be helpful.
 
+## Developing
+See CONTRIBUTING.md
 
 [actions-badge]:            https://github.com/nsmith-/correctionlib/workflows/CI/badge.svg
 [actions-link]:             https://github.com/nsmith-/correctionlib/actions
