@@ -196,7 +196,9 @@ def test_tformula():
     assert evaluate("1+3/2*4", [], []) == 1 + 3.0 / 2.0 * 4.0
     assert evaluate("1+4*(3/2+5)", [], []) == 1 + 4 * (3.0 / 2.0 + 5.0)
     assert evaluate("1+2*3/4*5", [], []) == 1 + 2.0 * 3.0 / 4.0 * 5
-    assert evaluate("1+2*3/(4+5)+6", [], []) == 1 + 2.0 * 3.0 / (4 + 5) + 6
+    assert evaluate("1+2*3/(4+5)+6", [], []) == pytest.approx(
+        1 + 2.0 * 3.0 / (4 + 5) + 6, abs=1e-15
+    )  # i686 mystery
     assert evaluate("100./3.*2+1", [], []) == 100.0 / 3.0 * 2.0 + 1
     assert evaluate("100./3.*(4-2)+2*(3+1)", [], []) == 100.0 / 3.0 * (4 - 2) + 2 * (
         3 + 1
@@ -257,10 +259,9 @@ def test_tformula():
     # assert evaluate("TMath::ATanH(0.5)", [], []) == math.atanh(0.5)
     assert evaluate("max(max(5,3),2)", [], []) == 5.0
     assert evaluate("max(2,max(5,3))", [], []) == 5.0
-    assert (
-        evaluate("-(-2.36997+0.413917*log(208))/208", [], [])
-        == -(-2.36997 + 0.413917 * math.log(208.0)) / 208.0
-    )
+    assert evaluate("-(-2.36997+0.413917*log(208))/208", [], []) == pytest.approx(
+        -(-2.36997 + 0.413917 * math.log(208.0)) / 208.0, abs=1e-15
+    )  # i686 mystery
 
     for x in [1.0, 2.0, 3.0]:
         assert evaluate("2*erf(4*(x-1))", [x], []) == 2 * math.erf(4 * (x - 1))
@@ -272,25 +273,32 @@ def test_tformula():
             "([0]+([1]/((log10(x)^2)+[2])))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))",
             [x],
             v,
-        ) == (
-            v[0]
-            + (
-                v[1]
-                / (((math.log(x) / math.log(10)) * (math.log(x) / math.log(10))) + v[2])
-            )
-        ) + (
-            v[3]
-            * math.exp(
-                -1.0
-                * (
-                    v[4]
-                    * (
-                        (math.log(x) / math.log(10.0) - v[5])
-                        * (math.log(x) / math.log(10.0) - v[5])
+        ) == pytest.approx(
+            (
+                v[0]
+                + (
+                    v[1]
+                    / (
+                        ((math.log(x) / math.log(10)) * (math.log(x) / math.log(10)))
+                        + v[2]
                     )
                 )
             )
-        )
+            + (
+                v[3]
+                * math.exp(
+                    -1.0
+                    * (
+                        v[4]
+                        * (
+                            (math.log(x) / math.log(10.0) - v[5])
+                            * (math.log(x) / math.log(10.0) - v[5])
+                        )
+                    )
+                )
+            ),
+            abs=1e-15,
+        )  # i686
 
     v = [1.3, 4.0, 2.0]
     for x in [1.0, 10.0, 100.0]:
@@ -312,13 +320,13 @@ def test_tformula():
         ) == max(0.0001, 1 - y * (v[0] + (v[1] * z) * (1 + v[2] * math.log(x))) / x)
 
     for x in [0.1, 1.0, 10.0, 100.0]:
-        assert (
-            evaluate(
-                "(-2.36997+0.413917*log(x))/x-(-2.36997+0.413917*log(208))/208", [x], []
-            )
-            == (-2.36997 + 0.413917 * math.log(x)) / x
-            - (-2.36997 + 0.413917 * math.log(208)) / 208
-        )
+        assert evaluate(
+            "(-2.36997+0.413917*log(x))/x-(-2.36997+0.413917*log(208))/208", [x], []
+        ) == pytest.approx(
+            (-2.36997 + 0.413917 * math.log(x)) / x
+            - (-2.36997 + 0.413917 * math.log(208)) / 208,
+            abs=1e-15,
+        )  # i686
         assert (
             evaluate(
                 "max(0.,1.03091-0.051154*pow(x,-0.154227))-max(0.,1.03091-0.051154*pow(208.,-0.154227))",
@@ -334,13 +342,12 @@ def test_tformula():
         assert evaluate("[2]*([3]+[4]*log(max([0],min([1],x))))", [x], v) == v[2] * (
             v[3] + v[4] * math.log(max(v[0], min(v[1], x)))
         )
-        assert (
-            evaluate(
-                "((x>=[6])*(([0]+([1]/((log10(x)^2)+[2])))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))))+((x<[6])*[7])",
-                [x],
-                v,
-            )
-            == (
+        assert evaluate(
+            "((x>=[6])*(([0]+([1]/((log10(x)^2)+[2])))+([3]*exp(-([4]*((log10(x)-[5])*(log10(x)-[5])))))))+((x<[6])*[7])",
+            [x],
+            v,
+        ) == pytest.approx(
+            (
                 (x >= v[6])
                 * (
                     (
@@ -371,31 +378,15 @@ def test_tformula():
                     )
                 )
             )
-            + ((x < v[6]) * v[7])
-        )
+            + ((x < v[6]) * v[7]),
+            abs=1e-15,
+        )  # i686
         assert evaluate(
             "(max(0.,1.03091-0.051154*pow(x,-0.154227))-max(0.,1.03091-0.051154*pow(208.,-0.154227)))+[7]*((-2.36997+0.413917*log(x))/x-(-2.36997+0.413917*log(208))/208)",
             [x],
             v,
-        ) == (
-            max(0.0, 1.03091 - 0.051154 * math.pow(x, -0.154227))
-            - max(0.0, 1.03091 - 0.051154 * math.pow(208.0, -0.154227))
-        ) + v[
-            7
-        ] * (
-            (-2.36997 + 0.413917 * math.log(x)) / x
-            - (-2.36997 + 0.413917 * math.log(208)) / 208
-        )
-        assert evaluate(
-            "[2]*([3]+[4]*log(max([0],min([1],x))))*1./([5]+[6]*100./3.*(max(0.,1.03091-0.051154*pow(x,-0.154227))-max(0.,1.03091-0.051154*pow(208.,-0.154227)))+[7]*((-2.36997+0.413917*log(x))/x-(-2.36997+0.413917*log(208))/208))",
-            [x],
-            v,
-        ) == v[2] * (v[3] + v[4] * math.log(max(v[0], min(v[1], x)))) * 1.0 / (
-            v[5]
-            + v[6]
-            * 100.0
-            / 3.0
-            * (
+        ) == pytest.approx(
+            (
                 max(0.0, 1.03091 - 0.051154 * math.pow(x, -0.154227))
                 - max(0.0, 1.03091 - 0.051154 * math.pow(208.0, -0.154227))
             )
@@ -403,8 +394,34 @@ def test_tformula():
             * (
                 (-2.36997 + 0.413917 * math.log(x)) / x
                 - (-2.36997 + 0.413917 * math.log(208)) / 208
-            )
-        )
+            ),
+            abs=1e-15,
+        )  # i686
+        assert evaluate(
+            "[2]*([3]+[4]*log(max([0],min([1],x))))*1./([5]+[6]*100./3.*(max(0.,1.03091-0.051154*pow(x,-0.154227))-max(0.,1.03091-0.051154*pow(208.,-0.154227)))+[7]*((-2.36997+0.413917*log(x))/x-(-2.36997+0.413917*log(208))/208))",
+            [x],
+            v,
+        ) == pytest.approx(
+            v[2]
+            * (v[3] + v[4] * math.log(max(v[0], min(v[1], x))))
+            * 1.0
+            / (
+                v[5]
+                + v[6]
+                * 100.0
+                / 3.0
+                * (
+                    max(0.0, 1.03091 - 0.051154 * math.pow(x, -0.154227))
+                    - max(0.0, 1.03091 - 0.051154 * math.pow(208.0, -0.154227))
+                )
+                + v[7]
+                * (
+                    (-2.36997 + 0.413917 * math.log(x)) / x
+                    - (-2.36997 + 0.413917 * math.log(208)) / 208
+                )
+            ),
+            abs=1e-15,
+        )  # i686
 
     assert (
         evaluate("100./3.*0.154227+2.36997", [], []) == 100.0 / 3.0 * 0.154227 + 2.36997
@@ -441,23 +458,26 @@ def test_tformula():
             "max(0.0001,[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-[4]*(log10(x)-[5])*(log10(x)-[5])))",
             [x],
             v,
-        ) == max(
-            0.0001,
-            v[0]
-            + v[1] / (math.pow(math.log(x) / math.log(10), 2) + v[2])
-            + v[3]
-            * math.exp(
-                -v[4]
-                * (math.log(x) / math.log(10) - v[5])
-                * (math.log(x) / math.log(10) - v[5])
+        ) == pytest.approx(
+            max(
+                0.0001,
+                v[0]
+                + v[1] / (math.pow(math.log(x) / math.log(10), 2) + v[2])
+                + v[3]
+                * math.exp(
+                    -v[4]
+                    * (math.log(x) / math.log(10) - v[5])
+                    * (math.log(x) / math.log(10) - v[5])
+                ),
             ),
-        )
+            abs=1e-15,
+        )  # i686
 
     v = [0.945459, 2.78658, 1.65054, -48.1061, 0.0287239, -10.8759]
     for x in [425.92155818]:
-        assert evaluate("-[4]*(log10(x)-[5])*(log10(x)-[5])", [x], v) == -v[4] * (
-            math.log10(x) - v[5]
-        ) * (math.log10(x) - v[5])
+        assert evaluate("-[4]*(log10(x)-[5])*(log10(x)-[5])", [x], v) == pytest.approx(
+            -v[4] * (math.log10(x) - v[5]) * (math.log10(x) - v[5]), abs=1e-15
+        )  # i686
 
     v = [55, 2510, 0.997756, 1.000155, 0.979016, 0.001834, 0.982, -0.048, 1.250]
     x = 100.0
@@ -554,9 +574,9 @@ def test_tformula():
 
     v = [0.006467, 0.02519, 77.08]
     for x in [100.0]:
-        assert evaluate("[0]+[1]*exp(-x/[2])", [x], v) == v[0] + v[1] * math.exp(
-            -x / v[2]
-        )
+        assert evaluate("[0]+[1]*exp(-x/[2])", [x], v) == pytest.approx(
+            v[0] + v[1] * math.exp(-x / v[2]), abs=1e-15
+        )  # i686
 
     v = [1.4, 0.453645, -0.015665]
     x, y, z = 157.2, 0.5, 23.2
@@ -580,9 +600,12 @@ def test_tformula():
     x = 100.0
     assert evaluate(
         "sqrt([0]*abs([0])/(x*x)+[1]*[1]*pow(x,[3])+[2]*[2])", [x], v
-    ) == math.sqrt(
-        v[0] * abs(v[0]) / (x * x) + v[1] * v[1] * math.pow(x, v[3]) + v[2] * v[2]
-    )
+    ) == pytest.approx(
+        math.sqrt(
+            v[0] * abs(v[0]) / (x * x) + v[1] * v[1] * math.pow(x, v[3]) + v[2] * v[2]
+        ),
+        abs=1e-15,
+    )  # i686
 
     v = [2.3, 0.20, 0.009]
     x = 100.0
@@ -908,3 +931,30 @@ def test_transform():
     assert corr.evaluate(2) == 0.0
     with pytest.raises(IndexError):
         corr.evaluate(3)
+
+
+def evaluate(expr, variables, parameters):
+    cset = {
+        "schema_version": 2,
+        "corrections": [
+            {
+                "name": "test",
+                "version": 1,
+                "inputs": [
+                    {"name": vname, "type": "real"}
+                    for vname, _ in zip("xyzt", variables)
+                ],
+                "output": {"name": "f", "type": "real"},
+                "data": {
+                    "nodetype": "formula",
+                    "expression": expr,
+                    "parser": "TFormula",
+                    "variables": [vname for vname, _ in zip("xyzt", variables)],
+                    "parameters": parameters or None,
+                },
+            }
+        ],
+    }
+    schema.CorrectionSet.parse_obj(cset)
+    corr = core.CorrectionSet.from_string(json.dumps(cset))["test"]
+    return corr.evaluate(*variables)
