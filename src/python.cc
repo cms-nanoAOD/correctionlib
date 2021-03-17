@@ -7,15 +7,6 @@ using namespace correction;
 
 PYBIND11_MODULE(_core, m) {
     m.doc() = "python binding for corrections evaluator";
-    m.doc() = R"pbdoc(
-        libcorrection python binding
-        ----------------------------
-        .. currentmodule:: python_example
-        .. autosummary::
-           :toctree: _generate
-           Correction
-           CorrectionSet
-    )pbdoc";
 
     py::class_<Correction, std::shared_ptr<Correction>>(m, "Correction")
         .def_property_readonly("name", &Correction::name)
