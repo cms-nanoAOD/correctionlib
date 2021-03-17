@@ -137,6 +137,86 @@
             ],
             "additionalProperties": false
         },
+        "Transform": {
+            "title": "Transform",
+            "description": "A node that rewrites one real or integer input according to a rule as given by a content node\n\nAny downstream nodes will see a different value for the rewritten input\nIf the input is an integer type, the rule output will be cast from a\ndouble to integer type before using. These should be used sparingly and at\nhigh levels in the tree, since they require an allocation.",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "transform"
+                    ],
+                    "type": "string"
+                },
+                "input": {
+                    "title": "Input",
+                    "description": "The name of the input to rewrite",
+                    "type": "string"
+                },
+                "rule": {
+                    "title": "Rule",
+                    "description": "A subtree that implements the rewrite rule",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/definitions/Transform"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                },
+                "content": {
+                    "title": "Content",
+                    "description": "A subtree that will be evaluated with transformed values",
+                    "anyOf": [
+                        {
+                            "$ref": "#/definitions/Binning"
+                        },
+                        {
+                            "$ref": "#/definitions/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/definitions/Category"
+                        },
+                        {
+                            "$ref": "#/definitions/Formula"
+                        },
+                        {
+                            "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/definitions/Transform"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "nodetype",
+                "input",
+                "rule",
+                "content"
+            ],
+            "additionalProperties": false
+        },
         "CategoryItem": {
             "title": "CategoryItem",
             "description": "A key-value pair\n\nThe key type must match the type of the Category input variable",
@@ -146,10 +226,10 @@
                     "title": "Key",
                     "anyOf": [
                         {
-                            "type": "string"
+                            "type": "integer"
                         },
                         {
-                            "type": "integer"
+                            "type": "string"
                         }
                     ]
                 },
@@ -170,6 +250,9 @@
                         },
                         {
                             "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/definitions/Transform"
                         },
                         {
                             "type": "number"
@@ -224,6 +307,9 @@
                         },
                         {
                             "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/definitions/Transform"
                         },
                         {
                             "type": "number"
@@ -292,6 +378,9 @@
                                 "$ref": "#/definitions/FormulaRef"
                             },
                             {
+                                "$ref": "#/definitions/Transform"
+                            },
+                            {
                                 "type": "number"
                             }
                         ]
@@ -315,6 +404,9 @@
                         },
                         {
                             "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/definitions/Transform"
                         },
                         {
                             "type": "number"
@@ -384,6 +476,9 @@
                                 "$ref": "#/definitions/FormulaRef"
                             },
                             {
+                                "$ref": "#/definitions/Transform"
+                            },
+                            {
                                 "type": "number"
                             }
                         ]
@@ -407,6 +502,9 @@
                         },
                         {
                             "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/definitions/Transform"
                         },
                         {
                             "type": "number"
@@ -491,6 +589,9 @@
                         },
                         {
                             "$ref": "#/definitions/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/definitions/Transform"
                         },
                         {
                             "type": "number"
