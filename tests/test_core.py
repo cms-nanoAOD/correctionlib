@@ -874,6 +874,7 @@ def test_transform():
     )
     corr = cset["test"]
     assert corr.evaluate(0.5) == 0.1
+    assert corr.evaluate(1.5) == 0.1
 
     cset = wrap(
         schema.Correction(
