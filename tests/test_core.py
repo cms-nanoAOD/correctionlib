@@ -874,6 +874,7 @@ def test_transform():
     )
     corr = cset["test"]
     assert corr.evaluate(0.5) == 0.1
+    assert corr.evaluate(1.5) == 0.1
 
     cset = wrap(
         schema.Correction(
@@ -893,6 +894,8 @@ def test_transform():
                         {"key": 0, "value": 0},
                         {"key": 1, "value": 4},
                         {"key": 2, "value": 0},
+                        {"key": 9, "value": 3.000001},
+                        {"key": 10, "value": 2.999999},
                     ],
                 ),
                 content=schema.Category(
@@ -913,30 +916,5 @@ def test_transform():
     assert corr.evaluate(2) == 0.0
     with pytest.raises(IndexError):
         corr.evaluate(3)
-
-
-def evaluate(expr, variables, parameters):
-    cset = {
-        "schema_version": 2,
-        "corrections": [
-            {
-                "name": "test",
-                "version": 1,
-                "inputs": [
-                    {"name": vname, "type": "real"}
-                    for vname, _ in zip("xyzt", variables)
-                ],
-                "output": {"name": "f", "type": "real"},
-                "data": {
-                    "nodetype": "formula",
-                    "expression": expr,
-                    "parser": "TFormula",
-                    "variables": [vname for vname, _ in zip("xyzt", variables)],
-                    "parameters": parameters or None,
-                },
-            }
-        ],
-    }
-    schema.CorrectionSet.parse_obj(cset)
-    corr = core.CorrectionSet.from_string(json.dumps(cset))["test"]
-    return corr.evaluate(*variables)
+    assert corr.evaluate(9) == 0.1
+    assert corr.evaluate(10) == 0.1
