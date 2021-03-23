@@ -1,5 +1,6 @@
 import json
 import math
+import platform
 
 import pytest
 
@@ -120,6 +121,10 @@ def test_evaluator_v1():
     assert sf.evaluate(31.0, "blah3") == 0.25 * 31.0 + math.exp(3.1)
 
 
+@pytest.mark.skipif(
+    platform.architecture() == ("32bit", "ELF"),
+    reason="cibuildwheel tests fail while building i686 wheels due to floating point rounding differences of order 1e-16",
+)
 def test_tformula():
     def evaluate(expr, variables, parameters):
         cset = {
@@ -869,6 +874,7 @@ def test_transform():
     )
     corr = cset["test"]
     assert corr.evaluate(0.5) == 0.1
+    assert corr.evaluate(1.5) == 0.1
 
     cset = wrap(
         schema.Correction(
@@ -888,6 +894,8 @@ def test_transform():
                         {"key": 0, "value": 0},
                         {"key": 1, "value": 4},
                         {"key": 2, "value": 0},
+                        {"key": 9, "value": 3.000001},
+                        {"key": 10, "value": 2.999999},
                     ],
                 ),
                 content=schema.Category(
@@ -908,3 +916,5 @@ def test_transform():
     assert corr.evaluate(2) == 0.0
     with pytest.raises(IndexError):
         corr.evaluate(3)
+    assert corr.evaluate(9) == 0.1
+    assert corr.evaluate(10) == 0.1

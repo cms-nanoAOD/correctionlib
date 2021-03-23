@@ -4,6 +4,7 @@
 #include <optional>
 #include <algorithm>
 #include <stdexcept>
+#include <cmath>
 #include "correction.h"
 
 using namespace correction;
@@ -161,7 +162,7 @@ double Transform::evaluate(const std::vector<Variable::Type>& values) const {
     v = vnew;
   }
   else if ( std::holds_alternative<int>(v) ) {
-    v = (int) vnew;
+    v = (int) std::round(vnew);
   }
   else {
     throw std::logic_error("I should not have ever seen a string");
