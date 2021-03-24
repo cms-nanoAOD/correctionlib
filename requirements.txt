@@ -1,3 +1,0 @@
-typing-extensions;python_version<"3.8"
-pydantic>=1.7.3
-jsonschema
