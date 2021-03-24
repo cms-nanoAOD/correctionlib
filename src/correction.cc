@@ -1,3 +1,4 @@
+#include <rapidjson/document.h>
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/error/en.h>
 #include <optional>
@@ -339,7 +340,7 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
   if ( auto pval = std::get_if<std::string>(&values[variableIdx_]) ) {
     try {
       return std::get<StrMap>(map_).at(*pval);
-    } catch (std::out_of_range ex) {
+    } catch (std::out_of_range& ex) {
       if ( default_ ) {
         return *default_;
       }
@@ -351,7 +352,7 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
   else if ( auto pval = std::get_if<int>(&values[variableIdx_]) ) {
     try {
       return std::get<IntMap>(map_).at(*pval);
-    } catch (std::out_of_range ex) {
+    } catch (std::out_of_range& ex) {
       if ( default_ ) {
         return *default_;
       }
