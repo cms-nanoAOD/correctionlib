@@ -7,15 +7,20 @@
 import json, math
 
 
-def write(data,fname,indent=2,maxlistlen=25,maxdictlen=2,breakbrackets=False):
-  """Help function to quickly write JSON file."""
+def write(data,fname,**kwargs):
+  """Help function to quickly write JSON file formatted by JSONEncoder."""
   with open(fname,'w') as fout:
-    if isinstance(data,dict):
-      fout.write(json.dumps(data,cls=JSONEncoder,sort_keys=True,indent=indent,
-                 maxlistlen=maxlistlen,maxdictlen=maxdictlen,breakbrackets=breakbrackets))
-    else:
-      fout.write(data.json(cls=JSONEncoder,exclude_unset=True,indent=indent,
-                 maxlistlen=maxlistlen,maxdictlen=maxdictlen,breakbrackets=breakbrackets))
+    fout.write(dumps(data,**kwargs))
+
+
+def dumps(data,sort_keys=True,indent=2,maxlistlen=25,maxdictlen=2,breakbrackets=False):
+  """Help function to quickly dump dictionary formatted by JSONEncoder."""
+  if isinstance(data,dict):
+    return json.dumps(data,cls=JSONEncoder,sort_keys=sort_keys,indent=indent,
+                      maxlistlen=maxlistlen,maxdictlen=maxdictlen,breakbrackets=breakbrackets)
+  else:
+    return data.json(cls=JSONEncoder,exclude_unset=True,indent=indent,
+                     maxlistlen=maxlistlen,maxdictlen=maxdictlen,breakbrackets=breakbrackets)
   
 
 class JSONEncoder(json.JSONEncoder):
@@ -128,8 +133,9 @@ if __name__ == '__main__':
     }
   }
   fname = "test_JSONEncoder.json"
-  print(json.dumps(data,cls=JSONEncoder,sort_keys=True,indent=2,
-                        maxlistlen=25,maxdictlen=3,breakbrackets=False)) # print
+  #print(json.dumps(data,cls=JSONEncoder,sort_keys=True,indent=2,
+  #                      maxlistlen=25,maxdictlen=3,breakbrackets=False)) # print
+  print(dumps(data,sort_keys=True,indent=2,maxlistlen=25,maxdictlen=3,breakbrackets=False)) # print
   print(f">>> Writing {fname}...")
   write(data,fname) # write
   print(f">>> Loading {fname}...")
