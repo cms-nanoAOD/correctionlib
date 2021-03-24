@@ -20,7 +20,7 @@ def write(data,fname,indent=2,maxlistlen=25,maxdictlen=2,breakbrackets=False):
 
 class JSONEncoder(json.JSONEncoder):
   """
-  Encoder to make correctionlib JSON more compact:
+  Encoder to make correctionlib JSON more compact, but still readable:
   - keep list of primitives (int, float, str) on one line,
     or split over several if the length is longer than a given maxlen
   - do not break line for short dictionary if all values are primitive
@@ -29,6 +29,8 @@ class JSONEncoder(json.JSONEncoder):
   """
   
   def __init__(self, *args, **kwargs):
+    if kwargs.get('indent',None)==None:
+      kwargs['indent'] = 2
     self.maxlistlen    = kwargs.pop('maxlistlen',25) # maximum of primitive elements per list, before breaking lines
     self.maxdictlen    = kwargs.pop('maxdictlen',25) # maximum of primitive elements per dict, before breaking lines
     self.breakbrackets = kwargs.pop('breakbrackets',False) # break after opening bracket
