@@ -15,10 +15,10 @@ def write(data,fname,**kwargs):
 
 def dumps(data,sort_keys=True,indent=2,maxlistlen=25,maxdictlen=2,breakbrackets=False):
   """Help function to quickly dump dictionary formatted by JSONEncoder."""
-  if isinstance(data,dict):
+  if isinstance(data,(list,tuple,dict)): # for standard data structures
     return json.dumps(data,cls=JSONEncoder,sort_keys=sort_keys,indent=indent,
                       maxlistlen=maxlistlen,maxdictlen=maxdictlen,breakbrackets=breakbrackets)
-  else:
+  else: # for pydantic
     return data.json(cls=JSONEncoder,exclude_unset=True,indent=indent,
                      maxlistlen=maxlistlen,maxdictlen=maxdictlen,breakbrackets=breakbrackets)
   
