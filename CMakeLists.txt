@@ -11,6 +11,8 @@ FetchContent_Declare(pybind11
   )
 FetchContent_MakeAvailable(pybind11)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads)
 
 add_library(correctionlib SHARED src/correction.cc src/formula_ast.cc)
 set_target_properties(correctionlib PROPERTIES PUBLIC_HEADER include/correction.h)
@@ -23,6 +25,9 @@ target_include_directories(correctionlib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib>
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
+if(Threads_FOUND AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  target_link_libraries(correctionlib Threads::Threads)
+endif()
 install(TARGETS correctionlib
   EXPORT correctionlib-targets
   LIBRARY DESTINATION ${PKG_INSTALL}/lib
