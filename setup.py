@@ -12,7 +12,5 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     cmake_install_dir="src",
-    cmake_args=[
-        "-DCORRECTIONLIB_VERSION:STRING={}".format(get_version())
-    ],
+    cmake_args=[f"-DCORRECTIONLIB_VERSION:STRING={get_version()}"],
 )
