@@ -6,7 +6,15 @@
 #include <variant>
 #include <map>
 #include <memory>
-#include <rapidjson/document.h>
+
+namespace rapidjson {
+  // actual definition for class Value;
+  template<typename CharType> struct UTF8;
+  class CrtAllocator;
+  template <typename BaseAllocator> class MemoryPoolAllocator;
+  template <typename Encoding, typename Allocator> class GenericValue;
+  typedef GenericValue<UTF8<char>, MemoryPoolAllocator<CrtAllocator>> Value;
+};
 
 
 namespace correction {
