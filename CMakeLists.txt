@@ -20,7 +20,6 @@ target_include_directories(correctionlib
     $<INSTALL_INTERFACE:${PKG_INSTALL}/include>
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pybind11/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib>
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
