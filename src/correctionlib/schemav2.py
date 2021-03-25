@@ -172,6 +172,20 @@ class Category(Model):
     content: List[CategoryItem]
     default: Optional[Content]
 
+    @validator("content")
+    def validate_content(cls, content: List[CategoryItem]) -> List[CategoryItem]:
+        if len(content):
+            keytype = type(content[0].key)
+            if not all(isinstance(item.key, keytype) for item in content):
+                raise ValueError(
+                    f"Keys in the Category node do not have a homogenous type, expected all {keytype}"
+                )
+
+            keys = {item.key for item in content}
+            if len(keys) != len(content):
+                raise ValueError("Duplicate keys detected in Category node")
+        return content
+
 
 Transform.update_forward_refs()
 Binning.update_forward_refs()
