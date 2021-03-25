@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(correctionlib VERSION ${CORRECTIONLIB_VERSION} LANGUAGES CXX)
+string(REPLACE "." ";" VERSION_SPLIT ${CORRECTIONLIB_VERSION})
+list(GET VERSION_SPLIT 0 SPLIT_VERSION_MAJOR)
+list(GET VERSION_SPLIT 1 SPLIT_VERSION_MINOR)
+
+project(correctionlib VERSION ${SPLIT_VERSION_MAJOR}.${SPLIT_VERSION_MINOR} LANGUAGES CXX)
 
 set(PKG_INSTALL "correctionlib") ## python package name
 
@@ -22,8 +26,8 @@ if(has_wall)
 endif()
 
 
-configure_file(include/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/correctionlib_version.h)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/correctionlib_version.h DESTINATION ${PKG_INSTALL}/include)
+configure_file(include/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h DESTINATION ${PKG_INSTALL}/include)
 
 
 add_library(correctionlib SHARED src/correction.cc src/formula_ast.cc)
@@ -31,6 +35,7 @@ set_target_properties(correctionlib PROPERTIES PUBLIC_HEADER include/correction.
 target_include_directories(correctionlib
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:${PKG_INSTALL}/include>
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include>

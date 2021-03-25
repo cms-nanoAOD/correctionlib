@@ -13,6 +13,6 @@ setup(
     package_dir={"": "src"},
     cmake_install_dir="src",
     cmake_args=[
-        "-DCORRECTIONLIB_VERSION={}".format(".".join(get_version().split(".")[:2]))
+        "-DCORRECTIONLIB_VERSION:STRING={}".format(get_version())
     ],
 )
