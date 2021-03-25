@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-project(correctionlib LANGUAGES CXX)
+project(correctionlib VERSION ${CORRECTIONLIB_VERSION} LANGUAGES CXX)
 
 set(PKG_INSTALL "correctionlib") ## python package name
 
@@ -55,7 +55,7 @@ configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
   )
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/correctionlibConfigVersion.cmake"
-  VERSION "${Tutorial_VERSION_MAJOR}.${Tutorial_VERSION_MINOR}"
+  VERSION "${correctionlib_VERSION_MAJOR}.${correctionlib_VERSION_MINOR}"
   COMPATIBILITY AnyNewerVersion
   )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/correctionlibConfig.cmake DESTINATION ${PKG_INSTALL}/cmake)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/correctionlibConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/correctionlibConfigVersion.cmake DESTINATION ${PKG_INSTALL}/cmake)
