@@ -1,6 +1,10 @@
 #! /usr/bin/env python3
 # Author: Izaak Neutelings (March 2021)
-# Description: Reduce number of lines in JSON by collapsing lists
+# Description: Write JSON with indents more compactly by collapsing some lists and dictionaries
+# Instructions: Print or write JSON dictionary 'data' as
+#   import JSONEncoder
+#   print(JSONEncoder.write(data,sort_keys=True,indent=2,maxlistlen=25,maxdictlen=3,breakbrackets=False))
+#   print(JSONEncoder.dumps(data,sort_keys=True,indent=2,maxlistlen=25,maxdictlen=3,breakbrackets=False))
 # Adapted from:
 #   https://stackoverflow.com/questions/13249415/how-to-implement-custom-indentation-when-pretty-printing-with-the-json-module
 #   https://stackoverflow.com/questions/16264515/json-dumps-custom-formatting
@@ -13,14 +17,12 @@ def write(data,fname,**kwargs):
     fout.write(dumps(data,**kwargs))
 
 
-def dumps(data,sort_keys=True,indent=2,maxlistlen=25,maxdictlen=2,breakbrackets=False):
+def dumps(data,sort_keys=True,**kwargs):
   """Help function to quickly dump dictionary formatted by JSONEncoder."""
   if isinstance(data,(list,tuple,dict)): # for standard data structures
-    return json.dumps(data,cls=JSONEncoder,sort_keys=sort_keys,indent=indent,
-                      maxlistlen=maxlistlen,maxdictlen=maxdictlen,breakbrackets=breakbrackets)
+    return json.dumps(data,cls=JSONEncoder,sort_keys=sort_keys,**kwargs)
   else: # for pydantic
-    return data.json(cls=JSONEncoder,exclude_unset=True,indent=indent,
-                     maxlistlen=maxlistlen,maxdictlen=maxdictlen,breakbrackets=breakbrackets)
+    return data.json(cls=JSONEncoder,exclude_unset=True,**kwargs)
   
 
 class JSONEncoder(json.JSONEncoder):
@@ -37,7 +39,8 @@ class JSONEncoder(json.JSONEncoder):
     if kwargs.get('indent',None)==None:
       kwargs['indent'] = 2
     self.maxlistlen    = kwargs.pop('maxlistlen',25) # maximum of primitive elements per list, before breaking lines
-    self.maxdictlen    = kwargs.pop('maxdictlen',25) # maximum of primitive elements per dict, before breaking lines
+    self.maxdictlen    = kwargs.pop('maxdictlen', 2) # maximum of primitive elements per dict, before breaking lines
+    self.maxstrlen     = kwargs.pop('maxstrlen',2*self.maxlistlen) # maximum length of strings in short dict, before breaking lines
     self.breakbrackets = kwargs.pop('breakbrackets',False) # break after opening bracket
     super(JSONEncoder,self).__init__(*args,**kwargs)
     self._indent = 0 # current indent
@@ -76,7 +79,8 @@ class JSONEncoder(json.JSONEncoder):
         retval = "[\n"+",\n".join(output)+"\n"+indent_str+"]"
     elif isinstance(obj,dict): # dictionaries
       output = [ ]
-      if len(obj)<=self.maxdictlen and all(isinstance(obj[k],(int,float,str)) for k in obj): # write short dict on one line
+      if len(obj)<=self.maxdictlen and all(isinstance(obj[k],(int,float,str)) for k in obj) and\
+        sum(len(k)+len(obj[k]) for k in obj if isinstance(obj[k],str))<self.maxstrlen: # write short dict on one line
         retval = "{ "+", ".join(json.dumps(k)+": "+self.encode(obj[k]) for k in obj)+" }"
       else: # break long dict into multiple line
         self._indent += self.indent
@@ -129,6 +133,20 @@ if __name__ == '__main__':
         'layer3_5': list(range(1,20+1)),
         'layer3_6': list(range(1,40+1)),
         'layer3_7': ['a','b','c'],
+        'layer3_8': [
+          { 'key': "this is short",
+            'value': "very short",
+          },
+          { 'key': "this is medium long",
+            'value': "verily, can you see?",
+          },
+          { 'key': "this is one is a bit longer",
+            'value': "to find the edge",
+          },
+          { 'key': "this is a very long string to test line break",
+            'value': "another very long string",
+          },
+        ],
       }
     }
   }
