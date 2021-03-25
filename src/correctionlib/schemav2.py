@@ -1,6 +1,6 @@
 from typing import Any, List, Optional, Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, StrictInt, StrictStr, validator
 
 try:
     from typing import Literal  # type: ignore
@@ -158,7 +158,7 @@ class CategoryItem(Model):
     The key type must match the type of the Category input variable
     """
 
-    key: Union[int, str]
+    key: Union[StrictInt, StrictStr]
     value: Content
 
 
