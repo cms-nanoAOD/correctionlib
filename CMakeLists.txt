@@ -14,6 +14,13 @@ FetchContent_MakeAvailable(pybind11)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 
+include(CheckCXXCompilerFlag)
+
+check_cxx_compiler_flag(-Wall has_wall)
+if(has_wall)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+endif()
+
 add_library(correctionlib SHARED src/correction.cc src/formula_ast.cc)
 set_target_properties(correctionlib PROPERTIES PUBLIC_HEADER include/correction.h)
 target_include_directories(correctionlib
