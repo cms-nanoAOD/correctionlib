@@ -49,26 +49,46 @@ class JSONEncoder(json.JSONEncoder):
   def encode(self, obj):
     grandparent = self.parent
     self.parent = type(obj)
+    retval = ""
     if isinstance(obj,(list,tuple)): # lists, tuples
       output = [ ]
       if all(isinstance(x,(int,float,str)) for x in obj): # list of primitives only
-        if len(obj)>self.maxlistlen: # break long list into multiple lines
+        strlen = sum(len(s) for s in obj if isinstance(s,str))
+        indent_str = ' '*(self._indent+self.indent)
+        if strlen>self.maxstrlen and any(len(s)>3 for s in obj if isinstance(s,str)):
+          obj = [json.dumps(s) for s in obj] # convert everything into a string
+          if any(len(s)>self.maxstrlen/4 for s in obj): # break list of long strings into multiple lines
+            output = obj
+          else: # group strings into several lines
+            line = [ ]
+            nchars = 0
+            for item in obj:
+              if len(line)==0 or nchars+len(item)<self.maxstrlen:
+                line.append(item)
+                nchars += len(item)
+              else: # new line
+                output.append(", ".join(line))
+                line = [item]
+                nchars = len(item)
+            if line:
+              output.append(", ".join(line))
+        elif len(obj)<=self.maxlistlen: # write short list on one line
+          for item in obj:
+            output.append(json.dumps(item))
+          retval = "[ "+", ".join(output)+" ]"
+        else: # break long list into multiple lines
           nlines = math.ceil(len(obj)/float(self.maxlistlen))
           maxlen = int(len(obj)/nlines)
-          indent_str = ' '*(self._indent+self.indent)
           for i in range(0,nlines):
             line = [ ]
             for item in obj[i*maxlen:(i+1)*maxlen]:
               line.append(json.dumps(item))
             output.append(", ".join(line))
+        if not retval:
           if grandparent==dict or self.breakbrackets: # break first line after opening bracket
             retval = "[\n"+indent_str+(",\n"+indent_str).join(output)+"\n"+' '*self._indent+"]"
           else: # do not break first line
             retval = "["+' '*(self.indent-1)+(",\n"+indent_str).join(output)+"\n"+' '*self._indent+"]"
-        else: # write short list on one line
-          for item in obj:
-            output.append(json.dumps(item))
-          retval = "[ "+", ".join(output)+" ]"
       else: # list of lists, tuples, dictionaries
         self._indent += self.indent
         indent_str = " "*self._indent
@@ -80,7 +100,7 @@ class JSONEncoder(json.JSONEncoder):
     elif isinstance(obj,dict): # dictionaries
       output = [ ]
       if len(obj)<=self.maxdictlen and all(isinstance(obj[k],(int,float,str)) for k in obj) and\
-        sum(len(k)+len(obj[k]) for k in obj if isinstance(obj[k],str))<self.maxstrlen: # write short dict on one line
+         sum(len(k)+len(obj[k]) for k in obj if isinstance(obj[k],str))<=self.maxstrlen: # write short dict on one line
         retval = "{ "+", ".join(json.dumps(k)+": "+self.encode(obj[k]) for k in obj)+" }"
       else: # break long dict into multiple line
         self._indent += self.indent
@@ -106,7 +126,7 @@ class JSONEncoder(json.JSONEncoder):
 if __name__ == '__main__':
   data = { # quick test of JSONEncoder behavior
     'layer1': {
-      'layer2': {
+      'layer2_1': {
         'layer3_1': [{"x":1,"y":7}, {"x":0,"y":4}, {"x":5,"y":3},
                      {"x":6,"y":9}, {'key': 'foo', 'value': 1},
                      {'key': 'foo', 'value': {k: v for v, k in enumerate('abcd')}},
@@ -117,7 +137,27 @@ if __name__ == '__main__':
         'layer3_2': 'string',
         'layer3_3': [{"x":2,"y":8,"z":3}, {"x":1,"y":5,"z":4},
                      {"x":6,"y":9,"z":8}],
+      },
+      'layer2_2': {
         'layer3_4': [
+          ['a','b','c'],
+          [l for l in 'abcdefghijklmnopqrstuvwxyz'],
+          [l for l in 'abcdefghijklmnopqrstuvwxyz123'],
+          [l for l in 'abcdefghijklmnopqrstuvwxyz'*2],
+          ["this is short","very short",],
+          ["this is medium long","verily, can you see?"],
+          ["this one is a bit longer,",
+           "in order to find the edge..."],
+          ["this", "list of", "strings", "is a bit", "longer",
+           "in order", "to find","the edge","but the","words","are short"],
+          ["this", 1, 2, "list of", 45, "also", 66, "contains",
+           "some", "numbers","for the", 100,"heck of","it","see if","it splits"],
+          ["this", "list of strings is", "a bit longer,",
+           "in order", "to find the edge..."],
+          ["this is a very, very long string to test line break",
+           "and this is another very long string"],
+        ],
+        'layer3_5': [
           list(range(1,10+1)),
           list(range(1,20+1)),
           list(range(1,24+1)),
@@ -130,9 +170,8 @@ if __name__ == '__main__':
           list(range(1,51+1)),
           list(range(1,52+1)),
         ],
-        'layer3_5': list(range(1,20+1)),
-        'layer3_6': list(range(1,40+1)),
-        'layer3_7': ['a','b','c'],
+        'layer3_6': list(range(1,20+1)),
+        'layer3_7': list(range(1,40+1)),
         'layer3_8': [
           { 'key': "this is short",
             'value': "very short",
