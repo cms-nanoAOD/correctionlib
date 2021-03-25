@@ -21,6 +21,11 @@ if(has_wall)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
 
+
+configure_file(include/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/correctionlib_version.h)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/correctionlib_version.h DESTINATION ${PKG_INSTALL}/include)
+
+
 add_library(correctionlib SHARED src/correction.cc src/formula_ast.cc)
 set_target_properties(correctionlib PROPERTIES PUBLIC_HEADER include/correction.h)
 target_include_directories(correctionlib
