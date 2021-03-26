@@ -99,7 +99,7 @@ class JSONEncoder(json.JSONEncoder):
                     maxlen = int(
                         math.ceil(len(obj) / nlines)
                     )  # divide evenly over nlines
-                    for i in range(0, nlines + 1):
+                    for i in range(0, nlines):
                         line = []
                         for item in obj[i * maxlen : (i + 1) * maxlen]:
                             line.append(json.dumps(item))
