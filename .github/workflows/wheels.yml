@@ -58,6 +58,8 @@ jobs:
         submodules: recursive
 
     - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
 
     - uses: joerick/cibuildwheel@v1.10.0
       env:
