@@ -26,7 +26,6 @@ if(has_wall)
 endif()
 if(MSVC)
   set(CMAKE_CXX_EXTENSIONS OFF)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /utf-8")
 endif()
 
 
@@ -35,7 +34,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h DESTIN
 
 
 add_library(correctionlib SHARED src/correction.cc src/formula_ast.cc)
-set_target_properties(correctionlib PROPERTIES PUBLIC_HEADER include/correction.h)
+set_target_properties(correctionlib PROPERTIES PUBLIC_HEADER include/correction.h WINDOWS_EXPORT_ALL_SYMBOLS ON)
 target_include_directories(correctionlib
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
