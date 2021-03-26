@@ -28,19 +28,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, windows-latest, macos-latest]
+        os: [ubuntu-18.04, macos-latest]
 
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: recursive
-
-    # workaround for MSVC, can be removed when scikit-build includes https://github.com/scikit-build/scikit-build/pull/526
-    - name: Prepare compiler environment for Windows
-      if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
-      with:
-        arch: x64
 
     - uses: joerick/cibuildwheel@v1.10.0
       env:
@@ -54,8 +47,41 @@ jobs:
       with:
         path: wheelhouse/*.whl
 
+  # workaround for MSVC, can be removed when scikit-build includes https://github.com/scikit-build/scikit-build/pull/526
+  build_windows_wheels:
+    name: Wheels for Windows
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - uses: ilammy/msvc-dev-cmd@v1
+
+    - uses: joerick/cibuildwheel@v1.10.0
+      env:
+        CIBW_BUILD: cp3*-win32
+        CIBW_TEST_EXTRAS: test
+        CIBW_TEST_COMMAND: pytest {project}/tests
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - uses: joerick/cibuildwheel@v1.10.0
+      env:
+        CIBW_BUILD: cp3*-win_amd64
+        CIBW_TEST_EXTRAS: test
+        CIBW_TEST_COMMAND: pytest {project}/tests
+
+    - name: Upload wheels
+      uses: actions/upload-artifact@v2
+      with:
+        path: wheelhouse/*.whl
+
   upload_all:
-    needs: [build_wheels, make_sdist]
+    needs: [build_wheels, build_windows_wheels, make_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
 
