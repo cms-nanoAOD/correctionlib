@@ -9,16 +9,4 @@ if sys.platform.startswith("win32"):
     import os
     import os.path
 
-    try:
-        ctypes.CDLL(os.path.join(os.path.dirname(__file__), "lib", "correctionlib.dll"))
-    except Exception as ex:
-        print(
-            f'Failed to load {os.path.join(os.path.dirname(__file__), "lib", "correctionlib.dll")}'
-        )
-        print(f'Contents of "correctionlib": {os.listdir(os.path.dirname(__file__))}')
-        print(
-            f'Contents of "correctionlib/..": {os.listdir(os.path.dirname(os.path.dirname(__file__)))}'
-        )
-        print(
-            f'Contents of "correctionlib/lib": {os.listdir(os.path.join(os.path.dirname(__file__), "lib"))}'
-        )
+    ctypes.CDLL(os.path.join(os.path.dirname(__file__), "lib", "correctionlib.dll"))
