@@ -1,4 +1,4 @@
-from correctionlib.JSONEncoder import dumps
+from correctionlib.JSONEncoder import dumps, json
 
 
 def test_jsonencode():
@@ -125,6 +125,8 @@ def test_jsonencode():
         breakbrackets=False,
     )
 
+    retrieved = json.loads(formatted)
+
     expected = """\
 {
   "layer1": {
@@ -167,12 +169,12 @@ def test_jsonencode():
         [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
           "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
         ],
-        [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n",
-          "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "1", "2"
+        [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o",
+          "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "1", "2", "3"
         ],
-        [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q",
-          "r", "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h",
-          "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y"
+        [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r",
+          "s", "t", "u", "v", "w", "x", "y", "z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j",
+          "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"
         ],
         [ "this is short", "very short" ],
         [ "this is medium long", "verily, can you see?" ],
@@ -205,8 +207,8 @@ def test_jsonencode():
         [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
           14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
         ],
-        [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
-          14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26
+        [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+          15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27
         ],
         [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
           16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30
@@ -221,9 +223,9 @@ def test_jsonencode():
           18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
           35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
         ],
-        [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
-          18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
-          35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+        [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+          19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+          37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52
         ]
       ],
       "layer3_6": [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 ],
@@ -244,4 +246,9 @@ def test_jsonencode():
     }
   }
 }"""
-    assert formatted == expected, f"Found:\n {formatted}"
+    assert (
+        formatted == expected
+    ), f"Formatted does not match expected:\nExpected: {expected}\nFormatted: {formatted}"
+    assert (
+        retrieved == data
+    ), f"Data before and after encoding do not match:\nBefore: {data}\nFormatted: {formatted}"
