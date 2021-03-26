@@ -20,7 +20,7 @@ namespace rapidjson {
 
 namespace correction {
 
-constexpr int evaluator_version { 2 };
+constexpr int evaluator_version = correctionlib_major_version;
 
 class Variable {
   public:
