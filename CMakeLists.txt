@@ -51,6 +51,7 @@ endif()
 install(TARGETS correctionlib
   EXPORT correctionlib-targets
   LIBRARY DESTINATION ${PKG_INSTALL}/lib
+  RUNTIME DESTINATION ${PKG_INSTALL}/lib
   PUBLIC_HEADER DESTINATION ${PKG_INSTALL}/include
   )
 
