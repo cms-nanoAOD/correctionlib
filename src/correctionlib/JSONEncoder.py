@@ -93,8 +93,12 @@ class JSONEncoder(json.JSONEncoder):
                         output.append(json.dumps(item))
                     retval = "[ " + ", ".join(output) + " ]"
                 else:  # break long list into multiple lines
-                    nlines = math.ceil(len(obj) / float(self.maxlistlen))
-                    maxlen = int(len(obj) / nlines)
+                    nlines = math.ceil(
+                        len(obj) / float(self.maxlistlen)
+                    )  # number of lines
+                    maxlen = int(
+                        math.ceil(len(obj) / nlines)
+                    )  # divide evenly over nlines
                     for i in range(0, nlines + 1):
                         line = []
                         for item in obj[i * maxlen : (i + 1) * maxlen]:
