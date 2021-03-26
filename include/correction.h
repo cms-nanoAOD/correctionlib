@@ -6,6 +6,7 @@
 #include <variant>
 #include <map>
 #include <memory>
+#include "correctionlib_version.h"
 
 namespace rapidjson {
   // actual definition for class Value;

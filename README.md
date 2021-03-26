@@ -66,7 +66,8 @@ at levels other than the entrypoint.
 
 ## Installation
 
-The build process is Makefile-based for the C++ evaluator and via setuptools for the python bindings.
+The build process is based on setuptools, with CMake (through scikit-build)
+for the C++ evaluator and its python bindings module.
 Builds have been tested in Windows, OS X, and Linux, and python bindings can be compiled against both
 python2 and python3, as well as from within a CMSSW environment. The python bindings are distributed as a
 pip-installable package.
@@ -78,7 +79,17 @@ pip install correctionlib
 (possibly with `--user`, or in a virtualenv, etc.)
 Note that CMSSW 11_2_X and above has ROOT accessible from python 3.
 
-If you have a pure C++ framework, you can build the C++ evaluator in most environments via:
+The C++ evaluator is part of the python package. If you are also using CMake you can depend on it by passing
+`-Dcorrectionlib_DIR=$(python -c 'import pkg_resources; print(pkg_resources.resource_filename("correctionlib", "cmake"))')`.
+The header and shared library can similarly be found as
+```python
+import pkg_resources
+pkg_resources.resource_filename("correctionlib", "include/correction.h")
+pkg_resources.resource_filename("correctionlib", "lib/libcorrectionlib.so")
+```
+
+In environments where no recent CMake is available, or if you want to build against python2
+(see below), you can build the C++ evaluator via:
 ```bash
 git clone --recursive git@github.com:nsmith-/correctionlib.git
 cd correctionlib
@@ -87,8 +98,7 @@ make
 gunzip data/examples.json.gz
 ./demo data/examples.json
 ```
-Eventually this will be simplified to a pip install and a `correction-config` utility to retrieve the
-header and linking flags.
+Eventually a `correction-config` utility will be added to retrieve the header and linking flags.
 
 To compile with python2 support, consider using python 3 :) If you considered that and still
 want to use python2, follow the C++ build instructions and then call `make PYTHON=python2 correctionlib` to compile.

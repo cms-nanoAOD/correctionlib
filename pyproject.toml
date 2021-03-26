@@ -4,6 +4,9 @@ requires = [
     "setuptools>=42",
     "setuptools_scm[toml]>=3.4",
     "pybind11>=2.6.1",
+    "scikit-build",
+    "cmake>=3.11.0",
+    "make"
 ]
 build-backend = "setuptools.build_meta"
 
