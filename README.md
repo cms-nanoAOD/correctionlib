@@ -117,18 +117,18 @@ Some examples can be found in `data/conversion.py`. The `tests/` directory may a
 ## Developing
 See CONTRIBUTING.md
 
-[actions-badge]:            https://github.com/nsmith-/correctionlib/workflows/CI/badge.svg
-[actions-link]:             https://github.com/nsmith-/correctionlib/actions
+[actions-badge]:            https://github.com/cms-nanoAOD/correctionlib/workflows/CI/badge.svg
+[actions-link]:             https://github.com/cms-nanoAOD/correctionlib/actions
 [black-badge]:              https://img.shields.io/badge/code%20style-black-000000.svg
 [black-link]:               https://github.com/psf/black
 [conda-badge]:              https://img.shields.io/conda/vn/conda-forge/correctionlib
 [conda-link]:               https://github.com/conda-forge/correctionlib-feedstock
 [github-discussions-badge]: https://img.shields.io/static/v1?label=Discussions&message=Ask&color=blue&logo=github
-[github-discussions-link]:  https://github.com/nsmith-/correctionlib/discussions
-[gitter-badge]:             https://badges.gitter.im/https://github.com/nsmith-/correctionlib/community.svg
-[gitter-link]:              https://gitter.im/https://github.com/nsmith-/correctionlib/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+[github-discussions-link]:  https://github.com/cms-nanoAOD/correctionlib/discussions
+[gitter-badge]:             https://badges.gitter.im/https://github.com/cms-nanoAOD/correctionlib/community.svg
+[gitter-link]:              https://gitter.im/https://github.com/cms-nanoAOD/correctionlib/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 [pypi-link]:                https://pypi.org/project/correctionlib/
 [pypi-platforms]:           https://img.shields.io/pypi/pyversions/correctionlib
 [pypi-version]:             https://badge.fury.io/py/correctionlib.svg
-[rtd-badge]:                https://github.com/nsmith-/correctionlib/actions/workflows/docs.yml/badge.svg
-[rtd-link]:                 https://nsmith-.github.io/correctionlib/
+[rtd-badge]:                https://github.com/cms-nanoAOD/correctionlib/actions/workflows/docs.yml/badge.svg
+[rtd-link]:                 https://cms-nanoAOD.github.io/correctionlib/
