@@ -2,9 +2,8 @@
 
 """
 import json
-from collections.abc import Mapping
 from numbers import Integral
-from typing import Any, Iterator, Optional, Union
+from typing import Any, Iterator, Mapping, Optional, Union
 
 import correctionlib._core
 import correctionlib.version
