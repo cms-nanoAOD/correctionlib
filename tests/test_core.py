@@ -16,7 +16,7 @@ def wrap(*corrs):
     return core.CorrectionSet.from_string(cset.json())
 
 
-def test_evaluator_v1():
+def test_evaluator():
     with pytest.raises(RuntimeError):
         cset = core.CorrectionSet.from_string("{")
 
