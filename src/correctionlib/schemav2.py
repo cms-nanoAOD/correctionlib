@@ -328,7 +328,7 @@ class Correction(Model):
                 if stats.transform:
                     out += "\n[bold red]has transform[/bold red]"
             else:
-                out += "\nValues: " + ", ".join(map(str, stats.values))
+                out += "\nValues: " + ", ".join(str(v) for v in sorted(stats.values))
                 if stats.default:
                     out += "\n[bold green]has default[/bold green]"
             return out
