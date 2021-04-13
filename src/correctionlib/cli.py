@@ -75,16 +75,24 @@ def setup_summary(subparsers: argparse._SubParsersAction) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(prog="correction", description=__doc__)
+    parser.add_argument(
+        "--width",
+        type=int,
+        default=100,
+        help="Rich output width",
+    )
+    parser.add_argument("--html", type=str, help="Save HTML output to a file")
     subparsers = parser.add_subparsers()
     setup_validate(subparsers)
     setup_summary(subparsers)
     args = parser.parse_args()
 
-    console = Console(record=True)
+    console = Console(width=args.width, record=True)
     # py3.7: subparsers has required=True option
     if hasattr(args, "command"):
         retcode: int = args.command(console, args)
-        console.save_html("log.html")
+        if args.html:
+            console.save_html(args.html)
         return retcode
 
     parser.parse_args(["-h"])
