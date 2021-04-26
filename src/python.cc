@@ -39,7 +39,7 @@ PYBIND11_MODULE(_core, m) {
               }
 
               if ( vargs.back().second.ndim != 1 ) {
-                throw std::invalid_argument("Array arguments with dimension greater"
+                throw std::invalid_argument("Array arguments with dimension greater "
                     "than one are not supported (argument at position " + std::to_string(i) + ")");
               }
               if ( vargs.back().second.size != vargs.front().second.size ) {
