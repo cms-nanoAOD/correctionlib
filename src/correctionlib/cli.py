@@ -97,3 +97,7 @@ def main() -> int:
 
     parser.parse_args(["-h"])
     return 0
+
+
+if __name__ == "__main__":
+    exit(main())
