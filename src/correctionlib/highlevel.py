@@ -3,7 +3,7 @@
 """
 import json
 from numbers import Integral
-from typing import Any, Iterator, Mapping, Optional, Union
+from typing import Any, Iterator, List, Mapping, Optional, Union
 
 import numpy
 
@@ -106,6 +106,9 @@ class CorrectionSet(Mapping[str, Correction]):
         cls, data: str, *, schema_version: Optional[int] = None
     ) -> "CorrectionSet":
         return cls(model_auto(json.loads(data)), schema_version=schema_version)
+
+    def _ipython_key_completions_(self) -> List[str]:
+        return list(self.keys())
 
     @property
     def schema_version(self) -> int:
