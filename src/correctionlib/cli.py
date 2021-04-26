@@ -2,6 +2,7 @@
 
 """
 import argparse
+import sys
 
 from rich.console import Console
 
@@ -73,6 +74,49 @@ def setup_summary(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument("files", nargs="+", metavar="FILE")
 
 
+def merge(console: Console, args: argparse.Namespace) -> int:
+    cset = model_auto(open_auto(args.files[0]))
+    for file in args.files[1:]:
+        cset2 = model_auto(open_auto(file))
+        if cset2.schema_version != cset.schema_version:
+            console.print("[red]Mixed schema versions detected")
+            return 1
+        for corr2 in cset2.corrections:
+            if any(corr.name == corr2.name for corr in cset.corrections):
+                console.print(
+                    f"[red]Correction '{corr2.name}' from {file} is a duplicate"
+                )
+                return 1
+            cset.corrections.append(corr2)
+    if args.format == "compact":
+        sys.stdout.write(cset.json())
+    elif args.format == "indented":
+        sys.stdout.write(cset.json(indent=4) + "\n")
+    elif args.format == "pretty":
+        from correctionlib.JSONEncoder import dumps
+
+        sys.stdout.write(dumps(cset) + "\n")
+    else:
+        return 1
+    return 0
+
+
+def setup_merge(subparsers: argparse._SubParsersAction) -> None:
+    parser = subparsers.add_parser(
+        "merge", help="Merge one or more correction files and print to stdout"
+    )
+    parser.set_defaults(command=merge)
+    parser.add_argument(
+        "-f",
+        "--format",
+        type=str,
+        help="JSON output formatting (default: %(default)s)",
+        choices=("compact", "indented", "pretty"),
+        default="compact",
+    )
+    parser.add_argument("files", nargs="+", metavar="FILE")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(prog="correction", description=__doc__)
     parser.add_argument(
@@ -85,6 +129,7 @@ def main() -> int:
     subparsers = parser.add_subparsers()
     setup_validate(subparsers)
     setup_summary(subparsers)
+    setup_merge(subparsers)
     args = parser.parse_args()
 
     console = Console(width=args.width, record=True)
