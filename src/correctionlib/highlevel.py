@@ -3,7 +3,9 @@
 """
 import json
 from numbers import Integral
-from typing import Any, Iterator, Mapping, Optional, Union
+from typing import Any, Iterator, List, Mapping, Optional, Union
+
+import numpy
 
 import correctionlib._core
 import correctionlib.version
@@ -58,8 +60,23 @@ class Correction:
     def version(self) -> int:
         return self._base.version
 
-    def evaluate(self, *args: Union[str, int, float]) -> float:
-        return self._base.evaluate(*args)
+    def evaluate(
+        self, *args: Union[numpy.ndarray, str, int, float]
+    ) -> Union[float, numpy.ndarray]:
+        # TODO: create a ufunc with numpy.vectorize in constructor?
+        vargs = [arg for arg in args if isinstance(arg, numpy.ndarray)]
+        if vargs:
+            bargs = numpy.broadcast_arrays(*vargs)
+            oshape = bargs[0].shape
+            bargs = (arg.flatten() for arg in bargs)
+            out = self._base.evalv(
+                *(
+                    next(bargs) if isinstance(arg, numpy.ndarray) else arg
+                    for arg in args
+                )
+            )
+            return out.reshape(oshape)
+        return self._base.evaluate(*args)  # type: ignore
 
 
 class CorrectionSet(Mapping[str, Correction]):
@@ -89,6 +106,9 @@ class CorrectionSet(Mapping[str, Correction]):
         cls, data: str, *, schema_version: Optional[int] = None
     ) -> "CorrectionSet":
         return cls(model_auto(json.loads(data)), schema_version=schema_version)
+
+    def _ipython_key_completions_(self) -> List[str]:
+        return list(self.keys())
 
     @property
     def schema_version(self) -> int:

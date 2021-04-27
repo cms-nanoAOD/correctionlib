@@ -1,5 +1,7 @@
 from typing import Iterator, Type, TypeVar, Union
 
+import numpy
+
 class Correction:
     @property
     def name(self) -> str: ...
@@ -8,6 +10,7 @@ class Correction:
     @property
     def version(self) -> int: ...
     def evaluate(self, *args: Union[str, int, float]) -> float: ...
+    def evalv(self, *args: Union[numpy.ndarray, str, int, float]) -> numpy.ndarray: ...
 
 T = TypeVar("T", bound="CorrectionSet")
 
