@@ -15,6 +15,7 @@ correctionlib.\_core.Correction
    
       ~Correction.__init__
       ~Correction.evaluate
+      ~Correction.evalv
    
    
 
