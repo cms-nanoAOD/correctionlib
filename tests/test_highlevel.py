@@ -1,3 +1,5 @@
+import pickle
+
 import numpy
 import pytest
 
@@ -40,3 +42,6 @@ def test_highlevel():
         sf.evaluate(numpy.ones((3, 4)), numpy.ones(4)),
         numpy.full((3, 4), 1.234),
     )
+
+    sf2 = pickle.loads(pickle.dumps(sf))
+    assert sf2.evaluate(1.0, 1.0) == 1.234

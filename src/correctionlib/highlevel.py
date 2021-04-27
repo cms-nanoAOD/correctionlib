@@ -3,7 +3,7 @@
 """
 import json
 from numbers import Integral
-from typing import Any, Iterator, List, Mapping, Optional, Union
+from typing import Any, Dict, Iterator, List, Mapping, Optional, Union
 
 import numpy
 
@@ -16,7 +16,7 @@ def open_auto(filename: str) -> Any:
     if filename.endswith(".json.gz"):
         import gzip
 
-        with gzip.open(filename, "r") as gzfile:
+        with gzip.open(filename, "rt") as gzfile:
             return json.load(gzfile)
     elif filename.endswith(".json"):
         with open(filename) as file:
@@ -45,12 +45,22 @@ def model_auto(data: Any) -> Any:
 
 
 class Correction:
-    def __init__(self, base: correctionlib._core.Correction):
+    def __init__(self, base: correctionlib._core.Correction, context: "CorrectionSet"):
         self._base = base
+        self._name = base.name
+        self._context = context
+
+    def __getstate__(self) -> Dict[str, Any]:
+        return {"_context": self._context, "_name": self._name}
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        self._context = state["_context"]
+        self._name = state["_name"]
+        self._base = self._context[self._name]._base
 
     @property
     def name(self) -> str:
-        return self._base.name
+        return self._name
 
     @property
     def description(self) -> str:
@@ -86,14 +96,14 @@ class CorrectionSet(Mapping[str, Correction]):
             if model.schema_version < this_version:
                 # TODO: upgrade schema automatically
                 raise NotImplementedError(
-                    "Cannot read CorrectionSet models older than {this_version}"
+                    f"Cannot read CorrectionSet models older than {this_version}"
                 )
         elif schema_version != model.schema_version:
             raise ValueError(
                 f"CorrectionSet schema version ({model.schema_version}) differs from desired version ({schema_version})"
             )
         self._model = model
-        self._base = correctionlib._core.CorrectionSet.from_string(model.json())
+        self._base = correctionlib._core.CorrectionSet.from_string(self._model.json())
 
     @classmethod
     def from_file(
@@ -107,6 +117,13 @@ class CorrectionSet(Mapping[str, Correction]):
     ) -> "CorrectionSet":
         return cls(model_auto(json.loads(data)), schema_version=schema_version)
 
+    def __getstate__(self) -> Dict[str, Any]:
+        return {"_model": self._model}
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        self._model = state["_model"]
+        self._base = correctionlib._core.CorrectionSet.from_string(self._model.json())
+
     def _ipython_key_completions_(self) -> List[str]:
         return list(self.keys())
 
@@ -116,7 +133,7 @@ class CorrectionSet(Mapping[str, Correction]):
 
     def __getitem__(self, key: str) -> Correction:
         corr = self._base.__getitem__(key)
-        return Correction(corr)
+        return Correction(corr, self)
 
     def __len__(self) -> int:
         return len(self._base)
