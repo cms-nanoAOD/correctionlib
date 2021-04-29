@@ -45,6 +45,12 @@ def model_auto(data: Any) -> Any:
 
 
 class Correction:
+    """High-level correction evaluator object
+
+    This class is typically instantiated by accessing a named correction from
+    a CorrectionSet object, rather than directly by construction.
+    """
+
     def __init__(self, base: correctionlib._core.Correction, context: "CorrectionSet"):
         self._base = base
         self._name = base.name
@@ -90,6 +96,14 @@ class Correction:
 
 
 class CorrectionSet(Mapping[str, Correction]):
+    """High-level correction set evaluator object
+
+    This class can be initialized directly from a model with compatible
+    schema version, or can be initialized via the ``from_file`` or
+    ``from_string`` factory methods. Corrections can be accessed
+    via getitem syntax, e.g. ``cset["some correction"]``.
+    """
+
     def __init__(self, model: Any, *, schema_version: Optional[int] = None):
         if schema_version is None:
             this_version = correctionlib.version.version_tuple[0]

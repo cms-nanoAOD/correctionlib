@@ -7,6 +7,8 @@ from rich.console import Console, ConsoleOptions, RenderResult
 from rich.panel import Panel
 from rich.tree import Tree
 
+import correctionlib.highlevel
+
 try:
     from typing import Literal  # type: ignore
 except ImportError:
@@ -347,6 +349,11 @@ class Correction(Model):
             expand=False,
         )
 
+    def to_evaluator(self) -> correctionlib.highlevel.Correction:
+        # TODO: consider refactoring highlevel.Correction to be independent
+        cset = CorrectionSet(schema_version=VERSION, corrections=[self])
+        return correctionlib.highlevel.CorrectionSet(cset)[self.name]
+
 
 class CorrectionSet(Model):
     schema_version: Literal[VERSION] = Field(description="The overall schema version")
@@ -361,6 +368,9 @@ class CorrectionSet(Model):
         for corr in self.corrections:
             tree.add(corr)
         yield tree
+
+    def to_evaluator(self) -> correctionlib.highlevel.CorrectionSet:
+        return correctionlib.highlevel.CorrectionSet(self)
 
 
 if __name__ == "__main__":
