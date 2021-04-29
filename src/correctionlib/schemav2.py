@@ -324,7 +324,10 @@ class Correction(Model):
         def fmt_input(var: Variable, stats: _SummaryInfo) -> str:
             out = var.__rich__()
             if var.type == "real":
-                out += f"\nRange: [{stats.min}, {stats.max})"
+                if stats.min == float("inf") and stats.max == float("-inf"):
+                    out += "\nRange: [bold red]unused[/bold red]"
+                else:
+                    out += f"\nRange: [{stats.min}, {stats.max})"
                 if stats.overflow:
                     out += ", overflow ok"
                 if stats.transform:
