@@ -73,6 +73,9 @@ class Formula(Model):
         self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
     ) -> None:
         nodecount["Formula"] += 1
+        for input in self.variables:
+            inputstats[input].min = float("-inf")
+            inputstats[input].max = float("inf")
 
 
 class FormulaRef(Model):
@@ -309,6 +312,9 @@ class Correction(Model):
         inputstats = {var.name: _SummaryInfo() for var in self.inputs}
         if not isinstance(self.data, float):
             self.data.summarize(nodecount, inputstats)
+        if self.generic_formulas:
+            for formula in self.generic_formulas:
+                formula.summarize(nodecount, inputstats)
         return nodecount, inputstats
 
     def __rich_console__(
