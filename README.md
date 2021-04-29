@@ -90,7 +90,7 @@ definitions can similarly be found via `correction config --cflags --ldflags`. F
 can be compiled with:
 ```bash
 wget https://raw.githubusercontent.com/cms-nanoAOD/correctionlib/master/src/demo.cc
-g++ $(correction config --cflags --ldflags) demo.cc -o demo
+g++ $(correction config --cflags --ldflags --rpath) demo.cc -o demo
 ```
 
 If the `correction` command-line utility is not on your path for some reason, it can also be invoked via `python -m correctionlib.cli`.

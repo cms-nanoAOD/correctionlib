@@ -134,8 +134,8 @@ def config(console: Console, args: argparse.Namespace) -> int:
         out.append(libdir)
     if args.ldflags:
         out.append(f"-L{libdir} -lcorrectionlib")
-        if sys.platform.startswith("darwin"):
-            out.append(f"-Wl,-rpath,{libdir}")
+    if args.rpath:
+        out.append(f"-Wl,-rpath,{libdir}")
     if args.cmake:
         out.append(
             f"-Dcorrectionlib_DIR={pkg_resources.resource_filename('correctionlib', 'cmake')}"
@@ -154,6 +154,9 @@ def setup_config(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument("--cflags", action="store_true")
     parser.add_argument("--libdir", action="store_true")
     parser.add_argument("--ldflags", action="store_true")
+    parser.add_argument(
+        "--rpath", action="store_true", help="Include library path hint in linker"
+    )
     parser.add_argument("--cmake", action="store_true", help="CMake dependency flags")
 
 
