@@ -70,38 +70,41 @@ The build process is based on setuptools, with CMake (through scikit-build)
 for the C++ evaluator and its python bindings module.
 Builds have been tested in Windows, OS X, and Linux, and python bindings can be compiled against both
 python2 and python3, as well as from within a CMSSW environment. The python bindings are distributed as a
-pip-installable package.
+pip-installable package. Note that CMSSW 11_2_X and above has ROOT accessible from python 3.
 
-To build in an environment that has python 3, you can simply
+To install in an environment that has python 3, you can simply
 ```bash
-pip install correctionlib
+python3 -m pip install correctionlib
 ```
 (possibly with `--user`, or in a virtualenv, etc.)
-Note that CMSSW 11_2_X and above has ROOT accessible from python 3.
-
-The C++ evaluator is part of the python package. If you are also using CMake you can depend on it by passing
-`-Dcorrectionlib_DIR=$(python -c 'import pkg_resources; print(pkg_resources.resource_filename("correctionlib", "cmake"))')`.
-The header and shared library can similarly be found as
-```python
-import pkg_resources
-pkg_resources.resource_filename("correctionlib", "include/correction.h")
-pkg_resources.resource_filename("correctionlib", "lib/libcorrectionlib.so")
-```
-
-In environments where no recent CMake is available, or if you want to build against python2
-(see below), you can build the C++ evaluator via:
+If you wish to install the latest development version,
 ```bash
-git clone --recursive git@github.com:nsmith-/correctionlib.git
-cd correctionlib
-make
-# demo C++ binding, main function at src/demo.cc
-gunzip data/examples.json.gz
-./demo data/examples.json
+python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 ```
-Eventually a `correction-config` utility will be added to retrieve the header and linking flags.
+should work.
+
+The C++ evaluator library is distributed as part of the python package, and it can be
+linked to directly without using python. If you are using CMake you can depend on it by including
+the output of `correction config --cmake` in your cmake invocation. A complete cmake
+example that builds a user C++ application against correctionlib and ROOT RDataFrame
+can be [found here](https://gist.github.com/pieterdavid/a560e65658386d70a1720cb5afe4d3e9).
+
+For manual compilation, include and linking definitions can similarly be found via `correction config --cflags --ldflags`.
+For example, the demo application can be compiled with:
+```bash
+wget https://raw.githubusercontent.com/cms-nanoAOD/correctionlib/master/src/demo.cc
+g++ $(correction config --cflags --ldflags --rpath) demo.cc -o demo
+```
+
+If the `correction` command-line utility is not on your path for some reason, it can also be invoked via `python -m correctionlib.cli`.
 
 To compile with python2 support, consider using python 3 :) If you considered that and still
-want to use python2, follow the C++ build instructions and then call `make PYTHON=python2 correctionlib` to compile.
+want to use python2, the following recipe may work:
+```bash
+git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
+cd correctionlib
+make PYTHON=python2 correctionlib
+```
 Inside CMSSW you should use `make PYTHON=python correctionlib` assuming `python` is the name of the scram tool you intend to link against.
 This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
 This package will only provide the `correctionlib._core` evaluator module, as the schema tools and high-level bindings are python3-only.
