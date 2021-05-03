@@ -85,9 +85,12 @@ should work.
 
 The C++ evaluator library is distributed as part of the python package, and it can be
 linked to directly without using python. If you are using CMake you can depend on it by including
-the output of `correction config --cmake` in your cmake invocation. For manual compilation, include and linking
-definitions can similarly be found via `correction config --cflags --ldflags`. For example, the demo application
-can be compiled with:
+the output of `correction config --cmake` in your cmake invocation. A complete cmake
+example that builds a user C++ application against correctionlib and ROOT RDataFrame
+can be [found here](https://gist.github.com/pieterdavid/a560e65658386d70a1720cb5afe4d3e9).
+
+For manual compilation, include and linking definitions can similarly be found via `correction config --cflags --ldflags`.
+For example, the demo application can be compiled with:
 ```bash
 wget https://raw.githubusercontent.com/cms-nanoAOD/correctionlib/master/src/demo.cc
 g++ $(correction config --cflags --ldflags --rpath) demo.cc -o demo
