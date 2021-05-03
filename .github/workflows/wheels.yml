@@ -35,7 +35,7 @@ jobs:
       with:
         submodules: recursive
 
-    - uses: joerick/cibuildwheel@v1.10.0
+    - uses: joerick/cibuildwheel@v1.11.0
       env:
         CIBW_SKIP: cp27*
         CIBW_TEST_EXTRAS: test
@@ -61,7 +61,7 @@ jobs:
       with:
         arch: x86
 
-    - uses: joerick/cibuildwheel@v1.10.0
+    - uses: joerick/cibuildwheel@v1.11.0
       env:
         CIBW_BUILD: cp3*-win32
         CIBW_TEST_EXTRAS: test
@@ -71,7 +71,7 @@ jobs:
       with:
         arch: x64
 
-    - uses: joerick/cibuildwheel@v1.10.0
+    - uses: joerick/cibuildwheel@v1.11.0
       env:
         CIBW_BUILD: cp3*-win_amd64
         CIBW_TEST_EXTRAS: test
