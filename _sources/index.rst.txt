@@ -16,10 +16,11 @@ scalar inputs that produce a scalar output.
     :caption: Contents
     :glob:
 
+    highlevel
     schemav1
     schemav2
-    core
     convert
+    core
 
 
 Indices and tables
