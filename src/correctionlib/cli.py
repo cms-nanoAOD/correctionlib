@@ -6,6 +6,7 @@ import sys
 
 from rich.console import Console
 
+import correctionlib.version
 from correctionlib.highlevel import model_auto, open_auto
 
 
@@ -117,6 +118,48 @@ def setup_merge(subparsers: argparse._SubParsersAction) -> None:
     parser.add_argument("files", nargs="+", metavar="FILE")
 
 
+def config(console: Console, args: argparse.Namespace) -> int:
+    import pkg_resources
+
+    incdir = pkg_resources.resource_filename("correctionlib", "include")
+    libdir = pkg_resources.resource_filename("correctionlib", "lib")
+    out = []
+    if args.version:
+        out.append(correctionlib.version.version)
+    if args.incdir:
+        out.append(incdir)
+    if args.cflags:
+        out.append(f"-std=c++17 -I{incdir}")
+    if args.libdir:
+        out.append(libdir)
+    if args.ldflags:
+        out.append(f"-L{libdir} -lcorrectionlib")
+    if args.rpath:
+        out.append(f"-Wl,-rpath,{libdir}")
+    if args.cmake:
+        out.append(
+            f"-Dcorrectionlib_DIR={pkg_resources.resource_filename('correctionlib', 'cmake')}"
+        )
+    console.out(" ".join(out), highlight=False)
+    return 0
+
+
+def setup_config(subparsers: argparse._SubParsersAction) -> None:
+    parser = subparsers.add_parser(
+        "config", help="Configuration and linking information"
+    )
+    parser.set_defaults(command=config)
+    parser.add_argument("-v", "--version", action="store_true")
+    parser.add_argument("--incdir", action="store_true")
+    parser.add_argument("--cflags", action="store_true")
+    parser.add_argument("--libdir", action="store_true")
+    parser.add_argument("--ldflags", action="store_true")
+    parser.add_argument(
+        "--rpath", action="store_true", help="Include library path hint in linker"
+    )
+    parser.add_argument("--cmake", action="store_true", help="CMake dependency flags")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(prog="correction", description=__doc__)
     parser.add_argument(
@@ -125,14 +168,15 @@ def main() -> int:
         default=100,
         help="Rich output width",
     )
-    parser.add_argument("--html", type=str, help="Save HTML output to a file")
+    parser.add_argument("--html", type=str, help="Save terminal output to an HTML file")
     subparsers = parser.add_subparsers()
     setup_validate(subparsers)
     setup_summary(subparsers)
     setup_merge(subparsers)
+    setup_config(subparsers)
     args = parser.parse_args()
 
-    console = Console(width=args.width, record=True)
+    console = Console(width=args.width, record=bool(args.html))
     # py3.7: subparsers has required=True option
     if hasattr(args, "command"):
         retcode: int = args.command(console, args)

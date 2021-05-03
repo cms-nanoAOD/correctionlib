@@ -7,6 +7,8 @@ from rich.console import Console, ConsoleOptions, RenderResult
 from rich.panel import Panel
 from rich.tree import Tree
 
+import correctionlib.highlevel
+
 try:
     from typing import Literal  # type: ignore
 except ImportError:
@@ -71,6 +73,9 @@ class Formula(Model):
         self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
     ) -> None:
         nodecount["Formula"] += 1
+        for input in self.variables:
+            inputstats[input].min = float("-inf")
+            inputstats[input].max = float("inf")
 
 
 class FormulaRef(Model):
@@ -173,7 +178,7 @@ class MultiBinning(Model):
     content: List[Content] = Field(
         description="""Bin contents as a flattened array
         This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
-        to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0]), etc.
+        to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.
     """
     )
     flow: Union[Content, Literal["clamp", "error"]] = Field(
@@ -307,6 +312,9 @@ class Correction(Model):
         inputstats = {var.name: _SummaryInfo() for var in self.inputs}
         if not isinstance(self.data, float):
             self.data.summarize(nodecount, inputstats)
+        if self.generic_formulas:
+            for formula in self.generic_formulas:
+                formula.summarize(nodecount, inputstats)
         return nodecount, inputstats
 
     def __rich_console__(
@@ -322,7 +330,10 @@ class Correction(Model):
         def fmt_input(var: Variable, stats: _SummaryInfo) -> str:
             out = var.__rich__()
             if var.type == "real":
-                out += f"\nRange: [{stats.min}, {stats.max})"
+                if stats.min == float("inf") and stats.max == float("-inf"):
+                    out += "\nRange: [bold red]unused[/bold red]"
+                else:
+                    out += f"\nRange: [{stats.min}, {stats.max})"
                 if stats.overflow:
                     out += ", overflow ok"
                 if stats.transform:
@@ -347,6 +358,11 @@ class Correction(Model):
             expand=False,
         )
 
+    def to_evaluator(self) -> correctionlib.highlevel.Correction:
+        # TODO: consider refactoring highlevel.Correction to be independent
+        cset = CorrectionSet(schema_version=VERSION, corrections=[self])
+        return correctionlib.highlevel.CorrectionSet(cset)[self.name]
+
 
 class CorrectionSet(Model):
     schema_version: Literal[VERSION] = Field(description="The overall schema version")
@@ -361,6 +377,9 @@ class CorrectionSet(Model):
         for corr in self.corrections:
             tree.add(corr)
         yield tree
+
+    def to_evaluator(self) -> correctionlib.highlevel.CorrectionSet:
+        return correctionlib.highlevel.CorrectionSet(self)
 
 
 if __name__ == "__main__":
