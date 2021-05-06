@@ -10,6 +10,7 @@ Adapted from:
 """
 import json
 import math
+import gzip
 from typing import Any, List, Type
 
 import pydantic
@@ -17,8 +18,12 @@ import pydantic
 
 def write(data: Any, fname: str, **kwargs: Any) -> None:
     """Help function to quickly write JSON file formatted by JSONEncoder."""
-    with open(fname, "w") as fout:
-        fout.write(dumps(data, **kwargs))
+    if kwargs.get('zip'):
+        with gzip.open(fname, "wt") as fout:
+	        fout.write(dumps(data, **kwargs))
+    else:
+        with open(fname, "w") as fout:
+            fout.write(dumps(data, **kwargs))
 
 
 def dumps(data: Any, sort_keys: bool = False, **kwargs: Any) -> str:
