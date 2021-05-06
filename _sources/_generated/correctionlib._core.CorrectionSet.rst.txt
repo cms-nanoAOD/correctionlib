@@ -25,6 +25,7 @@ correctionlib.\_core.CorrectionSet
 
    .. autosummary::
    
+      ~CorrectionSet.description
       ~CorrectionSet.schema_version
    
    

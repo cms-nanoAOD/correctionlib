@@ -16,6 +16,11 @@
             "items": {
                 "$ref": "#/definitions/Correction"
             }
+        },
+        "description": {
+            "title": "Description",
+            "description": "A nice description of what is in this CorrectionSet means",
+            "type": "string"
         }
     },
     "required": [
