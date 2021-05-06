@@ -6,4 +6,4 @@
 	url = https://github.com/Tencent/rapidjson.git
 [submodule "cpp-peglib"]
 	path = cpp-peglib
-	url = https://github.com/nsmith-/cpp-peglib.git
+	url = https://github.com/yhirose/cpp-peglib.git
