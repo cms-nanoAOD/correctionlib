@@ -18,7 +18,7 @@ import pydantic
 
 def write(data: Any, fname: str, **kwargs: Any) -> None:
     """Help function to quickly write JSON file formatted by JSONEncoder."""
-    if kwargs.get('zip'):
+    if fname.endswith(".json.gz"):
         with gzip.open(fname, "wt") as fout:
 	        fout.write(dumps(data, **kwargs))
     else:
