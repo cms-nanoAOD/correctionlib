@@ -89,6 +89,7 @@ def merge(console: Console, args: argparse.Namespace) -> int:
                 )
                 return 1
             cset.corrections.append(corr2)
+    cset.description = "Merged from " + " ".join(args.files)
     if args.format == "compact":
         sys.stdout.write(cset.json())
     elif args.format == "indented":

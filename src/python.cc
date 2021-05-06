@@ -73,6 +73,7 @@ PYBIND11_MODULE(_core, m) {
         .def_static("from_file", &CorrectionSet::from_file)
         .def_static("from_string", &CorrectionSet::from_string)
         .def_property_readonly("schema_version", &CorrectionSet::schema_version)
+        .def_property_readonly("description", &CorrectionSet::description)
         .def("__getitem__", &CorrectionSet::at, py::return_value_policy::move)
         .def("__len__", &CorrectionSet::size)
         .def("__iter__", [](const CorrectionSet &v) {
