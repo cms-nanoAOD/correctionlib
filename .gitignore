@@ -144,3 +144,4 @@ src/*/version.py
 _skbuild
 src/correctionlib/cmake
 src/correctionlib/include
+include/correctionlib_version.h
