@@ -26,6 +26,15 @@ def test_evaluator():
     with pytest.raises(RuntimeError):
         cset = core.CorrectionSet.from_string('{"schema_version": "blah"}')
 
+    with pytest.raises(RuntimeError):
+        cset = core.CorrectionSet.from_string('{"schema_version": 2, "description": 3}')
+
+    cset = core.CorrectionSet.from_string(
+        '{"schema_version": 2, "description": "something", "corrections": []}'
+    )
+    assert cset.schema_version == 2
+    assert cset.description == "something"
+
     cset = wrap(
         schema.Correction(
             name="test corr",

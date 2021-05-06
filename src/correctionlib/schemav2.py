@@ -367,12 +367,18 @@ class Correction(Model):
 class CorrectionSet(Model):
     schema_version: Literal[VERSION] = Field(description="The overall schema version")
     corrections: List[Correction]
+    description: Optional[str] = Field(
+        description="A nice description of what is in this CorrectionSet means"
+    )
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
         tree = Tree(
-            f":open_file_folder: CorrectionSet ([i]schema v{self.schema_version}[/i])"
+            f"[b]CorrectionSet[/b] ([i]schema v{self.schema_version}[/i])\n"
+            + (self.description or "[i]No description[/i]")
+            + "\n"
+            + ":open_file_folder:"
         )
         for corr in self.corrections:
             tree.add(corr)
