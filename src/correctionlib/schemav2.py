@@ -364,6 +364,30 @@ class Correction(Model):
         return correctionlib.highlevel.CorrectionSet(cset)[self.name]
 
 
+class Cumulative(Model):
+    """A cumulative correction
+
+    This references other Correction objects in a CorrectionSet and can
+    provide a canned recipe for serial application of dependent corrections.
+    For example, given corrections corr1(x, y) and corr2(x', z), where
+    x' = corr1(x, y) * x, the cumulative correction
+    corr(x, y, z) = corr2(x * corr1(x, y), z)
+    can be expressed in reference to its component corrections.
+    """
+
+    name: str
+    description: Optional[str] = Field(
+        description="Detailed description of the correction stack"
+    )
+    variable: str = Field(
+        description="Name of the common input variable to update on accumulation"
+    )
+    op: Literal["*", "+"] = Field(
+        description="How to accumulate changes in the input variable"
+    )
+    stack: List[str] = Field(description="Names of the component corrections")
+
+
 class CorrectionSet(Model):
     schema_version: Literal[VERSION] = Field(description="The overall schema version")
     description: Optional[str] = Field(
