@@ -10,12 +10,18 @@ OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
 CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib $(PYINC) -Iinclude
 LDFLAGS=-pthread
 PREFIX ?= /usr
+STRVER=$(shell git describe --tags)
+MAJOR=$(shell git describe --tags|sed -n "s/v\([0-9]\+\)\..*/\1/p")
+MINOR=$(shell git describe --tags|sed -n "s/v[0-9]\+\.\([0-9]\+\)\..*/\1/p")
 
 .PHONY: build all clean install
 
 all: demo examples
 
-build/%.o: src/%.cc
+include/correctionlib_version.h: include/version.h.in
+	sed "s/@CORRECTIONLIB_VERSION@/$(STRVER)/;s/@correctionlib_VERSION_MAJOR@/$(MAJOR)/;s/@correctionlib_VERSION_MINOR@/$(MINOR)/" $< > $@
+
+build/%.o: src/%.cc include/correctionlib_version.h
 	mkdir -p build
 	$(CXX) $(CFLAGS) -c $< -o $@
 
@@ -41,3 +47,4 @@ clean:
 	rm -f demo
 	rm -f data/examples.json*
 	rm -rf correctionlib
+	rm -f include/correctionlib_version.h
