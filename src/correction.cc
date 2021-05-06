@@ -109,7 +109,12 @@ Formula::Formula(const rapidjson::Value& json, const Correction& context, bool g
 
   std::vector<size_t> variableIdx;
   for (const auto& item : json["variables"].GetArray()) {
-    variableIdx.push_back(context.input_index(item.GetString()));
+    auto idx = context.input_index(item.GetString());
+    if ( context.inputs()[idx].type() != Variable::VarType::real ) {
+      throw std::runtime_error("Formulas only accept real-valued inputs, got type "
+          + context.inputs()[idx].typeStr() + " for variable " + context.inputs()[idx].name());
+    }
+    variableIdx.push_back(idx);
   }
 
   std::vector<double> params;
