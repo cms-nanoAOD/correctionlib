@@ -6,6 +6,7 @@
 #include <variant>
 #include <map>
 #include <memory>
+#include "correctionlib_version.h"
 
 namespace rapidjson {
   // actual definition for class Value;
@@ -218,6 +219,7 @@ class CorrectionSet {
     CorrectionSet(const rapidjson::Value& json);
     bool validate();
     int schema_version() const { return schema_version_; };
+    std::string description() const { return description_; };
     auto size() const { return corrections_.size(); };
     auto begin() const { return corrections_.cbegin(); };
     auto end() const { return corrections_.cend(); };
@@ -227,6 +229,7 @@ class CorrectionSet {
   private:
     int schema_version_;
     std::map<std::string, CorrectionPtr> corrections_;
+    std::string description_;
 };
 
 } // namespace correction

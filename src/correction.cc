@@ -109,7 +109,12 @@ Formula::Formula(const rapidjson::Value& json, const Correction& context, bool g
 
   std::vector<size_t> variableIdx;
   for (const auto& item : json["variables"].GetArray()) {
-    variableIdx.push_back(context.input_index(item.GetString()));
+    auto idx = context.input_index(item.GetString());
+    if ( context.inputs()[idx].type() != Variable::VarType::real ) {
+      throw std::runtime_error("Formulas only accept real-valued inputs, got type "
+          + context.inputs()[idx].typeStr() + " for variable " + context.inputs()[idx].name());
+    }
+    variableIdx.push_back(idx);
   }
 
   std::vector<double> params;
@@ -437,17 +442,19 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_string(const char * data) {
 }
 
 CorrectionSet::CorrectionSet(const rapidjson::Value& json) {
-  if ( auto schema_version_ = getOptional<int>(json, "schema_version") ) {
-    if ( schema_version_ > evaluator_version ) {
+  if ( auto version = getOptional<int>(json, "schema_version") ) {
+    if ( version > evaluator_version ) {
       throw std::runtime_error("Evaluator is designed for schema v" + std::to_string(evaluator_version) + " and is not forward-compatible");
     }
-    else if ( schema_version_ < evaluator_version ) {
+    else if ( version < evaluator_version ) {
       throw std::runtime_error("Evaluator is designed for schema v" + std::to_string(evaluator_version) + " and is not backward-compatible");
     }
+    schema_version_ = version.value();
   }
   else {
     throw std::runtime_error("Missing schema_version in CorrectionSet document");
   }
+  description_ = getOptional<const char*>(json, "description").value_or("");
   if ( const auto& items = getOptional<rapidjson::Value::ConstArray>(json, "corrections") ) {
     for (const auto& item : *items) {
       auto corr = std::make_shared<Correction>(item);

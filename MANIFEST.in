@@ -2,11 +2,12 @@ prune *
 graft src
 graft tests
 
-include LICENSE pyproject.toml setup.py setup.cfg
-include *.md
 recursive-include include *.h
 recursive-include pybind11/include *
 include pybind11/LICENSE
 recursive-include rapidjson/include *
 include cpp-peglib/peglib.h
 global-exclude __pycache__ *.py[cod] .*
+include *.md
+include LICENSE pyproject.toml setup.py setup.cfg
+include CMakeLists.txt Config.cmake.in MANIFEST.in include/version.h.in

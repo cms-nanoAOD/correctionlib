@@ -1,6 +1,13 @@
-from typing import Any, List, Optional, Union
+from collections import defaultdict
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from pydantic import BaseModel, Field, StrictInt, StrictStr, validator
+from rich.columns import Columns
+from rich.console import Console, ConsoleOptions, RenderResult
+from rich.panel import Panel
+from rich.tree import Tree
+
+import correctionlib.highlevel
 
 try:
     from typing import Literal  # type: ignore
@@ -16,6 +23,16 @@ class Model(BaseModel):
         extra = "forbid"
 
 
+class _SummaryInfo:
+    def __init__(self) -> None:
+        self.values: Set[Union[str, int]] = set()
+        self.default: bool = False
+        self.overflow: bool = True
+        self.transform: bool = False
+        self.min: float = float("inf")
+        self.max: float = float("-inf")
+
+
 class Variable(Model):
     """An input or output variable"""
 
@@ -26,6 +43,11 @@ class Variable(Model):
     description: Optional[str] = Field(
         description="A nice description of what this variable means"
     )
+
+    def __rich__(self) -> str:
+        msg = f"[bold]{self.name}[/bold] ({self.type})\n"
+        msg += self.description or "[i]No description[/i]"
+        return msg
 
 
 # py3.7+: ForwardRef can be used instead of strings
@@ -47,6 +69,14 @@ class Formula(Model):
         description="Parameters, if the parser supports them (e.g. [0] for TFormula)"
     )
 
+    def summarize(
+        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+    ) -> None:
+        nodecount["Formula"] += 1
+        for input in self.variables:
+            inputstats[input].min = float("-inf")
+            inputstats[input].max = float("inf")
+
 
 class FormulaRef(Model):
     """A reference to one of the Correction generic_formula items, with specific parameters"""
@@ -58,6 +88,11 @@ class FormulaRef(Model):
     parameters: List[float] = Field(
         description="Same interpretation as Formula.parameters"
     )
+
+    def summarize(
+        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+    ) -> None:
+        nodecount["FormulaRef"] += 1
 
 
 class Transform(Model):
@@ -75,6 +110,14 @@ class Transform(Model):
     content: Content = Field(
         description="A subtree that will be evaluated with transformed values"
     )
+
+    def summarize(
+        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+    ) -> None:
+        nodecount["Transform"] += 1
+        inputstats[self.input].transform = True
+        if not isinstance(self.content, float):
+            self.content.summarize(nodecount, inputstats)
 
 
 class Binning(Model):
@@ -109,6 +152,19 @@ class Binning(Model):
                 )
         return content
 
+    def summarize(
+        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+    ) -> None:
+        nodecount["Binning"] += 1
+        inputstats[self.input].overflow &= self.flow != "error"
+        inputstats[self.input].min = min(inputstats[self.input].min, self.edges[0])
+        inputstats[self.input].max = max(inputstats[self.input].max, self.edges[-1])
+        for item in self.content:
+            if not isinstance(item, float):
+                item.summarize(nodecount, inputstats)
+        if not isinstance(self.flow, (float, str)):
+            self.flow.summarize(nodecount, inputstats)
+
 
 class MultiBinning(Model):
     """N-dimensional rectangular binning"""
@@ -122,7 +178,7 @@ class MultiBinning(Model):
     content: List[Content] = Field(
         description="""Bin contents as a flattened array
         This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
-        to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0]), etc.
+        to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.
     """
     )
     flow: Union[Content, Literal["clamp", "error"]] = Field(
@@ -150,6 +206,20 @@ class MultiBinning(Model):
                     f"MultiBinning content length ({len(content)}) does not match the product of dimension sizes ({nbins})"
                 )
         return content
+
+    def summarize(
+        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+    ) -> None:
+        nodecount["MultiBinning"] += 1
+        for input, edges in zip(self.inputs, self.edges):
+            inputstats[input].overflow &= self.flow != "error"
+            inputstats[input].min = min(inputstats[input].min, edges[0])
+            inputstats[input].max = max(inputstats[input].max, edges[-1])
+        for item in self.content:
+            if not isinstance(item, float):
+                item.summarize(nodecount, inputstats)
+        if not isinstance(self.flow, (float, str)):
+            self.flow.summarize(nodecount, inputstats)
 
 
 class CategoryItem(Model):
@@ -185,6 +255,18 @@ class Category(Model):
             if len(keys) != len(content):
                 raise ValueError("Duplicate keys detected in Category node")
         return content
+
+    def summarize(
+        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+    ) -> None:
+        nodecount["Category"] += 1
+        inputstats[self.input].values |= {item.key for item in self.content}
+        inputstats[self.input].default |= self.default is not None
+        for item in self.content:
+            if not isinstance(item.value, float):
+                item.value.summarize(nodecount, inputstats)
+        if self.default and not isinstance(self.default, float):
+            self.default.summarize(nodecount, inputstats)
 
 
 Transform.update_forward_refs()
@@ -225,10 +307,85 @@ class Correction(Model):
             )
         return output
 
+    def summary(self) -> Tuple[Dict[str, int], Dict[str, _SummaryInfo]]:
+        nodecount: Dict[str, int] = defaultdict(int)
+        inputstats = {var.name: _SummaryInfo() for var in self.inputs}
+        if not isinstance(self.data, float):
+            self.data.summarize(nodecount, inputstats)
+        if self.generic_formulas:
+            for formula in self.generic_formulas:
+                formula.summarize(nodecount, inputstats)
+        return nodecount, inputstats
+
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        yield f":chart_with_upwards_trend: [bold]{self.name}[/bold] (v{self.version})"
+        yield self.description or "[i]No description[/i]"
+        nodecount, inputstats = self.summary()
+        yield "Node counts: " + ", ".join(
+            f"[b]{key}[/b]: {val}" for key, val in nodecount.items()
+        )
+
+        def fmt_input(var: Variable, stats: _SummaryInfo) -> str:
+            out = var.__rich__()
+            if var.type == "real":
+                if stats.min == float("inf") and stats.max == float("-inf"):
+                    out += "\nRange: [bold red]unused[/bold red]"
+                else:
+                    out += f"\nRange: [{stats.min}, {stats.max})"
+                if stats.overflow:
+                    out += ", overflow ok"
+                if stats.transform:
+                    out += "\n[bold red]has transform[/bold red]"
+            else:
+                out += "\nValues: " + ", ".join(str(v) for v in sorted(stats.values))
+                if stats.default:
+                    out += "\n[bold green]has default[/bold green]"
+            return out
+
+        inputs = (
+            Panel(
+                fmt_input(var, inputstats[var.name]),
+                title=":arrow_forward: input",
+            )
+            for var in self.inputs
+        )
+        yield Columns(inputs)
+        yield Panel(
+            self.output.__rich__(),
+            title=":arrow_backward: output",
+            expand=False,
+        )
+
+    def to_evaluator(self) -> correctionlib.highlevel.Correction:
+        # TODO: consider refactoring highlevel.Correction to be independent
+        cset = CorrectionSet(schema_version=VERSION, corrections=[self])
+        return correctionlib.highlevel.CorrectionSet(cset)[self.name]
+
 
 class CorrectionSet(Model):
     schema_version: Literal[VERSION] = Field(description="The overall schema version")
     corrections: List[Correction]
+    description: Optional[str] = Field(
+        description="A nice description of what is in this CorrectionSet means"
+    )
+
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        tree = Tree(
+            f"[b]CorrectionSet[/b] ([i]schema v{self.schema_version}[/i])\n"
+            + (self.description or "[i]No description[/i]")
+            + "\n"
+            + ":open_file_folder:"
+        )
+        for corr in self.corrections:
+            tree.add(corr)
+        yield tree
+
+    def to_evaluator(self) -> correctionlib.highlevel.CorrectionSet:
+        return correctionlib.highlevel.CorrectionSet(self)
 
 
 if __name__ == "__main__":

@@ -51,7 +51,7 @@ class MultiBinning(Model):
     """Bin edges for each input
 
     C-ordered array, e.g. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
-    to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0]), etc.
+    to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.
     """
     content: List[Content]
 

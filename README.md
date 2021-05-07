@@ -66,32 +66,45 @@ at levels other than the entrypoint.
 
 ## Installation
 
-The build process is Makefile-based for the C++ evaluator and via setuptools for the python bindings.
+The build process is based on setuptools, with CMake (through scikit-build)
+for the C++ evaluator and its python bindings module.
 Builds have been tested in Windows, OS X, and Linux, and python bindings can be compiled against both
 python2 and python3, as well as from within a CMSSW environment. The python bindings are distributed as a
-pip-installable package.
+pip-installable package. Note that CMSSW 11_2_X and above has ROOT accessible from python 3.
 
-To build in an environment that has python 3, you can simply
+To install in an environment that has python 3, you can simply
 ```bash
-pip install correctionlib
+python3 -m pip install correctionlib
 ```
 (possibly with `--user`, or in a virtualenv, etc.)
-Note that CMSSW 11_2_X and above has ROOT accessible from python 3.
-
-If you have a pure C++ framework, you can build the C++ evaluator in most environments via:
+If you wish to install the latest development version,
 ```bash
-git clone --recursive git@github.com:nsmith-/correctionlib.git
-cd correctionlib
-make
-# demo C++ binding, main function at src/demo.cc
-gunzip data/examples.json.gz
-./demo data/examples.json
+python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 ```
-Eventually this will be simplified to a pip install and a `correction-config` utility to retrieve the
-header and linking flags.
+should work.
+
+The C++ evaluator library is distributed as part of the python package, and it can be
+linked to directly without using python. If you are using CMake you can depend on it by including
+the output of `correction config --cmake` in your cmake invocation. A complete cmake
+example that builds a user C++ application against correctionlib and ROOT RDataFrame
+can be [found here](https://gist.github.com/pieterdavid/a560e65658386d70a1720cb5afe4d3e9).
+
+For manual compilation, include and linking definitions can similarly be found via `correction config --cflags --ldflags`.
+For example, the demo application can be compiled with:
+```bash
+wget https://raw.githubusercontent.com/cms-nanoAOD/correctionlib/master/src/demo.cc
+g++ $(correction config --cflags --ldflags --rpath) demo.cc -o demo
+```
+
+If the `correction` command-line utility is not on your path for some reason, it can also be invoked via `python -m correctionlib.cli`.
 
 To compile with python2 support, consider using python 3 :) If you considered that and still
-want to use python2, follow the C++ build instructions and then call `make PYTHON=python2 correctionlib` to compile.
+want to use python2, the following recipe may work:
+```bash
+git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
+cd correctionlib
+make PYTHON=python2 correctionlib
+```
 Inside CMSSW you should use `make PYTHON=python correctionlib` assuming `python` is the name of the scram tool you intend to link against.
 This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
 This package will only provide the `correctionlib._core` evaluator module, as the schema tools and high-level bindings are python3-only.
@@ -107,18 +120,18 @@ Some examples can be found in `data/conversion.py`. The `tests/` directory may a
 ## Developing
 See CONTRIBUTING.md
 
-[actions-badge]:            https://github.com/nsmith-/correctionlib/workflows/CI/badge.svg
-[actions-link]:             https://github.com/nsmith-/correctionlib/actions
+[actions-badge]:            https://github.com/cms-nanoAOD/correctionlib/workflows/CI/badge.svg
+[actions-link]:             https://github.com/cms-nanoAOD/correctionlib/actions
 [black-badge]:              https://img.shields.io/badge/code%20style-black-000000.svg
 [black-link]:               https://github.com/psf/black
 [conda-badge]:              https://img.shields.io/conda/vn/conda-forge/correctionlib
 [conda-link]:               https://github.com/conda-forge/correctionlib-feedstock
 [github-discussions-badge]: https://img.shields.io/static/v1?label=Discussions&message=Ask&color=blue&logo=github
-[github-discussions-link]:  https://github.com/nsmith-/correctionlib/discussions
-[gitter-badge]:             https://badges.gitter.im/https://github.com/nsmith-/correctionlib/community.svg
-[gitter-link]:              https://gitter.im/https://github.com/nsmith-/correctionlib/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
+[github-discussions-link]:  https://github.com/cms-nanoAOD/correctionlib/discussions
+[gitter-badge]:             https://badges.gitter.im/https://github.com/cms-nanoAOD/correctionlib/community.svg
+[gitter-link]:              https://gitter.im/https://github.com/cms-nanoAOD/correctionlib/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
 [pypi-link]:                https://pypi.org/project/correctionlib/
 [pypi-platforms]:           https://img.shields.io/pypi/pyversions/correctionlib
 [pypi-version]:             https://badge.fury.io/py/correctionlib.svg
-[rtd-badge]:                https://github.com/nsmith-/correctionlib/actions/workflows/docs.yml/badge.svg
-[rtd-link]:                 https://nsmith-.github.io/correctionlib/
+[rtd-badge]:                https://github.com/cms-nanoAOD/correctionlib/actions/workflows/docs.yml/badge.svg
+[rtd-link]:                 https://cms-nanoAOD.github.io/correctionlib/
