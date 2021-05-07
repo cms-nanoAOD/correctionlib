@@ -366,10 +366,10 @@ class Correction(Model):
 
 class CorrectionSet(Model):
     schema_version: Literal[VERSION] = Field(description="The overall schema version")
-    corrections: List[Correction]
     description: Optional[str] = Field(
         description="A nice description of what is in this CorrectionSet means"
     )
+    corrections: List[Correction]
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
