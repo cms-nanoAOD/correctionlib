@@ -8,6 +8,7 @@ Instructions: Print or write JSON dictionary 'data' as
 Adapted from:
   https://stackoverflow.com/questions/16264515/json-dumps-custom-formatting
 """
+import gzip
 import json
 import math
 from typing import Any, List, Type
@@ -17,8 +18,12 @@ import pydantic
 
 def write(data: Any, fname: str, **kwargs: Any) -> None:
     """Help function to quickly write JSON file formatted by JSONEncoder."""
-    with open(fname, "w") as fout:
-        fout.write(dumps(data, **kwargs))
+    if fname.endswith(".json.gz"):
+        with gzip.open(fname, "wt") as fout:
+            fout.write(dumps(data, **kwargs))
+    else:
+        with open(fname, "w") as fout:
+            fout.write(dumps(data, **kwargs))
 
 
 def dumps(data: Any, sort_keys: bool = False, **kwargs: Any) -> str:
@@ -99,7 +104,7 @@ class JSONEncoder(json.JSONEncoder):
                     maxlen = int(
                         math.ceil(len(obj) / nlines)
                     )  # divide evenly over nlines
-                    for i in range(0, nlines + 1):
+                    for i in range(0, nlines):
                         line = []
                         for item in obj[i * maxlen : (i + 1) * maxlen]:
                             line.append(json.dumps(item))
