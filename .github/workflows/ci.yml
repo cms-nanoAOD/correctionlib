@@ -48,7 +48,7 @@ jobs:
     # workaround for MSVC, can be removed when scikit-build includes https://github.com/scikit-build/scikit-build/pull/526
     - name: Prepare compiler environment for Windows
       if: runner.os == 'Windows'
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: ilammy/msvc-dev-cmd@v1.8.0
       with:
         arch: x64
 

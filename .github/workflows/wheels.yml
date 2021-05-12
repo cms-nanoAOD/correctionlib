@@ -57,7 +57,7 @@ jobs:
       with:
         submodules: recursive
 
-    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: ilammy/msvc-dev-cmd@v1.8.0
       with:
         arch: x86
 
@@ -67,7 +67,7 @@ jobs:
         CIBW_TEST_EXTRAS: test
         CIBW_TEST_COMMAND: pytest {project}/tests
 
-    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: ilammy/msvc-dev-cmd@v1.8.0
       with:
         arch: x64
 
