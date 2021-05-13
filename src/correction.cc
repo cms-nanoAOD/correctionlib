@@ -418,7 +418,7 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
   FILE* fp = fopen(fn.c_str(), "rb");
   char readBuffer[65536];
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  rapidjson::ParseResult ok = json.ParseStream(is);
+  rapidjson::ParseResult ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
   if (!ok) {
     throw std::runtime_error(
         std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
@@ -431,7 +431,7 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
 
 std::unique_ptr<CorrectionSet> CorrectionSet::from_string(const char * data) {
   rapidjson::Document json;
-  rapidjson::ParseResult ok = json.Parse(data);
+  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
   if (!ok) {
     throw std::runtime_error(
         std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
