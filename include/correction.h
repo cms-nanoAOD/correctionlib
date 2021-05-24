@@ -213,7 +213,7 @@ typedef std::shared_ptr<const Correction> CorrectionPtr;
 
 class CorrectionSet {
   public:
-    static std::unique_ptr<CorrectionSet> from_file(const std::string& fn);
+    static std::unique_ptr<CorrectionSet> from_file(const char * fn);
     static std::unique_ptr<CorrectionSet> from_string(const char * data);
 
     CorrectionSet(const rapidjson::Value& json);

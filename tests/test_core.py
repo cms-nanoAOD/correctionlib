@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import platform
 
 import pytest
@@ -34,6 +35,18 @@ def test_evaluator():
     )
     assert cset.schema_version == 2
     assert cset.description == "something"
+
+    try:
+        with open("cset.json", "w") as fout:
+            fout.write(
+                '{"schema_version": 2, "description": "something", "corrections": []}'
+            )
+
+        cset = core.CorrectionSet.from_file("cset.json")
+        assert cset.schema_version == 2
+        assert cset.description == "something"
+    finally:
+        os.remove("cset.json")
 
     cset = wrap(
         schema.Correction(

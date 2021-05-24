@@ -413,9 +413,9 @@ double Correction::evaluate(const std::vector<Variable::Type>& values) const {
   return std::visit(node_evaluate{values}, data_);
 }
 
-std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
+std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const char * fn) {
   rapidjson::Document json;
-  FILE* fp = fopen(fn.c_str(), "rb");
+  FILE* fp = fopen(fn, "rb");
   char readBuffer[65536];
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
   rapidjson::ParseResult ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);

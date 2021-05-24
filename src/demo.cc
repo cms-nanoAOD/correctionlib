@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
     printf("sizeof(Content): %lu\n", sizeof(Content));
   }
   else if ( argc == 2 ) {
-    auto cset = CorrectionSet::from_file(std::string(argv[1]));
+    auto cset = CorrectionSet::from_file(argv[1]);
     for (auto& corr : *cset) {
       printf("Correction: %s\n", corr.first.c_str());
     }
