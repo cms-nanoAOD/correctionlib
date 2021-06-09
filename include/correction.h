@@ -204,6 +204,32 @@ class Correction {
 };
 
 typedef Correction::Ref CorrectionPtr; // deprecated
+class CorrectionSet;
+
+class CompoundCorrection {
+  public:
+    typedef std::shared_ptr<const CompoundCorrection> Ref;
+
+    CompoundCorrection(const JSONObject& json, const CorrectionSet& context);
+    std::string name() const { return name_; };
+    std::string description() const { return description_; };
+    const std::vector<Variable>& inputs() const { return inputs_; };
+    size_t input_index(const std::string_view name) const;
+    const Variable& output() const { return output_; };
+    double evaluate(const std::vector<Variable::Type>& values) const;
+
+  private:
+    enum class UpdateOp {Add, Multiply, Divide, Last};
+
+    std::string name_;
+    std::string description_;
+    std::vector<Variable> inputs_;
+    Variable output_;
+    std::vector<size_t> inputs_update_;
+    UpdateOp input_op_;
+    UpdateOp output_op_;
+    std::vector<std::tuple<std::vector<size_t>, Correction::Ref>> stack_;
+};
 
 class CorrectionSet {
   public:
@@ -219,10 +245,12 @@ class CorrectionSet {
     auto end() const { return corrections_.cend(); };
     Correction::Ref at(const std::string& key) const { return corrections_.at(key); };
     Correction::Ref operator[](const std::string& key) const { return at(key); };
+    const auto& compound() const { return compoundcorrections_; };
 
   private:
     int schema_version_;
     std::map<std::string, Correction::Ref> corrections_;
+    std::map<std::string, CompoundCorrection::Ref> compoundcorrections_;
     std::string description_;
 };
 

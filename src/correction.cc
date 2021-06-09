@@ -498,6 +498,104 @@ double Correction::evaluate(const std::vector<Variable::Type>& values) const {
   return std::visit(node_evaluate{values}, data_);
 }
 
+CompoundCorrection::CompoundCorrection(const JSONObject& json, const CorrectionSet& context) :
+  name_(json.getRequired<const char *>("name")),
+  description_(json.getOptional<const char*>("description").value_or("")),
+  output_(json.getRequired<rapidjson::Value::ConstObject>("output"))
+{
+  if ( output_.type() != Variable::VarType::real ) { throw std::runtime_error("Outputs can only be real-valued"); }
+  for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("inputs")) {
+    if ( ! item.IsObject() ) { throw std::runtime_error("invalid inputs item type"); }
+    inputs_.emplace_back(item.GetObject());
+  }
+  for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("inputs_update")) {
+    if ( ! item.IsString() ) { throw std::runtime_error("invalid inputs_update item type"); }
+    size_t idx = input_index(item.GetString());
+    if ( inputs_[idx].type() != Variable::VarType::real ) {
+      throw std::runtime_error("CompoundCorrection updatable inputs must be real-valued");
+    }
+    inputs_update_.emplace_back(idx);
+  }
+
+  const auto& op = json.getRequired<std::string_view>("input_op");
+  if ( op == "+" ) { input_op_ = UpdateOp::Add; }
+  else if ( op == "*" ) { input_op_ = UpdateOp::Multiply; }
+  else if ( op == "/" ) { input_op_ = UpdateOp::Divide; }
+  else { throw std::runtime_error("Invalid CompoundCorrection input update op"); }
+
+  const auto& out_op = json.getRequired<std::string_view>("output_op");
+  if ( out_op == "+" ) { output_op_ = UpdateOp::Add; }
+  else if ( out_op == "*" ) { output_op_ = UpdateOp::Multiply; }
+  else if ( out_op == "/" ) { output_op_ = UpdateOp::Divide; }
+  else if ( out_op == "last" ) { output_op_ = UpdateOp::Last; }
+  else { throw std::runtime_error("Invalid CompoundCorrection output update op"); }
+
+  for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("stack")) {
+    if ( ! item.IsString() ) { throw std::runtime_error("Invalid type"); }
+    Correction::Ref corr;
+    try {
+      corr = context.at(item.GetString());
+    } catch (std::out_of_range& ex) {
+      throw std::runtime_error("CompoundCorrection constituent "
+          + std::string(item.GetString()) + " not found in the CorrectionSet");
+    }
+    std::vector<size_t> inmap;
+    for (const auto& input : corr->inputs()) {
+      inmap.push_back(input_index(input.name()));
+    }
+    stack_.emplace_back(std::move(inmap), corr);
+  }
+}
+
+size_t CompoundCorrection::input_index(const std::string_view name) const {
+  size_t idx = 0;
+  for (const auto& var : inputs_) {
+    if ( name == var.name() ) return idx;
+    idx++;
+  }
+  throw std::runtime_error("Error: could not find variable " + std::string(name) + " in inputs");
+}
+
+double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) const {
+  if ( values.size() > inputs_.size() ) {
+    throw std::runtime_error("Too many inputs");
+  }
+  else if ( values.size() < inputs_.size() ) {
+    throw std::runtime_error("Insufficient inputs");
+  }
+  for (size_t i=0; i < inputs_.size(); ++i) {
+    inputs_[i].validate(values[i]);
+  }
+  std::vector<Variable::Type> ivalues(values);
+  std::vector<Variable::Type> cvalues;
+  cvalues.reserve(values.size());
+  double out, sf;
+  bool start{true};
+  for(const auto& [inmap, corr] : stack_) {
+    cvalues.clear();
+    for(size_t pos : inmap) cvalues.push_back(ivalues[pos]);
+    sf = corr->evaluate(cvalues);
+    for(size_t pos : inputs_update_) {
+      switch ( input_op_ ) {
+        case UpdateOp::Add: std::get<double>(ivalues[pos]) += sf; break;
+        case UpdateOp::Multiply: std::get<double>(ivalues[pos]) *= sf; break;
+        case UpdateOp::Divide: std::get<double>(ivalues[pos]) /= sf; break;
+        case UpdateOp::Last: throw std::logic_error("Illegal update op");
+      }
+    }
+    if ( start ) { out = sf; start = false; }
+    else {
+      switch ( output_op_ ) {
+        case UpdateOp::Add: out += sf; break;
+        case UpdateOp::Multiply: out *= sf; break;
+        case UpdateOp::Divide: out /= sf; break;
+        case UpdateOp::Last: out = sf;
+      }
+    }
+  }
+  return out;
+}
+
 std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
   rapidjson::Document json;
   FILE* fp = fopen(fn.c_str(), "rb");
@@ -541,6 +639,13 @@ CorrectionSet::CorrectionSet(const JSONObject& json) {
     if ( ! item.IsObject() ) { throw std::runtime_error("Expected Correction object"); }
     auto corr = std::make_shared<Correction>(item.GetObject());
     corrections_[corr->name()] = corr;
+  }
+  if (auto items = json.getOptional<rapidjson::Value::ConstArray>("compound_corrections")) {
+    for (const auto& item : *items) {
+      if ( ! item.IsObject() ) { throw std::runtime_error("Expected CompoundCorrection object"); }
+      auto corr = std::make_shared<CompoundCorrection>(item.GetObject(), *this);
+      compoundcorrections_[corr->name()] = corr;
+    }
   }
 }
 
