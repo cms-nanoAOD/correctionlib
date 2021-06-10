@@ -33,23 +33,6 @@ class correction::JSONObject {
           + std::string(key) + "'");
     }
 
-    template<>
-    std::string_view getRequired<std::string_view>(const char * key) const {
-      const auto it = json_.FindMember(key);
-      if ( it != json_.MemberEnd() ) {
-        if ( it->value.IsString() ) {
-          return std::string_view(it->value.GetString(), it->value.GetStringLength());
-        } else {
-          throw std::runtime_error(
-              "Encountered invalid type for required attribute '"
-              + std::string(key) + "'");
-        }
-      }
-      throw std::runtime_error(
-          "Object missing required attribute '"
-          + std::string(key) + "'");
-    }
-
     const rapidjson::Value& getRequiredValue(const char * key) const {
       const auto it = json_.FindMember(key);
       if ( it != json_.MemberEnd() ) {
@@ -84,6 +67,23 @@ class correction::JSONObject {
   private:
     rapidjson::Value::ConstObject json_;
 };
+
+template<>
+std::string_view JSONObject::getRequired<std::string_view>(const char * key) const {
+  const auto it = json_.FindMember(key);
+  if ( it != json_.MemberEnd() ) {
+    if ( it->value.IsString() ) {
+      return std::string_view(it->value.GetString(), it->value.GetStringLength());
+    } else {
+      throw std::runtime_error(
+          "Encountered invalid type for required attribute '"
+          + std::string(key) + "'");
+    }
+  }
+  throw std::runtime_error(
+      "Object missing required attribute '"
+      + std::string(key) + "'");
+}
 
 namespace {
   Content resolve_content(const rapidjson::Value& json, const Correction& context) {
