@@ -67,7 +67,7 @@ def test_evaluator():
                 {
                     "nodetype": "binning",
                     "input": "pt",
-                    "edges": [0, 20, 40],
+                    "edges": [0, 20, 40, float("inf")],
                     "flow": "error",
                     "content": [
                         schema.Category.parse_obj(
@@ -99,6 +99,7 @@ def test_evaluator():
                                 ],
                             }
                         ),
+                        1.0,
                     ],
                 }
             ),
@@ -128,6 +129,12 @@ def test_evaluator():
     assert sf.evaluate(12.0, "blah") == 1.1
     # Do we need pytest.approx? Maybe not
     assert sf.evaluate(31.0, "blah3") == 0.25 * 31.0 + math.exp(3.1)
+
+    with pytest.raises(RuntimeError):
+        # underflow
+        sf.evaluate(-1.0, "blah")
+
+    assert sf.evaluate(1000.0, "blah") == 1.0
 
 
 @pytest.mark.skipif(
