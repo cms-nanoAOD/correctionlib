@@ -1,11 +1,12 @@
 import math
+import pickle
 
-from correctionlib import schemav2 as model
-from correctionlib._core import CorrectionSet
+import correctionlib
+import correctionlib.schemav2
 
 
 def test_compound():
-    cset = model.CorrectionSet.parse_obj(
+    cset = correctionlib.schemav2.CorrectionSet.parse_obj(
         {
             "schema_version": 2,
             "corrections": [
@@ -62,7 +63,7 @@ def test_compound():
             ],
         }
     )
-    cset = CorrectionSet.from_string(cset.json())
+    cset = correctionlib.CorrectionSet.from_string(cset.json())
     corr = cset.compound["l1l2"]
     assert corr.evaluate(10.0, 1.2) == 1 + 0.1 * math.log10(10 * 1.1) + 0.1 * 1.2
     assert corr.evaluate(10.0, 0.0) == 1 + 0.1 * math.log10(10 * 1.1)
@@ -70,3 +71,6 @@ def test_compound():
     corr = cset.compound["multiplied"]
     assert corr.evaluate(1.2, 10.0) == 1.1 * (1 + 0.1 * math.log10(10) + 0.1 * 1.2)
     assert corr.evaluate(0.0, 10.0) == (1 + 0.1 * math.log10(10)) * 1.1
+
+    corr2 = pickle.loads(pickle.dumps(corr))
+    assert corr2.evaluate(0.0, 10.0) == (1 + 0.1 * math.log10(10)) * 1.1
