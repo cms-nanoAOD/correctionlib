@@ -21,6 +21,13 @@
             "items": {
                 "$ref": "#/definitions/Correction"
             }
+        },
+        "compound_corrections": {
+            "title": "Compound Corrections",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/CompoundCorrection"
+            }
         }
     },
     "required": [
@@ -610,6 +617,86 @@
                 "inputs",
                 "output",
                 "data"
+            ],
+            "additionalProperties": false
+        },
+        "CompoundCorrection": {
+            "title": "CompoundCorrection",
+            "description": "A compound correction\n\nThis references other Correction objects in a CorrectionSet and can\nprovide a canned recipe for serial application of dependent corrections.\nFor example, given corrections corr1(x, y) and corr2(x', z), where\nx' = corr1(x, y) * x, the compound correction\ncorr(x, y, z) = corr2(x * corr1(x, y), z)\ncan be expressed with reference to its component corrections.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "description": {
+                    "title": "Description",
+                    "description": "Detailed description of the correction stack",
+                    "type": "string"
+                },
+                "inputs": {
+                    "title": "Inputs",
+                    "description": "The function signature of the correction",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Variable"
+                    }
+                },
+                "output": {
+                    "title": "Output",
+                    "description": "Output type for this correction",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/Variable"
+                        }
+                    ]
+                },
+                "inputs_update": {
+                    "title": "Inputs Update",
+                    "description": "Names of the input variables to update with the output of the previous correction",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "input_op": {
+                    "title": "Input Op",
+                    "description": "How to accumulate changes in the input variables",
+                    "enum": [
+                        "+",
+                        "*",
+                        "/"
+                    ],
+                    "type": "string"
+                },
+                "output_op": {
+                    "title": "Output Op",
+                    "description": "How to accumulate changes in the output variable",
+                    "enum": [
+                        "+",
+                        "*",
+                        "/",
+                        "last"
+                    ],
+                    "type": "string"
+                },
+                "stack": {
+                    "title": "Stack",
+                    "description": "Names of the component corrections. Each component should have a subset of the inputs listed in this object.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "name",
+                "inputs",
+                "output",
+                "inputs_update",
+                "input_op",
+                "output_op",
+                "stack"
             ],
             "additionalProperties": false
         }

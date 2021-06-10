@@ -29,6 +29,7 @@ correctionlib.highlevel.CorrectionSet
 
    .. autosummary::
    
+      ~CorrectionSet.compound
       ~CorrectionSet.schema_version
    
    

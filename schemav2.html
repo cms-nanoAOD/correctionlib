@@ -216,7 +216,19 @@
 <tr class="row-even"><td><p>items</p></td>
 <td><p><a class="reference internal" href="#correction">Correction</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p>compound_corrections</p></li>
+</ul>
+</td>
+<td colspan="2"><p><em>Compound Corrections</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p><em>array</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>items</p></td>
+<td><p><a class="reference internal" href="#compoundcorrection">CompoundCorrection</a></p></td>
+</tr>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="2"><p>False</p></td>
 </tr>
 </tbody>
@@ -1025,6 +1037,137 @@ of the correction object</p>
 </tr>
 <tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
+<td colspan="3"><p>False</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="compoundcorrection">
+<span id="compoundcorrection"></span><h3>CompoundCorrection<a class="headerlink" href="#compoundcorrection" title="Permalink to this headline">¶</a></h3>
+<p>A compound correction</p>
+<p>This references other Correction objects in a CorrectionSet and can
+provide a canned recipe for serial application of dependent corrections.
+For example, given corrections corr1(x, y) and corr2(x’, z), where
+x’ = corr1(x, y) * x, the compound correction
+corr(x, y, z) = corr2(x * corr1(x, y), z)
+can be expressed with reference to its component corrections.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="3"><p><em>object</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="4"><p>properties</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="2"><ul class="simple">
+<li><p><strong>name</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Name</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="2"><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p>description</p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Description</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>Detailed description of the correction stack</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>string</em></p></td>
+</tr>
+<tr class="row-even"><td rowspan="4"><ul class="simple">
+<li><p><strong>inputs</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Inputs</em></p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p>The function signature of the correction</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="2"><p><em>array</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>items</p></td>
+<td colspan="2"><p><a class="reference internal" href="#variable">Variable</a></p></td>
+</tr>
+<tr class="row-even"><td rowspan="3"><ul class="simple">
+<li><p><strong>output</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Output</em></p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p>Output type for this correction</p></td>
+</tr>
+<tr class="row-even"><td><p>allOf</p></td>
+<td colspan="2"><p><a class="reference internal" href="#variable">Variable</a></p></td>
+</tr>
+<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<li><p><strong>inputs_update</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Inputs Update</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>Names of the input variables to update with the output of the previous correction</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>array</em></p></td>
+</tr>
+<tr class="row-even"><td><p>items</p></td>
+<td><p>type</p></td>
+<td><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<li><p><strong>input_op</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Input Op</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>How to accumulate changes in the input variables</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>string</em></p></td>
+</tr>
+<tr class="row-even"><td><p>enum</p></td>
+<td colspan="2"><p>+, <a href="#id1"><span class="problematic" id="id2">*</span></a>, /</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<li><p><strong>output_op</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Output Op</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>How to accumulate changes in the output variable</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>string</em></p></td>
+</tr>
+<tr class="row-even"><td><p>enum</p></td>
+<td colspan="2"><p>+, <a href="#id3"><span class="problematic" id="id4">*</span></a>, /, last</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<li><p><strong>stack</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Stack</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>Names of the component corrections. Each component should have a subset of the inputs listed in this object.</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>array</em></p></td>
+</tr>
+<tr class="row-even"><td><p>items</p></td>
+<td><p>type</p></td>
+<td><p><em>string</em></p></td>
 </tr>
 <tr class="row-odd"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>

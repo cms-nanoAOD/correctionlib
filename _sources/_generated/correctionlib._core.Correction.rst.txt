@@ -26,7 +26,9 @@ correctionlib.\_core.Correction
    .. autosummary::
    
       ~Correction.description
+      ~Correction.inputs
       ~Correction.name
+      ~Correction.output
       ~Correction.version
    
    
