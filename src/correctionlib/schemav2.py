@@ -364,12 +364,46 @@ class Correction(Model):
         return correctionlib.highlevel.CorrectionSet(cset)[self.name]
 
 
+class CompoundCorrection(Model):
+    """A compound correction
+
+    This references other Correction objects in a CorrectionSet and can
+    provide a canned recipe for serial application of dependent corrections.
+    For example, given corrections corr1(x, y) and corr2(x', z), where
+    x' = corr1(x, y) * x, the compound correction
+    corr(x, y, z) = corr2(x * corr1(x, y), z)
+    can be expressed with reference to its component corrections.
+    """
+
+    name: str
+    description: Optional[str] = Field(
+        description="Detailed description of the correction stack"
+    )
+    inputs: List[Variable] = Field(
+        description="The function signature of the correction"
+    )
+    output: Variable = Field(description="Output type for this correction")
+    inputs_update: List[str] = Field(
+        description="Names of the input variables to update with the output of the previous correction"
+    )
+    input_op: Literal["+", "*", "/"] = Field(
+        description="How to accumulate changes in the input variables"
+    )
+    output_op: Literal["+", "*", "/", "last"] = Field(
+        description="How to accumulate changes in the output variable"
+    )
+    stack: List[str] = Field(
+        description="Names of the component corrections. Each component should have a subset of the inputs listed in this object."
+    )
+
+
 class CorrectionSet(Model):
     schema_version: Literal[VERSION] = Field(description="The overall schema version")
     description: Optional[str] = Field(
         description="A nice description of what is in this CorrectionSet means"
     )
     corrections: List[Correction]
+    compound_corrections: Optional[List[CompoundCorrection]]
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions

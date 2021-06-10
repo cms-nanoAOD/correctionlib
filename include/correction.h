@@ -8,26 +8,18 @@
 #include <memory>
 #include "correctionlib_version.h"
 
-namespace rapidjson {
-  // actual definition for class Value;
-  template<typename CharType> struct UTF8;
-  class CrtAllocator;
-  template <typename BaseAllocator> class MemoryPoolAllocator;
-  template <typename Encoding, typename Allocator> class GenericValue;
-  typedef GenericValue<UTF8<char>, MemoryPoolAllocator<CrtAllocator>> Value;
-};
-
-
 namespace correction {
 
 constexpr int evaluator_version { 2 };
+
+class JSONObject; // internal wrapper around rapidjson
 
 class Variable {
   public:
     enum class VarType {string, integer, real};
     typedef std::variant<int, double, std::string> Type;
 
-    Variable(const rapidjson::Value& json);
+    Variable(const JSONObject& json);
     std::string name() const { return name_; };
     std::string description() const { return description_; };
     VarType type() const { return type_; };
@@ -113,7 +105,7 @@ class Formula {
   public:
     typedef std::shared_ptr<const Formula> Ref;
 
-    Formula(const rapidjson::Value& json, const Correction& context, bool generic = false);
+    Formula(const JSONObject& json, const Correction& context, bool generic = false);
     std::string expression() const { return expression_; };
     double evaluate(const std::vector<Variable::Type>& values) const;
     double evaluate(const std::vector<Variable::Type>& values, const std::vector<double>& parameters) const;
@@ -127,7 +119,7 @@ class Formula {
 
 class FormulaRef {
   public:
-    FormulaRef(const rapidjson::Value& json, const Correction& context);
+    FormulaRef(const JSONObject& json, const Correction& context);
     double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
@@ -137,7 +129,7 @@ class FormulaRef {
 
 class Transform {
   public:
-    Transform(const rapidjson::Value& json, const Correction& context);
+    Transform(const JSONObject& json, const Correction& context);
     double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
@@ -151,7 +143,7 @@ enum class _FlowBehavior {value, clamp, error};
 
 class Binning {
   public:
-    Binning(const rapidjson::Value& json, const Correction& context);
+    Binning(const JSONObject& json, const Correction& context);
     const Content& child(const std::vector<Variable::Type>& values) const;
 
   private:
@@ -162,7 +154,7 @@ class Binning {
 
 class MultiBinning {
   public:
-    MultiBinning(const rapidjson::Value& json, const Correction& context);
+    MultiBinning(const JSONObject& json, const Correction& context);
     size_t ndimensions() const { return axes_.size(); };
     const Content& child(const std::vector<Variable::Type>& values) const;
 
@@ -175,7 +167,7 @@ class MultiBinning {
 
 class Category {
   public:
-    Category(const rapidjson::Value& json, const Correction& context);
+    Category(const JSONObject& json, const Correction& context);
     const Content& child(const std::vector<Variable::Type>& values) const;
 
   private:
@@ -188,7 +180,9 @@ class Category {
 
 class Correction {
   public:
-    Correction(const rapidjson::Value& json);
+    typedef std::shared_ptr<const Correction> Ref;
+
+    Correction(const JSONObject& json);
     std::string name() const { return name_; };
     std::string description() const { return description_; };
     int version() const { return version_; };
@@ -209,26 +203,54 @@ class Correction {
     Content data_;
 };
 
-typedef std::shared_ptr<const Correction> CorrectionPtr;
+typedef Correction::Ref CorrectionPtr; // deprecated
+class CorrectionSet;
+
+class CompoundCorrection {
+  public:
+    typedef std::shared_ptr<const CompoundCorrection> Ref;
+
+    CompoundCorrection(const JSONObject& json, const CorrectionSet& context);
+    std::string name() const { return name_; };
+    std::string description() const { return description_; };
+    const std::vector<Variable>& inputs() const { return inputs_; };
+    size_t input_index(const std::string_view name) const;
+    const Variable& output() const { return output_; };
+    double evaluate(const std::vector<Variable::Type>& values) const;
+
+  private:
+    enum class UpdateOp {Add, Multiply, Divide, Last};
+
+    std::string name_;
+    std::string description_;
+    std::vector<Variable> inputs_;
+    Variable output_;
+    std::vector<size_t> inputs_update_;
+    UpdateOp input_op_;
+    UpdateOp output_op_;
+    std::vector<std::tuple<std::vector<size_t>, Correction::Ref>> stack_;
+};
 
 class CorrectionSet {
   public:
     static std::unique_ptr<CorrectionSet> from_file(const std::string& fn);
     static std::unique_ptr<CorrectionSet> from_string(const char * data);
 
-    CorrectionSet(const rapidjson::Value& json);
+    CorrectionSet(const JSONObject& json);
     bool validate();
     int schema_version() const { return schema_version_; };
     std::string description() const { return description_; };
     auto size() const { return corrections_.size(); };
     auto begin() const { return corrections_.cbegin(); };
     auto end() const { return corrections_.cend(); };
-    CorrectionPtr at(const std::string& key) const { return corrections_.at(key); };
-    CorrectionPtr operator[](const std::string& key) const { return at(key); };
+    Correction::Ref at(const std::string& key) const { return corrections_.at(key); };
+    Correction::Ref operator[](const std::string& key) const { return at(key); };
+    const auto& compound() const { return compoundcorrections_; };
 
   private:
     int schema_version_;
-    std::map<std::string, CorrectionPtr> corrections_;
+    std::map<std::string, Correction::Ref> corrections_;
+    std::map<std::string, CompoundCorrection::Ref> compoundcorrections_;
     std::string description_;
 };
 
