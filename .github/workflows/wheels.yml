@@ -16,7 +16,7 @@ jobs:
         submodules: recursive
 
     - name: Build SDist
-      run: pipx run --spec build pyproject-build --sdist
+      run: pipx run build --sdist
 
     - uses: actions/upload-artifact@v2
       with:
