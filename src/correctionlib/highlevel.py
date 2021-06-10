@@ -95,6 +95,75 @@ class Correction:
         return self._base.evaluate(*args)  # type: ignore
 
 
+class CompoundCorrection:
+    """High-level compound correction evaluator object
+
+    This class is typically instantiated by accessing a named correction from
+    a CorrectionSet object, rather than directly by construction.
+    """
+
+    def __init__(
+        self, base: correctionlib._core.CompoundCorrection, context: "CorrectionSet"
+    ):
+        self._base = base
+        self._name = base.name
+        self._context = context
+
+    def __getstate__(self) -> Dict[str, Any]:
+        return {"_context": self._context, "_name": self._name}
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        self._context = state["_context"]
+        self._name = state["_name"]
+        self._base = self._context.compound[self._name]._base
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def description(self) -> str:
+        return self._base.description
+
+    def evaluate(
+        self, *args: Union[numpy.ndarray, str, int, float]
+    ) -> Union[float, numpy.ndarray]:
+        # TODO: create a ufunc with numpy.vectorize in constructor?
+        vargs = [arg for arg in args if isinstance(arg, numpy.ndarray)]
+        if vargs:
+            bargs = numpy.broadcast_arrays(*vargs)
+            oshape = bargs[0].shape
+            bargs = (arg.flatten() for arg in bargs)
+            out = self._base.evalv(
+                *(
+                    next(bargs) if isinstance(arg, numpy.ndarray) else arg
+                    for arg in args
+                )
+            )
+            return out.reshape(oshape)
+        return self._base.evaluate(*args)  # type: ignore
+
+
+class _CompoundMap(Mapping[str, CompoundCorrection]):
+    def __init__(
+        self,
+        base: Mapping[str, correctionlib._core.CompoundCorrection],
+        context: "CorrectionSet",
+    ):
+        self._base = base
+        self._context = context
+
+    def __getitem__(self, key: str) -> CompoundCorrection:
+        corr = self._base.__getitem__(key)
+        return CompoundCorrection(corr, self._context)
+
+    def __len__(self) -> int:
+        return len(self._base)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._base)
+
+
 class CorrectionSet(Mapping[str, Correction]):
     """High-level correction set evaluator object
 
@@ -154,3 +223,7 @@ class CorrectionSet(Mapping[str, Correction]):
 
     def __iter__(self) -> Iterator[str]:
         return iter(self._base)
+
+    @property
+    def compound(self) -> _CompoundMap:
+        return _CompoundMap(self._base.compound, self)
