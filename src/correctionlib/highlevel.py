@@ -78,12 +78,12 @@ class Correction:
         return self._base.version
 
     def evaluate(
-        self, *args: Union[numpy.ndarray, str, int, float]
-    ) -> Union[float, numpy.ndarray]:
+        self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
+    ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
         vargs = [arg for arg in args if isinstance(arg, numpy.ndarray)]
         if vargs:
-            bargs = numpy.broadcast_arrays(*vargs)
+            bargs = numpy.broadcast_arrays(*vargs)  # type: ignore
             oshape = bargs[0].shape
             bargs = (arg.flatten() for arg in bargs)
             out = self._base.evalv(
@@ -127,12 +127,12 @@ class CompoundCorrection:
         return self._base.description
 
     def evaluate(
-        self, *args: Union[numpy.ndarray, str, int, float]
-    ) -> Union[float, numpy.ndarray]:
+        self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
+    ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
         vargs = [arg for arg in args if isinstance(arg, numpy.ndarray)]
         if vargs:
-            bargs = numpy.broadcast_arrays(*vargs)
+            bargs = numpy.broadcast_arrays(*vargs)  # type: ignore
             oshape = bargs[0].shape
             bargs = (arg.flatten() for arg in bargs)
             out = self._base.evalv(
