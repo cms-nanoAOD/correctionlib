@@ -41,10 +41,4 @@ repos:
   hooks:
   - id: mypy
     files: src
-    additional_dependencies: [uhi, pydantic]
-
-- repo: https://github.com/mgedmin/check-manifest
-  rev: "0.45"
-  hooks:
-  - id: check-manifest
-    stages: [manual]
+    additional_dependencies: [uhi, pydantic, numpy]

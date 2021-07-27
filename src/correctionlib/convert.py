@@ -65,7 +65,7 @@ def from_histogram(hist: "PlottableHistogram") -> Correction:
                 out.append(b[1])
         return out
 
-    def flatten_to(values: "ndarray", depth: int) -> Iterable[Any]:
+    def flatten_to(values: "ndarray[Any, Any]", depth: int) -> Iterable[Any]:
         for value in values:
             if depth > 0:
                 yield from flatten_to(value, depth - 1)
@@ -73,7 +73,9 @@ def from_histogram(hist: "PlottableHistogram") -> Correction:
                 yield value
 
     def build_data(
-        values: "ndarray", axes: Sequence["PlottableAxis"], variables: List[Variable]
+        values: "ndarray[Any, Any]",
+        axes: Sequence["PlottableAxis"],
+        variables: List[Variable],
     ) -> Content:
         vartype = variables[0].type
         if vartype in {"string", "int"}:
