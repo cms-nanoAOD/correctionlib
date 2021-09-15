@@ -599,6 +599,9 @@ double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) c
 std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
   rapidjson::Document json;
   FILE* fp = fopen(fn.c_str(), "rb");
+  if ( fp == nullptr ) {
+    throw std::runtime_error("Failed to open file: " + fn);
+  }
   char readBuffer[65536];
   rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
   rapidjson::ParseResult ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
