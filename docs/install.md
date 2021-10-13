@@ -27,7 +27,7 @@ make PYTHON=python correctionlib
 ```
 where `python` is the name of the python scram tool you intend to link against.
 This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
-Alternatively [this script](https://gist.github.com/pieterdavid/8f43f302e9f8a71f92702101600b7ddb) 
+Alternatively [this script](https://gist.github.com/pieterdavid/8f43f302e9f8a71f92702101600b7ddb)
 will install a `py3-correctionlib` tool similar to the one provided in more recent releases
 or a `py2-correctionlib` tool with the same functionality as the recipe above.
 
@@ -39,7 +39,7 @@ python3 -m pip install correctionlib
 ```
 (possibly with `--user`, or in a virtualenv, etc.)
 ```{admonition} Wheels or installing from source?
-The above command will try to use python wheels, prebuilt binary packages, 
+The above command will try to use python wheels, prebuilt binary packages,
 since it is faster and more efficient.
 When using the C++ evaluator, e.g. from ROOT or a standalone executable,
 the C++ ABI needs to be compatible, otherwise you will get linker errors.
