@@ -1,20 +1,11 @@
 # correctionlib
 
-[![Actions Status][actions-badge]][actions-link]
-[![Documentation Status][rtd-badge]][rtd-link]
-[![Code style: black][black-badge]][black-link]
-
-[![PyPI version][pypi-version]][pypi-link]
-[![PyPI platforms][pypi-platforms]][pypi-link]
-
-[![GitHub Discussion][github-discussions-badge]][github-discussions-link]
-
-## Introduction
 The purpose of this library is to provide a well-structured JSON data format for a
 wide variety of ad-hoc correction factors encountered in a typical HEP analysis and
 a companion evaluation tool suitable for use in C++ and python programs.
 Here we restrict our definition of correction factors to a class of functions with
 scalar inputs that produce a scalar output.
+
 
 In python, the function signature is:
 
@@ -64,31 +55,24 @@ The python bindings may be able to call into [numexpr](https://numexpr.readthedo
 though, due to the tree-like structure of the corrections, it may prove difficult to exploit vectorization
 at levels other than the entrypoint.
 
-Detailed instructions for installing and using this package are provided in the [documentation][rtd-link].
+```{toctree}
+---
+maxdepth: 2
+caption: Contents
+glob:
+---
+Introduction <self>
+install
+highlevel
+schemav1
+schemav2
+convert
+core
+```
 
-## Creating new corrections
 
-The `correctionlib.schemav2` module provides a helpful framework for defining correction objects
-and `correctionlib.convert` includes select conversion routines for common types. Nodes can be type-checked as they are
-constructed using the [parse_obj](https://pydantic-docs.helpmanual.io/usage/models/#helper-functions)
-class method or by directly constructing them using keyword arguments.
-Some examples can be found in `data/conversion.py`. The `tests/` directory may also be helpful.
+## Indices and tables
 
-## Developing
-See CONTRIBUTING.md
-
-[actions-badge]:            https://github.com/cms-nanoAOD/correctionlib/workflows/CI/badge.svg
-[actions-link]:             https://github.com/cms-nanoAOD/correctionlib/actions
-[black-badge]:              https://img.shields.io/badge/code%20style-black-000000.svg
-[black-link]:               https://github.com/psf/black
-[conda-badge]:              https://img.shields.io/conda/vn/conda-forge/correctionlib
-[conda-link]:               https://github.com/conda-forge/correctionlib-feedstock
-[github-discussions-badge]: https://img.shields.io/static/v1?label=Discussions&message=Ask&color=blue&logo=github
-[github-discussions-link]:  https://github.com/cms-nanoAOD/correctionlib/discussions
-[gitter-badge]:             https://badges.gitter.im/https://github.com/cms-nanoAOD/correctionlib/community.svg
-[gitter-link]:              https://gitter.im/https://github.com/cms-nanoAOD/correctionlib/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge
-[pypi-link]:                https://pypi.org/project/correctionlib/
-[pypi-platforms]:           https://img.shields.io/pypi/pyversions/correctionlib
-[pypi-version]:             https://badge.fury.io/py/correctionlib.svg
-[rtd-badge]:                https://github.com/cms-nanoAOD/correctionlib/actions/workflows/docs.yml/badge.svg
-[rtd-link]:                 https://cms-nanoAOD.github.io/correctionlib/
+* {ref}`genindex`
+* {ref}`modindex`
+* {ref}`search`
