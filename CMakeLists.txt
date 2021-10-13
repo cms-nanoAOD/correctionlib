@@ -46,7 +46,9 @@ target_include_directories(correctionlib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib>
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
-target_link_libraries(correctionlib ZLIB::ZLIB)
+if(ZLIB_FOUND)
+  target_link_libraries(correctionlib ZLIB::ZLIB)
+endif()
 if(Threads_FOUND AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(correctionlib Threads::Threads)
 endif()

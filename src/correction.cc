@@ -5,9 +5,12 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
-#include <zlib.h>
 #include "correction.h"
+#if __has_include(<zlib.h>)
+#include <zlib.h>
 #include "gzfilereadstream.h"
+#define WITH_ZLIB 1
+#endif
 
 using namespace correction;
 
@@ -610,6 +613,7 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
   rewind(fp);
   char readBuffer[65536];
   rapidjson::ParseResult ok;
+#ifdef WITH_ZLIB
   if (memcmp(magic, magicref, sizeof(magic)) == 0) {
     fclose(fp);
     gzFile_s* fpz = gzopen(fn.c_str(), "r");
@@ -617,10 +621,13 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
     ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
     gzclose(fpz);
   } else {
+#endif
     rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
     ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
     fclose(fp);
+#ifdef WITH_ZLIB
   }
+#endif
   if (!ok) {
     throw std::runtime_error(
         std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
