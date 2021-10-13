@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(pybind11)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
+find_package(ZLIB)
 
 include(CheckCXXCompilerFlag)
 
@@ -45,6 +46,7 @@ target_include_directories(correctionlib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib>
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
+target_link_libraries(correctionlib ZLIB::ZLIB)
 if(Threads_FOUND AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(correctionlib Threads::Threads)
 endif()

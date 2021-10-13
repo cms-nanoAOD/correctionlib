@@ -5,7 +5,9 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
+#include <zlib.h>
 #include "correction.h"
+#include "gzfilereadstream.h"
 
 using namespace correction;
 
@@ -602,16 +604,29 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
   if ( fp == nullptr ) {
     throw std::runtime_error("Failed to open file: " + fn);
   }
+  constexpr unsigned char magicref[4] = {0x1f, 0x8b};
+  unsigned char magic[2];
+  fread(magic, sizeof *magic, 2, fp);
+  rewind(fp);
   char readBuffer[65536];
-  rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-  rapidjson::ParseResult ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
+  rapidjson::ParseResult ok;
+  if (memcmp(magic, magicref, sizeof(magic)) == 0) {
+    fclose(fp);
+    gzFile_s* fpz = gzopen(fn.c_str(), "r");
+    rapidjson::GzFileReadStream is(fpz, readBuffer, sizeof(readBuffer));
+    ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
+    gzclose(fpz);
+  } else {
+    rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+    ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
+    fclose(fp);
+  }
   if (!ok) {
     throw std::runtime_error(
         std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
         + " at offset " + std::to_string(ok.Offset())
         );
   }
-  fclose(fp);
   if ( ! json.IsObject() ) { throw std::runtime_error("Expected CorrectionSet object"); }
   return std::make_unique<CorrectionSet>(json);
 }
