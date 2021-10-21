@@ -6,5 +6,7 @@ Pybind11 classes
 .. autosummary::
     :toctree: _generated
 
+    Variable
     Correction
+    CompoundCorrection
     CorrectionSet
