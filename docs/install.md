@@ -9,17 +9,30 @@ and thus [CMake](https://cmake.org/), for the C++ components.
 Builds have been tested in Windows, OS X, and Linux, and the python bindings
 can be compiled against both python2 (with limited functionality) and python3,
 as well as from within a CMSSW environment.
-Note that CMSSW 11_2_X and above has ROOT accessible from python 3.
+Note that CMSSW ``11_2_X`` and above has ROOT accessible from python 3.
 
 ## Inside CMSSW
 
 For CMSSW releases from the `11_3_X` branch on, correctionlib is included
-as the `py3-correctionlib` tool, so no installation is needed.
+as the `py3-correctionlib` tool, and from the `12_1_X` branch version 2.0,
+which has the schema version 2.0 that is used by most of the corrections.
+If the tool included in CMSSW supports the version you want to use,
+no additional installation is needed.
+The package version can also be found with the command-line tool:
+```bash
+correction config --version
+```
 
-For older release cycles the following recipe can be used
-to install only the `correctionlib._core` evaluator,
-which allows to use the C++ evaluator from python2 and python3
-(the schema tools and high-level bindings are python3-only):
+For older release cycles the package can be installed in the user area with
+```bash
+python3 -m pip install --user --no-binary=correctionlib correctionlib
+```
+for python3.
+Alternatively, [this script](https://gist.github.com/pieterdavid/8f43f302e9f8a71f92702101600b7ddb),
+can be used to install a `py3-correctionlib` tool similar to the one provided in more recent releases,
+or a `py2-correctionlib` tool with limited functionality.
+
+The package can be built as follows:
 ```bash
 git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
 cd correctionlib
@@ -27,9 +40,6 @@ make PYTHON=python correctionlib
 ```
 where `python` is the name of the python scram tool you intend to link against.
 This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
-Alternatively [this script](https://gist.github.com/pieterdavid/8f43f302e9f8a71f92702101600b7ddb)
-will install a `py3-correctionlib` tool similar to the one provided in more recent releases
-or a `py2-correctionlib` tool with the same functionality as the recipe above.
 
 ## Outside CMSSW
 
