@@ -1,0 +1,30 @@
+correctionlib.\_core.Variable
+=============================
+
+.. currentmodule:: correctionlib._core
+
+.. autoclass:: Variable
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Variable.__init__
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~Variable.description
+      ~Variable.name
+      ~Variable.type
+   
+   

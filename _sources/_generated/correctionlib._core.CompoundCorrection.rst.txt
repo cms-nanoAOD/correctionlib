@@ -1,0 +1,33 @@
+correctionlib.\_core.CompoundCorrection
+=======================================
+
+.. currentmodule:: correctionlib._core
+
+.. autoclass:: CompoundCorrection
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~CompoundCorrection.__init__
+      ~CompoundCorrection.evaluate
+      ~CompoundCorrection.evalv
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~CompoundCorrection.description
+      ~CompoundCorrection.inputs
+      ~CompoundCorrection.name
+      ~CompoundCorrection.output
+   
+   

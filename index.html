@@ -18,7 +18,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="correctionlib.highlevel" href="highlevel.html" /> 
+    <link rel="next" title="Installation" href="install.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -37,7 +37,9 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="highlevel.html">correctionlib.highlevel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schemav1.html">Schema v1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schemav2.html">Schema v2</a></li>
@@ -61,7 +63,7 @@
       <li><a href="#" class="icon icon-home"></a> &raquo;</li>
       <li>correctionlib</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/index.md.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -69,53 +71,109 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="correctionlib">
+  <section class="tex2jax_ignore mathjax_ignore" id="correctionlib">
 <h1>correctionlib<a class="headerlink" href="#correctionlib" title="Permalink to this headline"></a></h1>
-<section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
 <p>The purpose of this library is to provide a well-structured JSON data format for a
 wide variety of ad-hoc correction factors encountered in a typical HEP analysis and
 a companion evaluation tool suitable for use in C++ and python programs.
 Here we restrict our definition of correction factors to a class of functions with
 scalar inputs that produce a scalar output.</p>
+<p>In python, the function signature is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>In C++, the evaluator implements this currently as:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span><span class="w"> </span><span class="nf">Correction::evaluate</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">variant</span><span class="o">&lt;</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="o">&gt;&gt;&amp;</span><span class="w"> </span><span class="n">values</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The supported function classes include:</p>
+<ul class="simple">
+<li><p>multi-dimensional binned lookups;</p></li>
+<li><p>binned lookups pointing to multi-argument formulas with a restricted
+math function set (<code class="docutils literal notranslate"><span class="pre">exp</span></code>, <code class="docutils literal notranslate"><span class="pre">sqrt</span></code>, etc.);</p></li>
+<li><p>categorical (string or integer enumeration) maps;</p></li>
+<li><p>input transforms (updating one input value in place); and</p></li>
+<li><p>compositions of the above.</p></li>
+</ul>
+<p>Each function type is represented by a “node” in a call graph and holds all
+of its parameters in a JSON structure, described by the JSON schema.
+Possible future extension nodes might include weigted sums (which, when composed with
+the others, could represent a BDT) and perhaps simple MLPs.</p>
+<p>The tool should provide:</p>
+<ul class="simple">
+<li><p>standardized, versioned <a class="reference external" href="https://json-schema.org/">JSON schemas</a>;</p></li>
+<li><p>forward-porting tools (to migrate data written in older schema versions); and</p></li>
+<li><p>a well-optimized C++ evaluator and python bindings (with numpy vectorization support).</p></li>
+</ul>
+<p>This tool will definitely not provide:</p>
+<ul class="simple">
+<li><p>support for <code class="docutils literal notranslate"><span class="pre">TLorentzVector</span></code> or other object-type inputs (such tools should be written
+as a higher-level tool depending on this library as a low-level tool)</p></li>
+</ul>
+<p>Formula support currently includes a mostly-complete subset of the ROOT library <code class="docutils literal notranslate"><span class="pre">TFormula</span></code> class,
+and is implemented in a threadsafe standalone manner. The parsing grammar is formally defined
+and parsed through the use of a header-only <a class="reference external" href="https://github.com/yhirose/cpp-peglib">PEG parser library</a>.
+The supported features mirror CMSSW’s <a class="reference external" href="https://github.com/cms-sw/cmssw/pull/11516">reco::formulaEvaluator</a>
+and fully passes the test suite for that utility with the purposeful exception of the <code class="docutils literal notranslate"><span class="pre">TMath::</span></code> namespace.
+The python bindings may be able to call into <a class="reference external" href="https://numexpr.readthedocs.io/en/latest/user_guide.html">numexpr</a>,
+though, due to the tree-like structure of the corrections, it may prove difficult to exploit vectorization
+at levels other than the entrypoint.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
-<ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#inside-cmssw">Inside CMSSW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#outside-cmssw">Outside CMSSW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#with-python-2-outside-cmssw">With python 2 (outside CMSSW)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#usage-from-python-and-c">Usage from python and C++</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="highlevel.html">correctionlib.highlevel</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="_generated/correctionlib.highlevel.Correction.html">correctionlib.highlevel.Correction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_generated/correctionlib.highlevel.CorrectionSet.html">correctionlib.highlevel.CorrectionSet</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="schemav1.html">Schema v1</a></li>
-<li class="toctree-l1"><a class="reference internal" href="schemav2.html">Schema v2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schemav1.html">Schema v1</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="schemav1.html#correctionset">CorrectionSet</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="schemav2.html">Schema v2</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="schemav2.html#correctionset">CorrectionSet</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="convert.html">correctionlib.convert</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="_generated/correctionlib.convert.from_uproot_THx.html">correctionlib.convert.from_uproot_THx</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_generated/correctionlib.convert.from_histogram.html">correctionlib.convert.from_histogram</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">correctionlib._core</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="_generated/correctionlib._core.Variable.html">correctionlib._core.Variable</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_generated/correctionlib._core.Correction.html">correctionlib._core.Correction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_generated/correctionlib._core.CompoundCorrection.html">correctionlib._core.CompoundCorrection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="_generated/correctionlib._core.CorrectionSet.html">correctionlib._core.CorrectionSet</a></li>
 </ul>
 </li>
 </ul>
 </div>
-</section>
-</section>
 <section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h1>
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
 </section>
+</section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="highlevel.html" class="btn btn-neutral float-right" title="correctionlib.highlevel" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
