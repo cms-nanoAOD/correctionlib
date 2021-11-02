@@ -405,6 +405,38 @@ class CorrectionSet(Model):
     corrections: List[Correction]
     compound_corrections: Optional[List[CompoundCorrection]]
 
+    @validator("corrections")
+    def validate_corrections(cls, items: List[Correction]) -> List[Correction]:
+        seen = set()
+        dupe = set()
+        for item in items:
+            if item.name in seen:
+                dupe.add(item.name)
+            seen.add(item.name)
+        if len(dupe):
+            raise ValueError(
+                f"Corrections must have unique names, found duplicates for {dupe}"
+            )
+        return items
+
+    @validator("compound_corrections")
+    def validate_compound(
+        cls, items: Optional[List[CompoundCorrection]]
+    ) -> Optional[List[CompoundCorrection]]:
+        if items is None:
+            return items
+        seen = set()
+        dupe = set()
+        for item in items:
+            if item.name in seen:
+                dupe.add(item.name)
+            seen.add(item.name)
+        if len(dupe):
+            raise ValueError(
+                f"CompoundCorrection objects must have unique names, found duplicates for {dupe}"
+            )
+        return items
+
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
