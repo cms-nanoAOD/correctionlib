@@ -37,7 +37,7 @@ jobs:
 
     - uses: joerick/cibuildwheel@v2.3.0
       env:
-        CIBW_SKIP: pp*-macosx*
+        CIBW_SKIP: pp*-macosx* pp*-win*
         CIBW_TEST_EXTRAS: test
         CIBW_TEST_COMMAND: pytest {project}/tests
         MACOSX_DEPLOYMENT_TARGET: 10.14
