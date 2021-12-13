@@ -138,7 +138,7 @@ def test_evaluator():
 
 
 @pytest.mark.skipif(
-    platform.architecture() == ("32bit", "ELF"),
+    platform.architecture() in {("32bit", "ELF"), ("32bit", "")},
     reason="cibuildwheel tests fail while building i686 wheels due to floating point rounding differences of order 1e-16",
 )
 def test_tformula():
