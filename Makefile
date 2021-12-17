@@ -1,16 +1,13 @@
 PYTHON=python
-PYEXT=$(shell $(PYTHON)-config --extension-suffix 2>/dev/null || echo ".so")
-SCRAM := $(shell command -v scram)
-ifdef SCRAM
-	PYINC=-I$(shell $(SCRAM) tool tag $(PYTHON) INCLUDE)
-else
-	PYINC=$(shell $(PYTHON)-config --includes)
-endif
-DARWIN=$(shell uname|grep Darwin)
+PYEXT=$(shell $(PYTHON)-config --extension-suffix)
+PYINC=$(shell $(PYTHON)-config --includes)
+DARWIN := $(shell uname|grep Darwin)
 ifdef DARWIN
+	LIBLDFLAG=-install_name @rpath/libcorrectionlib.so
 	PYLDFLAG=-undefined dynamic_lookup -Wl,-rpath,'@loader_path/lib'
 else
-	PYLDFLAG=-undefined dynamic_lookup -Wl,-rpath,'$${ORIGIN}/lib'
+	LIBLDFLAG=
+	PYLDFLAG=-Wl,-rpath,'$$ORIGIN/lib'
 endif
 OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
 CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib $(PYINC) -Iinclude
@@ -32,7 +29,7 @@ build/%.o: src/%.cc include/correctionlib_version.h
 
 lib/libcorrectionlib.so: build/correction.o build/formula_ast.o
 	mkdir -p lib
-	$(CXX) -pthread -lz -fPIC -shared -install_name @rpath/libcorrectionlib.so $^ -o $@
+	$(CXX) -pthread -lz -fPIC -shared $(LIBLDFLAG) $^ -o $@
 
 pythonbinding: build/python.o lib/libcorrectionlib.so
 	$(CXX) -fPIC -shared $(PYLDFLAG) $< -Llib -lcorrectionlib -o _core$(PYEXT)
