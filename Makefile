@@ -6,17 +6,22 @@ ifdef SCRAM
 else
 	PYINC=$(shell $(PYTHON)-config --includes)
 endif
+DARWIN=$(shell uname|grep Darwin)
+ifdef DARWIN
+	PYLDFLAG=-undefined dynamic_lookup -Wl,-rpath,'@loader_path/lib'
+else
+	PYLDFLAG=-undefined dynamic_lookup -Wl,-rpath,'$${ORIGIN}/lib'
+endif
 OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
 CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib $(PYINC) -Iinclude
-LDFLAGS=-pthread -lz
-PREFIX ?= /usr
+PREFIX ?= correctionlib
 STRVER=$(shell git describe --tags)
 MAJOR=$(shell git describe --tags|sed -n "s/v\([0-9]\+\)\..*/\1/p")
 MINOR=$(shell git describe --tags|sed -n "s/v[0-9]\+\.\([0-9]\+\)\..*/\1/p")
 
-.PHONY: build all clean install
+.PHONY: build all clean install pythonbinding
 
-all: demo examples
+all: pythonbinding
 
 include/correctionlib_version.h: include/version.h.in
 	sed "s/@CORRECTIONLIB_VERSION@/$(STRVER)/;s/@correctionlib_VERSION_MAJOR@/$(MAJOR)/;s/@correctionlib_VERSION_MINOR@/$(MINOR)/" $< > $@
@@ -25,26 +30,26 @@ build/%.o: src/%.cc include/correctionlib_version.h
 	mkdir -p build
 	$(CXX) $(CFLAGS) -c $< -o $@
 
-demo: build/demo.o build/correction.o build/formula_ast.o
-	$(CXX) $(LDFLAGS) $^ -o $@
+lib/libcorrectionlib.so: build/correction.o build/formula_ast.o
+	mkdir -p lib
+	$(CXX) -pthread -lz -fPIC -shared -install_name @rpath/libcorrectionlib.so $^ -o $@
 
-examples: data/conversion.py
-	python $^
+pythonbinding: build/python.o lib/libcorrectionlib.so
+	$(CXX) -fPIC -shared $(PYLDFLAG) $< -Llib -lcorrectionlib -o _core$(PYEXT)
+	touch __init__.py
 
-correctionlib: build/python.o build/correction.o build/formula_ast.o
-	mkdir -p correctionlib
-	$(CXX) $(LDFLAGS) -fPIC -shared $(OSXFLAG) $^ -o correctionlib/_core$(PYEXT)
-	touch correctionlib/__init__.py
-
-install: correctionlib
+install: pythonbinding
 	mkdir -p $(PREFIX)/include
-	install -m 644 include/correction.h $(PREFIX)/include
 	mkdir -p $(PREFIX)/lib
-	install -m 755 correctionlib/_core$(PYEXT) $(PREFIX)/lib
+	install -m 644 include/correction.h $(PREFIX)/include
+	install -m 644 include/correctionlib_version.h $(PREFIX)/include
+	install -m 755 _core$(PYEXT) $(PREFIX)
+	install -m 755 lib/libcorrectionlib.so $(PREFIX)/lib
+	install -m 644 __init__.py $(PREFIX)
 
 clean:
 	rm -rf build
 	rm -f demo
 	rm -f data/examples.json*
-	rm -rf correctionlib
 	rm -f include/correctionlib_version.h
+	rm -f __init__.py _core*
