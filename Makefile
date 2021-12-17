@@ -1,5 +1,5 @@
 PYTHON=python
-PYEXT=$(shell $(PYTHON)-config --extension-suffix)
+PYEXT=$(shell $(PYTHON)-config --extension-suffix 2>/dev/null || echo ".so")
 PYINC=$(shell $(PYTHON)-config --includes)
 DARWIN := $(shell uname|grep Darwin)
 ifdef DARWIN
