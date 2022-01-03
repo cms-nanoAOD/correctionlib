@@ -36,7 +36,8 @@ The package can be built as follows:
 ```bash
 git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
 cd correctionlib
-make PYTHON=python correctionlib
+make PYTHON=python
+make install  # set PREFIX=... to change from default (./correctionlib)
 ```
 where `python` is the name of the python scram tool you intend to link against.
 This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
@@ -72,7 +73,8 @@ which allows to use the C++ evaluator from python2 and python3
 ```bash
 git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
 cd correctionlib
-make PYTHON=python2 correctionlib
+make PYTHON=python2
+make install  # set PREFIX=... to change from default (./correctionlib)
 ```
 This will output a `correctionlib` directory that acts as a python package, and can be moved where needed.
 
