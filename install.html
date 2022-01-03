@@ -112,7 +112,8 @@ or a <code class="docutils literal notranslate"><span class="pre">py2-correction
 <p>The package can be built as follows:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
 <span class="nb">cd</span> correctionlib
-make <span class="nv">PYTHON</span><span class="o">=</span>python correctionlib
+make <span class="nv">PYTHON</span><span class="o">=</span>python
+make install  <span class="c1"># set PREFIX=... to change from default (./correctionlib)</span>
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">python</span></code> is the name of the python scram tool you intend to link against.
@@ -148,7 +149,8 @@ which allows to use the C++ evaluator from python2 and python3
 (the schema tools and high-level bindings are python3-only):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
 <span class="nb">cd</span> correctionlib
-make <span class="nv">PYTHON</span><span class="o">=</span>python2 correctionlib
+make <span class="nv">PYTHON</span><span class="o">=</span>python2
+make install  <span class="c1"># set PREFIX=... to change from default (./correctionlib)</span>
 </pre></div>
 </div>
 <p>This will output a <code class="docutils literal notranslate"><span class="pre">correctionlib</span></code> directory that acts as a python package, and can be moved where needed.</p>
