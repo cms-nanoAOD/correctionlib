@@ -83,12 +83,12 @@ class Correction:
         # TODO: create a ufunc with numpy.vectorize in constructor?
         vargs = [arg for arg in args if isinstance(arg, numpy.ndarray)]
         if vargs:
-            bargs = numpy.broadcast_arrays(*vargs)  # type: ignore
+            bargs = numpy.broadcast_arrays(*vargs)
             oshape = bargs[0].shape
-            bargs = (arg.flatten() for arg in bargs)
+            fargs = (arg.flatten() for arg in bargs)
             out = self._base.evalv(
                 *(
-                    next(bargs) if isinstance(arg, numpy.ndarray) else arg
+                    next(fargs) if isinstance(arg, numpy.ndarray) else arg
                     for arg in args
                 )
             )
@@ -132,12 +132,12 @@ class CompoundCorrection:
         # TODO: create a ufunc with numpy.vectorize in constructor?
         vargs = [arg for arg in args if isinstance(arg, numpy.ndarray)]
         if vargs:
-            bargs = numpy.broadcast_arrays(*vargs)  # type: ignore
+            bargs = numpy.broadcast_arrays(*vargs)
             oshape = bargs[0].shape
-            bargs = (arg.flatten() for arg in bargs)
+            fargs = (arg.flatten() for arg in bargs)
             out = self._base.evalv(
                 *(
-                    next(bargs) if isinstance(arg, numpy.ndarray) else arg
+                    next(fargs) if isinstance(arg, numpy.ndarray) else arg
                     for arg in args
                 )
             )
