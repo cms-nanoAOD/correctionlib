@@ -3,7 +3,7 @@ def register_pyroot_binding() -> None:
     import sys
 
     import pkg_resources
-    from cppyy import gbl  # PyROOT without pythonization
+    from cppyy import gbl
 
     # maybe not the most robust solution?
     if sys.platform.startswith("win32"):
