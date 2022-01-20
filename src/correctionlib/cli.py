@@ -90,10 +90,8 @@ def merge(console: Console, args: argparse.Namespace) -> int:
                 )
                 return 1
             cset.corrections.append(corr2)
-        for corr2 in (
-            cset2.compound_corrections if cset2.compound_corrections != None else []
-        ):
-            if cset.compound_corrections == None:
+        for corr2 in cset2.compound_corrections if cset2.compound_corrections else []:
+            if cset.compound_corrections is None:
                 cset.compound_corrections = []
             if any(corr.name == corr2.name for corr in cset.compound_corrections):
                 console.print(
