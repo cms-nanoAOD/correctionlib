@@ -3,6 +3,7 @@
 """
 import argparse
 import sys
+from typing import Any
 
 from rich.console import Console
 
@@ -34,7 +35,7 @@ def validate(console: Console, args: argparse.Namespace) -> int:
     return retcode
 
 
-def setup_validate(subparsers: argparse._SubParsersAction) -> None:
+def setup_validate(subparsers: Any) -> None:
     parser = subparsers.add_parser("validate", help=validate.__doc__)
     parser.set_defaults(command=validate)
     parser.add_argument(
@@ -67,7 +68,7 @@ def summary(console: Console, args: argparse.Namespace) -> int:
     return 0
 
 
-def setup_summary(subparsers: argparse._SubParsersAction) -> None:
+def setup_summary(subparsers: Any) -> None:
     parser = subparsers.add_parser(
         "summary", help="Print a summmary of the corrections"
     )
@@ -114,7 +115,7 @@ def merge(console: Console, args: argparse.Namespace) -> int:
     return 0
 
 
-def setup_merge(subparsers: argparse._SubParsersAction) -> None:
+def setup_merge(subparsers: Any) -> None:
     parser = subparsers.add_parser(
         "merge", help="Merge one or more correction files and print to stdout"
     )
@@ -156,7 +157,7 @@ def config(console: Console, args: argparse.Namespace) -> int:
     return 0
 
 
-def setup_config(subparsers: argparse._SubParsersAction) -> None:
+def setup_config(subparsers: Any) -> None:
     parser = subparsers.add_parser(
         "config", help="Configuration and linking information"
     )
