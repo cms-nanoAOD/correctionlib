@@ -10,9 +10,9 @@ from rich.tree import Tree
 import correctionlib.highlevel
 
 try:
-    from typing import Literal  # type: ignore
+    from typing import Annotated, Literal, TypeAlias  # type: ignore
 except ImportError:
-    from typing_extensions import Literal
+    from typing_extensions import Annotated, Literal, TypeAlias
 
 
 VERSION = 2
@@ -51,8 +51,19 @@ class Variable(Model):
 
 
 # py3.7+: ForwardRef can be used instead of strings
-Content = Union[
-    "Binning", "MultiBinning", "Category", "Formula", "FormulaRef", "Transform", float
+Content: TypeAlias = Union[
+    Annotated[
+        Union[
+            "Binning",
+            "MultiBinning",
+            "Category",
+            "Formula",
+            "FormulaRef",
+            "Transform",
+        ],
+        Field(discriminator="nodetype"),
+    ],
+    float,
 ]
 
 

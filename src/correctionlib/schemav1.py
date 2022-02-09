@@ -1,11 +1,11 @@
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 try:
-    from typing import Literal  # type: ignore
+    from typing import Annotated, Literal, TypeAlias  # type: ignore
 except ImportError:
-    from typing_extensions import Literal
+    from typing_extensions import Annotated, Literal, TypeAlias
 
 
 VERSION = 1
@@ -33,7 +33,18 @@ class Formula(Model):
 
 
 # py3.7+: ForwardRef can be used instead of strings
-Content = Union["Binning", "MultiBinning", "Category", Formula, float]
+Content: TypeAlias = Union[
+    Annotated[
+        Union[
+            "Binning",
+            "MultiBinning",
+            "Category",
+            "Formula",
+        ],
+        Field(discriminator="nodetype"),
+    ],
+    float,
+]
 
 
 class Binning(Model):
