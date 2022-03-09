@@ -59,7 +59,6 @@ def from_histogram(hist: "PlottableHistogram") -> Correction:
     def edges(axis: "PlottableAxis") -> List[float]:
         out = []
         for i, b in enumerate(axis):
-            assert isinstance(b, tuple)
             out.append(b[0])
             if i == len(axis) - 1:
                 out.append(b[1])
