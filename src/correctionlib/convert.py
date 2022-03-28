@@ -3,16 +3,41 @@
 Mostly TODO right now
 """
 from numbers import Real
-from typing import TYPE_CHECKING, Any, Iterable, List, Sequence
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 
 from .schemav2 import Binning, Category, Content, Correction, MultiBinning, Variable
 
 if TYPE_CHECKING:
     from numpy import ndarray
+    from typing_extensions import Literal
     from uhi.typing.plottable import PlottableAxis, PlottableHistogram
+else:
+    # py3.8+: no longer necessary
+    try:
+        from typing import Literal
+    except ImportError:
+        from typing_extensions import Literal
 
 
-def from_uproot_THx(path: str) -> Correction:
+def blah(x: Literal["a", "b"]) -> str:
+    return x + "c"
+
+
+def from_uproot_THx(
+    path: str,
+    axis_names: Optional[List[str]] = None,
+    flow: Literal["clamp", "error"] = "error",
+) -> Correction:
     """Convert a ROOT histogram
 
     This function attempts to open a ROOT file with uproot
@@ -27,10 +52,14 @@ def from_uproot_THx(path: str) -> Correction:
     """
     import uproot
 
-    return from_histogram(uproot.open(path))
+    return from_histogram(uproot.open(path), axis_names, flow)
 
 
-def from_histogram(hist: "PlottableHistogram") -> Correction:
+def from_histogram(
+    hist: "PlottableHistogram",
+    axis_names: Optional[List[str]] = None,
+    flow: Optional[Union[Content, Literal["clamp", "error"]]] = "error",
+) -> Correction:
     """Read any object with PlottableHistogram interface protocol
 
     Interface as defined in
@@ -45,10 +74,13 @@ def from_histogram(hist: "PlottableHistogram") -> Correction:
             axtype = "str"
         elif isinstance(axis[0], int):
             axtype = "integer"
+        axname = getattr(
+            axis, "name", f"axis{pos}" if axis_names is None else axis_names[pos]
+        )
         return Variable.parse_obj(
             {
                 "type": axtype,
-                "name": getattr(axis, "name", f"axis{pos}"),
+                "name": axname,
                 "description": getattr(axis, "label", None),
             }
         )
@@ -59,7 +91,11 @@ def from_histogram(hist: "PlottableHistogram") -> Correction:
     def edges(axis: "PlottableAxis") -> List[float]:
         out = []
         for i, b in enumerate(axis):
-            assert isinstance(b, tuple)
+            if isinstance(b, (str, int)):
+                raise ValueError(
+                    "cannot auto-convert string or integer category axes (yet)"
+                )
+            b = cast(Tuple[float, float], b)
             out.append(b[0])
             if i == len(axis) - 1:
                 out.append(b[1])
@@ -112,7 +148,7 @@ def from_histogram(hist: "PlottableHistogram") -> Correction:
                         else build_data(value, axes[i:], variables[i:])
                         for value in flatten_to(values, i - 1)
                     ],
-                    "flow": "error",  # TODO: can also produce overflow guard bins and clamp
+                    "flow": flow,
                 }
             )
         return Binning.parse_obj(
@@ -126,7 +162,7 @@ def from_histogram(hist: "PlottableHistogram") -> Correction:
                     else build_data(value, axes[1:], variables[1:])
                     for value in values
                 ],
-                "flow": "error",  # TODO: can also produce overflow guard bins and clamp
+                "flow": flow,
             }
         )
 
