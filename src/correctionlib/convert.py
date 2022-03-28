@@ -8,23 +8,35 @@ from typing import (
     Any,
     Iterable,
     List,
-    Literal,
     Optional,
     Sequence,
+    Tuple,
     Union,
+    cast,
 )
 
 from .schemav2 import Binning, Category, Content, Correction, MultiBinning, Variable
 
 if TYPE_CHECKING:
     from numpy import ndarray
+    from typing_extensions import Literal
     from uhi.typing.plottable import PlottableAxis, PlottableHistogram
+else:
+    # py3.8+: no longer necessary
+    try:
+        from typing import Literal
+    except ImportError:
+        from typing_extensions import Literal
+
+
+def blah(x: Literal["a", "b"]) -> str:
+    return x + "c"
 
 
 def from_uproot_THx(
     path: str,
     axis_names: Optional[List[str]] = None,
-    flow: Optional[Union[Content, Literal["clamp", "error"]]] = "error",
+    flow: Literal["clamp", "error"] = "error",
 ) -> Correction:
     """Convert a ROOT histogram
 
@@ -83,6 +95,7 @@ def from_histogram(
                 raise ValueError(
                     "cannot auto-convert string or integer category axes (yet)"
                 )
+            b = cast(Tuple[float, float], b)
             out.append(b[0])
             if i == len(axis) - 1:
                 out.append(b[1])

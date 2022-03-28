@@ -9,6 +9,7 @@ from rich.tree import Tree
 
 import correctionlib.highlevel
 
+# py3.8+: no longer necessary
 try:
     from typing import Literal  # type: ignore
 except ImportError:
