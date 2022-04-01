@@ -397,6 +397,33 @@ class CompoundCorrection(Model):
         description="Names of the component corrections. Each component should have a subset of the inputs listed in this object."
     )
 
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        yield f":chart_with_upwards_trend::chart_with_upwards_trend: [bold]{self.name}[/bold]"
+        yield self.description or "[i]No description[/i]"
+        yield Panel("\n".join(self.stack), title=":input_numbers: stack", expand=False)
+
+        def fmt_input(var: Variable) -> str:
+            out = var.__rich__()
+            if var.name in self.inputs_update:
+                out += f"\n[bold green]updated by stack using ({self.input_op})[/bold green]"
+            return out
+
+        inputs = (
+            Panel(
+                fmt_input(var),
+                title=":arrow_forward: input",
+            )
+            for var in self.inputs
+        )
+        yield Columns(inputs)
+        yield Panel(
+            self.output.__rich__() + f"\nUpdate operation: ({self.output_op})",
+            title=":arrow_backward: output",
+            expand=False,
+        )
+
 
 class CorrectionSet(Model):
     schema_version: Literal[VERSION] = Field(description="The overall schema version")
@@ -449,6 +476,9 @@ class CorrectionSet(Model):
         )
         for corr in self.corrections:
             tree.add(corr)
+        if self.compound_corrections:
+            for ccorr in self.compound_corrections:
+                tree.add(ccorr)
         yield tree
 
     def to_evaluator(self) -> correctionlib.highlevel.CorrectionSet:
