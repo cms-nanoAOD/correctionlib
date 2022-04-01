@@ -402,7 +402,7 @@ class CompoundCorrection(Model):
     ) -> RenderResult:
         yield f":chart_with_upwards_trend::chart_with_upwards_trend: [bold]{self.name}[/bold]"
         yield self.description or "[i]No description[/i]"
-        yield Panel("\n".join(self.stack), title=":input_symbols: stack", expand=False)
+        yield Panel("\n".join(self.stack), title=":input_numbers: stack", expand=False)
 
         def fmt_input(var: Variable) -> str:
             out = var.__rich__()
