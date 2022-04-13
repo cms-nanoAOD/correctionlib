@@ -15,7 +15,17 @@ from typing import (
     cast,
 )
 
-from .schemav2 import Binning, Category, Content, Correction, MultiBinning, Variable
+import numpy
+
+from .schemav2 import (
+    Binning,
+    Category,
+    Content,
+    Correction,
+    Formula,
+    MultiBinning,
+    Variable,
+)
 
 if TYPE_CHECKING:
     from numpy import ndarray
@@ -174,4 +184,71 @@ def from_histogram(
             "output": {"name": getattr(hist, "label", "out"), "type": "real"},
             "data": build_data(hist.values(), hist.axes, variables),
         }
+    )
+
+
+def ndpolyfit(
+    points: List["ndarray[Any, Any]"],
+    values: "ndarray[Any, Any]",
+    weights: "ndarray[Any, Any]",
+    varnames: List[str],
+    degree: Tuple[int],
+) -> Correction:
+    """Fit an n-dimensional polynomial to data points with weight
+
+    Returns a correctionlib Formula node
+    """
+    from scipy.optimize import lsq_linear
+    from scipy.stats import chi2
+
+    if len(values.shape) != 1:
+        raise ValueError("Expecting flat array of values")
+    if not all(x.shape == values.shape for x in points):
+        raise ValueError("Incompatible shapes for points and values")
+    if values.shape != weights.shape:
+        raise ValueError("Incompatible shapes for values and weights")
+    if len(points) != len(varnames):
+        raise ValueError("Dimension mismatch between points and varnames")
+    if len(degree) != len(varnames):
+        raise ValueError("Dimension mismatch between varnames and degree")
+    if len(degree) > 4:
+        raise NotImplementedError(
+            "correctionlib Formula not available for more than 4 variables?"
+        )
+    _degree: "ndarray[Any, Any]" = numpy.array(degree, dtype=int)
+    npoints = len(values)
+    powergrid = numpy.ones(shape=(npoints, *(_degree + 1)))
+    for i, (x, deg) in enumerate(zip(points, _degree)):
+        shape = [1 for _ in range(1 + len(_degree))]
+        shape[0] = npoints
+        shape[i + 1] = deg + 1
+        powergrid *= numpy.power.outer(x, numpy.arange(deg + 1)).reshape(shape)
+    fit = lsq_linear(
+        A=powergrid.reshape(npoints, -1) * weights[:, None],
+        b=values * weights,
+    )
+    dof = npoints - numpy.prod(_degree + 1)
+    prob = chi2.sf(fit.cost, df=dof)
+    fitstatus = fit.message + f"\nchi2 = {fit.cost}, P(dof={dof}) = {prob:.3f}"
+    params = fit.x.reshape(_degree + 1)
+    # TODO: n-dimensional Horner form
+    expr = []
+    for index in numpy.ndindex(*(_degree + 1)):
+        term = [str(params[index])] + [
+            f"{var}^{p}" if p > 1 else var for var, p in zip("xyzt", index) if p > 0
+        ]
+        expr.append("*".join(term))
+    degreestr = ",".join(map(str, degree))
+    return Correction(
+        name="formula",
+        description=f"Fit to polynomial of order {degreestr}\nFit status: {fitstatus}",
+        version=1,
+        inputs=[Variable(name=name, type="real") for name in varnames],
+        output=Variable(name="output", type="real"),
+        data=Formula(
+            nodetype="formula",
+            expression="+".join(expr),
+            parser="TFormula",
+            variables=varnames,
+        ),
     )
