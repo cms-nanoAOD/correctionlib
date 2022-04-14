@@ -196,7 +196,18 @@ def ndpolyfit(
 ) -> Correction:
     """Fit an n-dimensional polynomial to data points with weight
 
-    Returns a correctionlib Formula node
+    Example::
+
+        corr = convert.ndpolyfit(
+            points=[np.array([0.0, 1.0, 0.0, 1.0]), np.array([10., 20., 10., 20.])],
+            values=np.array([0.9, 0.95, 0.94, 0.98]),
+            weights=np.array([0.1, 0.1, 0.1, 0.1]),
+            varnames=["abseta", "pt"],
+            degree=(1, 1),
+        )
+
+    Returns a Correction object that includes some details of the least
+    squares fit result.
     """
     from scipy.optimize import lsq_linear
     from scipy.stats import chi2
