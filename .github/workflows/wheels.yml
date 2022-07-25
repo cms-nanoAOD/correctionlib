@@ -35,7 +35,7 @@ jobs:
       with:
         submodules: recursive
 
-    - uses: joerick/cibuildwheel@v2.4.0
+    - uses: joerick/cibuildwheel@v2.8.1
       env:
         CIBW_SKIP: pp*-macosx* pp*-win*
         CIBW_TEST_EXTRAS: test
