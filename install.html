@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -79,7 +80,7 @@
            <div itemprop="articleBody">
              
   <section id="installation">
-<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline"></a></h1>
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h1>
 <p>This package provides both a C++ evaluator with python bindings and
 a set of python tools to convert, validate, and inspect files with corrections
 It is installed as a python package (see e.g.
@@ -91,7 +92,7 @@ can be compiled against both python2 (with limited functionality) and python3,
 as well as from within a CMSSW environment.
 Note that CMSSW <code class="docutils literal notranslate"><span class="pre">11_2_X</span></code> and above has ROOT accessible from python 3.</p>
 <section id="inside-cmssw">
-<h2>Inside CMSSW<a class="headerlink" href="#inside-cmssw" title="Permalink to this headline"></a></h2>
+<h2>Inside CMSSW<a class="headerlink" href="#inside-cmssw" title="Permalink to this heading"></a></h2>
 <p>For CMSSW releases from the <code class="docutils literal notranslate"><span class="pre">11_3_X</span></code> branch on, correctionlib is included
 as the <code class="docutils literal notranslate"><span class="pre">py3-correctionlib</span></code> tool, and from the <code class="docutils literal notranslate"><span class="pre">12_1_X</span></code> branch version 2.0,
 which has the schema version 2.0 that is used by most of the corrections.
@@ -120,7 +121,7 @@ make install  <span class="c1"># set PREFIX=... to change from default (./correc
 This will output a <code class="docutils literal notranslate"><span class="pre">correctionlib</span></code> directory that acts as a python package, and can be moved where needed.</p>
 </section>
 <section id="outside-cmssw">
-<h2>Outside CMSSW<a class="headerlink" href="#outside-cmssw" title="Permalink to this headline"></a></h2>
+<h2>Outside CMSSW<a class="headerlink" href="#outside-cmssw" title="Permalink to this heading"></a></h2>
 <p>To install in an environment that has python 3, you can simply</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install correctionlib
 </pre></div>
@@ -141,7 +142,7 @@ which will start from the source package and build the C++ components in your en
 </div>
 </section>
 <section id="with-python-2-outside-cmssw">
-<h2>With python 2 (outside CMSSW)<a class="headerlink" href="#with-python-2-outside-cmssw" title="Permalink to this headline"></a></h2>
+<h2>With python 2 (outside CMSSW)<a class="headerlink" href="#with-python-2-outside-cmssw" title="Permalink to this heading"></a></h2>
 <p>To compile with python2 support, consider using python 3 :).
 If you considered that and still want to use python2, the following recipe may work
 to install only the <code class="docutils literal notranslate"><span class="pre">correctionlib._core</span></code> evaluator,
@@ -156,7 +157,7 @@ make install  <span class="c1"># set PREFIX=... to change from default (./correc
 <p>This will output a <code class="docutils literal notranslate"><span class="pre">correctionlib</span></code> directory that acts as a python package, and can be moved where needed.</p>
 </section>
 <section id="usage-from-python-and-c">
-<h2>Usage from python and C++<a class="headerlink" href="#usage-from-python-and-c" title="Permalink to this headline"></a></h2>
+<h2>Usage from python and C++<a class="headerlink" href="#usage-from-python-and-c" title="Permalink to this heading"></a></h2>
 <p>After the installation following one of the recipes above,
 the correctionlib python package should be available,
 as well as the <code class="docutils literal notranslate"><span class="pre">correction</span></code> command-line utility.

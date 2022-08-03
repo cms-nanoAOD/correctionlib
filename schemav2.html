@@ -14,6 +14,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -88,11 +89,11 @@
            <div itemprop="articleBody">
              
   <section id="schema-v2">
-<h1>Schema v2<a class="headerlink" href="#schema-v2" title="Permalink to this headline"></a></h1>
+<h1>Schema v2<a class="headerlink" href="#schema-v2" title="Permalink to this heading"></a></h1>
 <p>Second iteration of the schema</p>
 <p><a class="reference download internal" download="" href="_downloads/87e1187fe70c7ee30d50bbacaa2b2cb5/schemav2.json"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">json</span></code></a>.</p>
 <section id="correctionset">
-<span id="correctionset"></span><h2>CorrectionSet<a class="headerlink" href="#correctionset" title="Permalink to this headline"></a></h2>
+<span id="correctionset"></span><h2>CorrectionSet<a class="headerlink" href="#correctionset" title="Permalink to this heading"></a></h2>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 33%" />
@@ -160,7 +161,7 @@
 </tbody>
 </table>
 <section id="variable">
-<span id="variable"></span><h3>Variable<a class="headerlink" href="#variable" title="Permalink to this headline"></a></h3>
+<span id="variable"></span><h3>Variable<a class="headerlink" href="#variable" title="Permalink to this heading"></a></h3>
 <p>An input or output variable</p>
 <table class="docutils align-default">
 <colgroup>
@@ -215,7 +216,7 @@
 </table>
 </section>
 <section id="formula">
-<span id="formula"></span><h3>Formula<a class="headerlink" href="#formula" title="Permalink to this headline"></a></h3>
+<span id="formula"></span><h3>Formula<a class="headerlink" href="#formula" title="Permalink to this heading"></a></h3>
 <p>A general formula type</p>
 <table class="docutils align-default">
 <colgroup>
@@ -300,7 +301,7 @@
 </table>
 </section>
 <section id="formularef">
-<span id="formularef"></span><h3>FormulaRef<a class="headerlink" href="#formularef" title="Permalink to this headline"></a></h3>
+<span id="formularef"></span><h3>FormulaRef<a class="headerlink" href="#formularef" title="Permalink to this heading"></a></h3>
 <p>A reference to one of the Correction generic_formula items, with specific parameters</p>
 <table class="docutils align-default">
 <colgroup>
@@ -363,7 +364,7 @@
 </table>
 </section>
 <section id="transform">
-<span id="transform"></span><h3>Transform<a class="headerlink" href="#transform" title="Permalink to this headline"></a></h3>
+<span id="transform"></span><h3>Transform<a class="headerlink" href="#transform" title="Permalink to this heading"></a></h3>
 <p>A node that rewrites one real or integer input according to a rule as given by a content node</p>
 <p>Any downstream nodes will see a different value for the rewritten input
 If the input is an integer type, the rule output will be cast from a
@@ -460,7 +461,7 @@ high levels in the tree, since they require an allocation.</p>
 </table>
 </section>
 <section id="categoryitem">
-<span id="categoryitem"></span><h3>CategoryItem<a class="headerlink" href="#categoryitem" title="Permalink to this headline"></a></h3>
+<span id="categoryitem"></span><h3>CategoryItem<a class="headerlink" href="#categoryitem" title="Permalink to this heading"></a></h3>
 <p>A key-value pair</p>
 <p>The key type must match the type of the Category input variable</p>
 <table class="docutils align-default">
@@ -518,7 +519,7 @@ high levels in the tree, since they require an allocation.</p>
 </table>
 </section>
 <section id="category">
-<span id="category"></span><h3>Category<a class="headerlink" href="#category" title="Permalink to this headline"></a></h3>
+<span id="category"></span><h3>Category<a class="headerlink" href="#category" title="Permalink to this heading"></a></h3>
 <p>A categorical lookup</p>
 <table class="docutils align-default">
 <colgroup>
@@ -597,7 +598,7 @@ high levels in the tree, since they require an allocation.</p>
 </table>
 </section>
 <section id="multibinning">
-<span id="multibinning"></span><h3>MultiBinning<a class="headerlink" href="#multibinning" title="Permalink to this headline"></a></h3>
+<span id="multibinning"></span><h3>MultiBinning<a class="headerlink" href="#multibinning" title="Permalink to this heading"></a></h3>
 <p>N-dimensional rectangular binning</p>
 <table class="docutils align-default">
 <colgroup>
@@ -732,7 +733,7 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 </table>
 </section>
 <section id="binning">
-<span id="binning"></span><h3>Binning<a class="headerlink" href="#binning" title="Permalink to this headline"></a></h3>
+<span id="binning"></span><h3>Binning<a class="headerlink" href="#binning" title="Permalink to this heading"></a></h3>
 <p>1-dimensional binning in an input variable</p>
 <table class="docutils align-default">
 <colgroup>
@@ -849,7 +850,7 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 </table>
 </section>
 <section id="correction">
-<span id="correction"></span><h3>Correction<a class="headerlink" href="#correction" title="Permalink to this headline"></a></h3>
+<span id="correction"></span><h3>Correction<a class="headerlink" href="#correction" title="Permalink to this heading"></a></h3>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 25%" />
@@ -971,7 +972,7 @@ of the correction object</p>
 </table>
 </section>
 <section id="compoundcorrection">
-<span id="compoundcorrection"></span><h3>CompoundCorrection<a class="headerlink" href="#compoundcorrection" title="Permalink to this headline"></a></h3>
+<span id="compoundcorrection"></span><h3>CompoundCorrection<a class="headerlink" href="#compoundcorrection" title="Permalink to this heading"></a></h3>
 <p>A compound correction</p>
 <p>This references other Correction objects in a CorrectionSet and can
 provide a canned recipe for serial application of dependent corrections.
