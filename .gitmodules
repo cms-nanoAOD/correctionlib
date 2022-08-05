@@ -7,3 +7,9 @@
 [submodule "cpp-peglib"]
 	path = cpp-peglib
 	url = https://github.com/yhirose/cpp-peglib.git
+[submodule "pcg-cpp"]
+	path = pcg-cpp
+	url = https://github.com/imneme/pcg-cpp.git
+[submodule "xxhash"]
+	path = xxhash
+	url = https://github.com/RedSpah/xxhash_cpp.git

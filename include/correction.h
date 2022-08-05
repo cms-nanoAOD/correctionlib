@@ -35,10 +35,11 @@ class Variable {
 class Formula;
 class FormulaRef;
 class Transform;
+class HashPRNG;
 class Binning;
 class MultiBinning;
 class Category;
-typedef std::variant<double, Formula, FormulaRef, Transform, Binning, MultiBinning, Category> Content;
+typedef std::variant<double, Formula, FormulaRef, Transform, HashPRNG, Binning, MultiBinning, Category> Content;
 class Correction;
 
 class FormulaAst {
@@ -136,6 +137,17 @@ class Transform {
     size_t variableIdx_;
     std::unique_ptr<const Content> rule_;
     std::unique_ptr<const Content> content_;
+};
+
+class HashPRNG {
+  public:
+    HashPRNG(const JSONObject& json, const Correction& context);
+    double evaluate(const std::vector<Variable::Type>& values) const;
+
+  private:
+    enum class Distribution { stdflat, stdnormal, normal };
+    std::vector<size_t> variablesIdx_;
+    Distribution dist_;
 };
 
 // common internal for Binning and MultiBinning
