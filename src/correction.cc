@@ -277,18 +277,18 @@ HashPRNG::HashPRNG(const JSONObject& json, const Correction& context)
 
 double HashPRNG::evaluate(const std::vector<Variable::Type>& values) const {
   pcg32_oneseq gen;
-  std::vector<uint64_t> seedData;
-  seedData.reserve(variablesIdx_.size());
-  for(size_t i : variablesIdx_) {
-    if ( auto v = std::get_if<int>(&values[i]) ) {
-      seedData.push_back(static_cast<uint64_t>(*v));
+  size_t nbytes = sizeof(uint64_t)*variablesIdx_.size();
+  uint64_t* seedData = (uint64_t*) alloca(nbytes);
+  for(size_t i=0; i<variablesIdx_.size(); ++i) {
+    if ( auto v = std::get_if<int>(&values[variablesIdx_[i]]) ) {
+      seedData[i] = static_cast<uint64_t>(*v);
     }
-    else if ( auto v = std::get_if<double>(&values[i]) ) {
-      seedData.push_back(*reinterpret_cast<const uint64_t*>(v));
+    else if ( auto v = std::get_if<double>(&values[variablesIdx_[i]]) ) {
+      seedData[i] = *reinterpret_cast<const uint64_t*>(v);
     }
     else { throw std::logic_error("I should not have ever seen a string"); }
   }
-  gen.seed(xxh::xxhash<64>(seedData));
+  gen.seed(xxh::xxhash<64>((const void*) seedData, nbytes));
   switch (dist_) {
     case Distribution::stdflat:
       return std::uniform_real_distribution<>()(gen);
