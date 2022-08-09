@@ -180,9 +180,9 @@ Formula::Formula(const JSONObject& json, const Correction& context, bool generic
   generic_(generic)
 {
   auto parser_type = json.getRequired<std::string_view>("parser");
-  if (parser_type == "TFormula") { type_ = FormulaAst::ParserType::TFormula; }
+  if (parser_type == "TFormula") { type_ = FormulaImpl::ParserType::TFormula; }
   else if (parser_type == "numexpr") {
-    type_ = FormulaAst::ParserType::numexpr;
+    type_ = FormulaImpl::ParserType::numexpr;
     throw std::runtime_error("numexpr formula parser is not yet supported");
   }
   else { throw std::runtime_error("Unrecognized formula parser type"); }
@@ -204,7 +204,7 @@ Formula::Formula(const JSONObject& json, const Correction& context, bool generic
     }
   }
 
-  ast_ = std::make_unique<FormulaAst>(FormulaAst::parse(type_, expression_, params, variableIdx, !generic));
+  ast_ = FormulaImpl::parse(type_, expression_, params, variableIdx, !generic);
 }
 
 double Formula::evaluate(const std::vector<Variable::Type>& values) const {

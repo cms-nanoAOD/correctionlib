@@ -42,48 +42,28 @@ class Category;
 typedef std::variant<double, Formula, FormulaRef, Transform, HashPRNG, Binning, MultiBinning, Category> Content;
 class Correction;
 
-class FormulaAst {
+class FormulaImpl {
   public:
+    typedef std::unique_ptr<FormulaImpl> Ptr;
     enum class ParserType {TFormula, numexpr};
-    enum class NodeType {
-      Literal,
-      Variable,
-      Parameter,
-      UnaryCall,
-      BinaryCall,
-      UAtom,
-      Expression,
+    enum class OpCode {
+      LoadLiteral,
+      LoadVariable,
+      LoadParameter,
+      // unary operators
+      Negative,
+      // unary functions
+      Log, Log10, Exp, Erf, Sqrt, Abs, Cos, Sin, Tan, Acos, Asin, Atan,
+      Cosh, Sinh, Tanh, Acosh, Asinh, Atanh,
+      // binary functions
+      Atan2, Pow, Max, Min,
+      // binary operators
+      Equal, NotEqual, Greater, Less, GreaterEq, LessEq, Minus, Plus,
+      Div, Times,
       Undefined,
     };
-    enum class BinaryOp {
-      Equal,
-      NotEqual,
-      Greater,
-      Less,
-      GreaterEq,
-      LessEq,
-      Minus,
-      Plus,
-      Div,
-      Times,
-      Pow,
-    };
-    enum class UnaryOp { Negative };
-    typedef double (*UnaryFcn)(double);
-    typedef double (*BinaryFcn)(double, double);
-    typedef std::variant<
-      std::monostate,
-      double, // literal/parameter
-      size_t, // parameter/variable index
-      UnaryOp,
-      BinaryOp,
-      UnaryFcn,
-      BinaryFcn
-    > NodeData;
-    // TODO: try std::unique_ptr<const Ast> child1, child2 or std::array
-    typedef std::vector<FormulaAst> Children;
 
-    static FormulaAst parse(
+    static Ptr parse(
         ParserType type,
         const std::string_view expression,
         const std::vector<double>& params,
@@ -91,15 +71,17 @@ class FormulaAst {
         bool bind_parameters
         );
 
-    FormulaAst() : nodetype_(NodeType::Undefined) {};
-    FormulaAst(NodeType nodetype, NodeData data, Children children) :
-      nodetype_(nodetype), data_(data), children_(children) {};
+    FormulaImpl() : op_(OpCode::Undefined) {};
+    FormulaImpl(OpCode op, double lit, size_t idx, Ptr&& left, Ptr&& right) :
+      op_(op), lit_(lit), idx_(idx), left_(std::move(left)), right_(std::move(right)) {};
     double evaluate(const std::vector<Variable::Type>& variables, const std::vector<double>& parameters) const;
 
   private:
-    NodeType nodetype_;
-    NodeData data_;
-    Children children_;
+    OpCode op_;
+    double lit_;
+    size_t idx_;
+    Ptr left_;
+    Ptr right_;
 };
 
 class Formula {
@@ -113,8 +95,8 @@ class Formula {
 
   private:
     std::string expression_;
-    FormulaAst::ParserType type_;
-    std::unique_ptr<FormulaAst> ast_;
+    FormulaImpl::ParserType type_;
+    FormulaImpl::Ptr ast_;
     bool generic_;
 };
 
