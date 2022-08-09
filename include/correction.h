@@ -50,6 +50,7 @@ class FormulaImpl {
       LoadLiteral,
       LoadVariable,
       LoadParameter,
+      PushStack, // any binary op will pop
       // unary operators
       Negative,
       // unary functions
@@ -71,17 +72,15 @@ class FormulaImpl {
         bool bind_parameters
         );
 
-    FormulaImpl() : op_(OpCode::Undefined) {};
-    FormulaImpl(OpCode op, double lit, size_t idx, Ptr&& left, Ptr&& right) :
-      op_(op), lit_(lit), idx_(idx), left_(std::move(left)), right_(std::move(right)) {};
+    FormulaImpl(std::vector<OpCode> ops, std::vector<double> literals, std::vector<size_t> indices, size_t stacksize) :
+      ops_(ops), literals_(literals), indices_(indices), stacksize_(stacksize) {};
     double evaluate(const std::vector<Variable::Type>& variables, const std::vector<double>& parameters) const;
 
   private:
-    OpCode op_;
-    double lit_;
-    size_t idx_;
-    Ptr left_;
-    Ptr right_;
+    std::vector<OpCode> ops_;
+    std::vector<double> literals_;
+    std::vector<size_t> indices_;
+    size_t stacksize_;
 };
 
 class Formula {

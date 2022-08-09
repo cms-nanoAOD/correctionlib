@@ -112,15 +112,21 @@ namespace {
       const std::vector<double>& params;
       const std::vector<size_t>& variableIdx;
       bool bind_parameters;
+      std::vector<double> literals;
+      std::vector<size_t> indices;
+      std::vector<FormulaImpl::OpCode> instructions;
+      size_t curdepth{0};
+      size_t maxdepth{0};
   };
 
-  FormulaImpl::Ptr compile_tformula_ast(
+  void compile_tformula_ast(
       const PEGParser::AstPtr ast,
       CompileContext& context
       ) {
     if (ast->is_token) {
       if (ast->name == "LITERAL") {
-        return std::make_unique<FormulaImpl>(FormulaImpl::OpCode::LoadLiteral, ast->token_to_number<double>(), 0, nullptr, nullptr);
+        context.literals.push_back(ast->token_to_number<double>());
+        context.instructions.push_back(FormulaImpl::OpCode::LoadLiteral);
       }
       else if (ast->name == "VARIABLE") {
         size_t idx;
@@ -134,7 +140,8 @@ namespace {
         if ( context.variableIdx.size() <= idx ) {
           throw std::runtime_error("Insufficient variables for formula");
         }
-        return std::make_unique<FormulaImpl>(FormulaImpl::OpCode::LoadVariable, 0.0, context.variableIdx[idx], nullptr, nullptr);
+        context.indices.push_back(context.variableIdx[idx]);
+        context.instructions.push_back(FormulaImpl::OpCode::LoadVariable);
       }
       else if (ast->name == "PARAMETER") {
         auto pidx = ast->token_to_number<size_t>();
@@ -142,10 +149,12 @@ namespace {
           if ( pidx >= context.params.size() ) {
             throw std::runtime_error("Insufficient parameters for formula");
           }
-          return std::make_unique<FormulaImpl>(FormulaImpl::OpCode::LoadLiteral, context.params[pidx], 0, nullptr, nullptr);
+          context.literals.push_back(context.params[pidx]);
+          context.instructions.push_back(FormulaImpl::OpCode::LoadLiteral);
         }
         else {
-          return std::make_unique<FormulaImpl>(FormulaImpl::OpCode::LoadParameter, 0.0, pidx, nullptr, nullptr);
+          context.indices.push_back(pidx);
+          context.instructions.push_back(FormulaImpl::OpCode::LoadParameter);
         }
       }
     }
@@ -155,7 +164,8 @@ namespace {
       FormulaImpl::OpCode op;
       if      ( name == "-" ) { op = FormulaImpl::OpCode::Negative; }
       else { throw std::runtime_error("Unrecognized unary operation: " + std::string(name)); }
-      return std::make_unique<FormulaImpl>(op, 0.0, 0, compile_tformula_ast(ast->nodes[1], context), nullptr);
+      compile_tformula_ast(ast->nodes[1], context);
+      context.instructions.push_back(op);
     }
     else if (ast->name == "CALLU" ) {
       if ( ast->nodes.size() != 2 ) { throw std::runtime_error("CALLU without 2 nodes?"); }
@@ -164,7 +174,8 @@ namespace {
       if ( iter == tformula_ufmap.end() ) {
         throw std::runtime_error("unrecognized unary function: " + std::string(name));
       }
-      return std::make_unique<FormulaImpl>(iter->second, 0.0, 0, compile_tformula_ast(ast->nodes[1], context), nullptr);
+      compile_tformula_ast(ast->nodes[1], context);
+      context.instructions.push_back(iter->second);
     }
     else if (ast->name == "CALLB" ) {
       if ( ast->nodes.size() != 3 ) { throw std::runtime_error("CALLB without 3 nodes?"); }
@@ -173,7 +184,13 @@ namespace {
       if ( iter == tformula_bfmap.end() ) {
         throw std::runtime_error("unrecognized binary function: " + std::string(name));
       }
-      return std::make_unique<FormulaImpl>(iter->second, 0.0, 0, compile_tformula_ast(ast->nodes[1], context), compile_tformula_ast(ast->nodes[2], context));
+      compile_tformula_ast(ast->nodes[1], context);
+      context.instructions.push_back(FormulaImpl::OpCode::PushStack);
+      context.curdepth++;
+      context.maxdepth = std::max(context.maxdepth, context.curdepth);
+      compile_tformula_ast(ast->nodes[2], context);
+      context.instructions.push_back(iter->second);
+      context.curdepth--;
     }
     else if (ast->name == "EXPRESSION" ) {
       if ( ast->nodes.size() != 3 ) { throw std::runtime_error("EXPRESSION without 3 nodes?"); }
@@ -182,10 +199,59 @@ namespace {
       if ( iter == tformula_exprmap.end() ) {
         throw std::runtime_error("unrecognized binary operation: " + std::string(name));
       }
-      return std::make_unique<FormulaImpl>(iter->second, 0.0, 0, compile_tformula_ast(ast->nodes[0], context), compile_tformula_ast(ast->nodes[2], context));
+      compile_tformula_ast(ast->nodes[0], context);
+      context.instructions.push_back(FormulaImpl::OpCode::PushStack);
+      context.curdepth++;
+      context.maxdepth = std::max(context.maxdepth, context.curdepth);
+      compile_tformula_ast(ast->nodes[2], context);
+      context.instructions.push_back(iter->second);
+      context.curdepth--;
     }
-    throw std::runtime_error("Unrecognized AST node");
+    else {
+      throw std::runtime_error("Unrecognized AST node");
+    }
   }
+
+  std::map<FormulaImpl::OpCode, const char *> opnames = {
+    {FormulaImpl::OpCode::LoadLiteral, "LoadLiteral"},
+    {FormulaImpl::OpCode::LoadVariable, "LoadVariable"},
+    {FormulaImpl::OpCode::LoadParameter, "LoadParameter"},
+    {FormulaImpl::OpCode::PushStack, "PushStack"},
+    {FormulaImpl::OpCode::Negative, "Negative"},
+    {FormulaImpl::OpCode::Log, "Log"},
+    {FormulaImpl::OpCode::Log10, "Log10"},
+    {FormulaImpl::OpCode::Exp, "Exp"},
+    {FormulaImpl::OpCode::Erf, "Erf"},
+    {FormulaImpl::OpCode::Sqrt, "Sqrt"},
+    {FormulaImpl::OpCode::Abs, "Abs"},
+    {FormulaImpl::OpCode::Cos, "Cos"},
+    {FormulaImpl::OpCode::Sin, "Sin"},
+    {FormulaImpl::OpCode::Tan, "Tan"},
+    {FormulaImpl::OpCode::Acos, "Acos"},
+    {FormulaImpl::OpCode::Asin, "Asin"},
+    {FormulaImpl::OpCode::Atan, "Atan"},
+    {FormulaImpl::OpCode::Cosh, "Cosh"},
+    {FormulaImpl::OpCode::Sinh, "Sinh"},
+    {FormulaImpl::OpCode::Tanh, "Tanh"},
+    {FormulaImpl::OpCode::Acosh, "Acosh"},
+    {FormulaImpl::OpCode::Asinh, "Asinh"},
+    {FormulaImpl::OpCode::Atanh, "Atanh"},
+    {FormulaImpl::OpCode::Atan2, "Atan2"},
+    {FormulaImpl::OpCode::Pow, "Pow"},
+    {FormulaImpl::OpCode::Max, "Max"},
+    {FormulaImpl::OpCode::Min, "Min"},
+    {FormulaImpl::OpCode::Equal, "Equal"},
+    {FormulaImpl::OpCode::NotEqual, "NotEqual"},
+    {FormulaImpl::OpCode::Greater, "Greater"},
+    {FormulaImpl::OpCode::Less, "Less"},
+    {FormulaImpl::OpCode::GreaterEq, "GreaterEq"},
+    {FormulaImpl::OpCode::LessEq, "LessEq"},
+    {FormulaImpl::OpCode::Minus, "Minus"},
+    {FormulaImpl::OpCode::Plus, "Plus"},
+    {FormulaImpl::OpCode::Div, "Div"},
+    {FormulaImpl::OpCode::Times, "Times"},
+    {FormulaImpl::OpCode::Undefined, "Undefined"},
+  };
 
 }
 
@@ -196,65 +262,161 @@ FormulaImpl::Ptr FormulaImpl::parse(
     const std::vector<size_t>& variableIdx,
     bool bind_parameters
     ) {
+  CompileContext context{params, variableIdx, bind_parameters};
   if ( type == ParserType::TFormula ) {
     const std::lock_guard<std::mutex> lock(tformula_parser.m);
-    CompileContext ctx{params, variableIdx, bind_parameters};
-    return compile_tformula_ast(tformula_parser.parse(expression), ctx);
+    compile_tformula_ast(tformula_parser.parse(expression), context);
   }
-  throw std::runtime_error("Unrecognized formula parser type");
+  else {
+    throw std::runtime_error("Unrecognized formula parser type");
+  }
+  if ( false ) {
+    std::cout << "max depth: " << context.maxdepth << std::endl;
+    size_t ilit{0}, iidx{0};
+    for(auto op : context.instructions) {
+      if ( op == OpCode::LoadLiteral )
+        std::cout << opnames[op] << ": " << context.literals[ilit++] << std::endl;
+      else if ( op == OpCode::LoadVariable or op == OpCode::LoadParameter )
+        std::cout << opnames[op] << ": " << context.indices[iidx++] << std::endl;
+      else
+        std::cout << opnames[op] << std::endl;
+    }
+  }
+  return std::make_unique<FormulaImpl>(context.instructions, context.literals, context.indices, context.maxdepth);
 }
 
 double FormulaImpl::evaluate(const std::vector<Variable::Type>& values, const std::vector<double>& params) const {
-  double left{999}, right{1000};
-  if ( left_ ) left = left_->evaluate(values, params);
-  if ( right_ ) right = right_->evaluate(values, params);
-  switch (op_) {
-    case OpCode::LoadLiteral:
-      return lit_;
-    case OpCode::LoadVariable:
-      return std::get<double>(values[idx_]);
-    case OpCode::LoadParameter:
-      return params[idx_];
+  double* stack = (double*) alloca(stacksize_*sizeof(double));
+  size_t sptr{0}, litptr{0}, idxptr{0};
+  double reg;
+  for (const auto& op : ops_) {
+    switch (op) {
+      // load vars
+      case OpCode::LoadLiteral:
+        reg = literals_[litptr++];
+        break;
+      case OpCode::LoadVariable:
+        reg = std::get<double>(values[indices_[idxptr++]]);
+        break;
+      case OpCode::LoadParameter:
+        reg = params[indices_[idxptr++]];
+        break;
+      case OpCode::PushStack:
+        assert(sptr < stacksize_);
+        stack[sptr++] = reg;
+        break;
 
-    // unary operators
-    case OpCode::Negative: return -left;
-    // unary functions
-    case OpCode::Log: return std::log(left);
-    case OpCode::Log10: return std::log10(left);
-    case OpCode::Exp: return std::exp(left);
-    case OpCode::Erf: return std::erf(left);
-    case OpCode::Sqrt: return std::sqrt(left);
-    case OpCode::Abs: return std::abs(left);
-    case OpCode::Cos: return std::cos(left);
-    case OpCode::Sin: return std::sin(left);
-    case OpCode::Tan: return std::tan(left);
-    case OpCode::Acos: return std::acos(left);
-    case OpCode::Asin: return std::asin(left);
-    case OpCode::Atan: return std::atan(left);
-    case OpCode::Cosh: return std::cosh(left);
-    case OpCode::Sinh: return std::sinh(left);
-    case OpCode::Tanh: return std::tanh(left);
-    case OpCode::Acosh: return std::acosh(left);
-    case OpCode::Asinh: return std::asinh(left);
-    case OpCode::Atanh: return std::atanh(left);
+      // unary operators
+      case OpCode::Negative:
+        reg *= -1.0;
+        break;
 
-    // binary functions
-    case OpCode::Atan2: return std::atan2(left, right);
-    case OpCode::Pow: return std::pow(left, right);
-    case OpCode::Max: return std::max(left, right);
-    case OpCode::Min: return std::min(left, right);
-    // binary operators
-    case OpCode::Equal: return (left == right) ? 1. : 0.;
-    case OpCode::NotEqual: return (left != right) ? 1. : 0.;
-    case OpCode::Greater: return (left > right) ? 1. : 0.;
-    case OpCode::Less: return (left < right) ? 1. : 0.;
-    case OpCode::GreaterEq: return (left >= right) ? 1. : 0.;
-    case OpCode::LessEq: return (left <= right) ? 1. : 0.;
-    case OpCode::Minus: return left - right;
-    case OpCode::Plus: return left + right;
-    case OpCode::Div: return left / right;
-    case OpCode::Times: return left * right;
-    case OpCode::Undefined:
-      throw std::runtime_error("Unrecognized AST node");
+      // unary functions
+      case OpCode::Log:
+        reg = std::log(reg);
+        break;
+      case OpCode::Log10:
+        reg = std::log10(reg);
+        break;
+      case OpCode::Exp:
+        reg = std::exp(reg);
+        break;
+      case OpCode::Erf:
+        reg = std::erf(reg);
+        break;
+      case OpCode::Sqrt:
+        reg = std::sqrt(reg);
+        break;
+      case OpCode::Abs:
+        reg = std::abs(reg);
+        break;
+      case OpCode::Cos:
+        reg = std::cos(reg);
+        break;
+      case OpCode::Sin:
+        reg = std::sin(reg);
+        break;
+      case OpCode::Tan:
+        reg = std::tan(reg);
+        break;
+      case OpCode::Acos:
+        reg = std::acos(reg);
+        break;
+      case OpCode::Asin:
+        reg = std::asin(reg);
+        break;
+      case OpCode::Atan:
+        reg = std::atan(reg);
+        break;
+      case OpCode::Cosh:
+        reg = std::cosh(reg);
+        break;
+      case OpCode::Sinh:
+        reg = std::sinh(reg);
+        break;
+      case OpCode::Tanh:
+        reg = std::tanh(reg);
+        break;
+      case OpCode::Acosh:
+        reg = std::acosh(reg);
+        break;
+      case OpCode::Asinh:
+        reg = std::asinh(reg);
+        break;
+      case OpCode::Atanh:
+        reg = std::atanh(reg);
+        break;
+
+      // binary functions
+      case OpCode::Atan2:
+        reg = std::atan2(stack[--sptr], reg);
+        break;
+      case OpCode::Pow:
+        reg = std::pow(stack[--sptr], reg);
+        break;
+      case OpCode::Max:
+        reg = std::max(stack[--sptr], reg);
+        break;
+      case OpCode::Min:
+        reg = std::min(stack[--sptr], reg);
+        break;
+
+      // binary operators
+      case OpCode::Equal:
+        reg = stack[--sptr] == reg;
+        break;
+      case OpCode::NotEqual:
+        reg = stack[--sptr] != reg;
+        break;
+      case OpCode::Greater:
+        reg = stack[--sptr] > reg;
+        break;
+      case OpCode::Less:
+        reg = stack[--sptr] < reg;
+        break;
+      case OpCode::GreaterEq:
+        reg = stack[--sptr] >= reg;
+        break;
+      case OpCode::LessEq:
+        reg = stack[--sptr] <= reg;
+        break;
+      case OpCode::Minus:
+        reg = stack[--sptr] - reg;
+        break;
+      case OpCode::Plus:
+        reg = stack[--sptr] + reg;
+        break;
+      case OpCode::Div:
+        reg = stack[--sptr] / reg;
+        break;
+      case OpCode::Times:
+        reg = stack[--sptr] * reg;
+        break;
+
+      case OpCode::Undefined:
+        throw std::runtime_error("Unrecognized AST node");
+    }
   }
+  assert(sptr == 0);
+  return reg;
 }
