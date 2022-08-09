@@ -49,6 +49,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#variable">Variable</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#formula">Formula</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#formularef">FormulaRef</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hashprng">HashPRNG</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#transform">Transform</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#categoryitem">CategoryItem</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#category">Category</a></li>
@@ -363,6 +364,74 @@
 </tbody>
 </table>
 </section>
+<section id="hashprng">
+<span id="hashprng"></span><h3>HashPRNG<a class="headerlink" href="#hashprng" title="Permalink to this heading"></a></h3>
+<p>A node that generates a pseudorandom number deterministic in its inputs</p>
+<p>The output distribution can be chosen from a set of fixed values,
+downstream code could then shift and scale it as necessary.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="3"><p><em>object</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="4"><p>properties</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p><strong>nodetype</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Nodetype</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="2"><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>enum</p></td>
+<td colspan="2"><p>hashprng</p></td>
+</tr>
+<tr class="row-even"><td rowspan="5"><ul class="simple">
+<li><p><strong>inputs</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Inputs</em></p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p>The names of the input variables to use as entropy sources</p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="2"><p><em>array</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>items</p></td>
+<td><p>type</p></td>
+<td><p><em>string</em></p></td>
+</tr>
+<tr class="row-even"><td><p>minItems</p></td>
+<td colspan="2"><p>1</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<li><p><strong>distribution</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Distribution</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>The output distribution to draw from</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>string</em></p></td>
+</tr>
+<tr class="row-even"><td><p>enum</p></td>
+<td colspan="2"><p>stdflat, stdnormal, normal</p></td>
+</tr>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
+<td colspan="3"><p>False</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="transform">
 <span id="transform"></span><h3>Transform<a class="headerlink" href="#transform" title="Permalink to this heading"></a></h3>
 <p>A node that rewrites one real or integer input according to a rule as given by a content node</p>
@@ -406,7 +475,7 @@ high levels in the tree, since they require an allocation.</p>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="9"><ul class="simple">
+<tr class="row-odd"><td rowspan="10"><ul class="simple">
 <li><p><strong>rule</strong></p></li>
 </ul>
 </td>
@@ -414,7 +483,7 @@ high levels in the tree, since they require an allocation.</p>
 </tr>
 <tr class="row-even"><td colspan="3"><p>A subtree that implements the rewrite rule</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="7"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -427,29 +496,33 @@ high levels in the tree, since they require an allocation.</p>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="9"><ul class="simple">
+<tr class="row-odd"><td rowspan="10"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Content</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p>A subtree that will be evaluated with transformed values</p></td>
+<tr class="row-even"><td colspan="3"><p>A subtree that will be evaluated with transformed values</p></td>
 </tr>
-<tr class="row-even"><td rowspan="7"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
 <tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
@@ -490,13 +563,13 @@ high levels in the tree, since they require an allocation.</p>
 <tr class="row-odd"><td><p>type</p></td>
 <td><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="8"><ul class="simple">
+<tr class="row-even"><td rowspan="9"><ul class="simple">
 <li><p><strong>value</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Value</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="7"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -509,10 +582,12 @@ high levels in the tree, since they require an allocation.</p>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td><p>additionalProperties</p></td>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -569,13 +644,13 @@ high levels in the tree, since they require an allocation.</p>
 <tr class="row-odd"><td><p>items</p></td>
 <td colspan="2"><p><a class="reference internal" href="#categoryitem">CategoryItem</a></p></td>
 </tr>
-<tr class="row-even"><td rowspan="8"><ul class="simple">
+<tr class="row-even"><td rowspan="9"><ul class="simple">
 <li><p>default</p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Default</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="7"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -588,10 +663,12 @@ high levels in the tree, since they require an allocation.</p>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td><p>additionalProperties</p></td>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -663,7 +740,7 @@ high levels in the tree, since they require an allocation.</p>
 <td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="10"><ul class="simple">
+<tr class="row-even"><td rowspan="11"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
@@ -679,8 +756,8 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="3"><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="7"><p>items</p></td>
-<td rowspan="7"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="8"><p>items</p></td>
+<td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -693,29 +770,33 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="11"><ul class="simple">
+<tr class="row-odd"><td rowspan="12"><ul class="simple">
 <li><p><strong>flow</strong></p></li>
 </ul>
 </td>
 <td colspan="4"><p><em>Flow</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p>Overflow behavior for out-of-bounds values</p></td>
+<tr class="row-even"><td colspan="4"><p>Overflow behavior for out-of-bounds values</p></td>
 </tr>
-<tr class="row-even"><td rowspan="9"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="10"><p>anyOf</p></td>
 <td colspan="3"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>number</em></p></td>
@@ -787,7 +868,7 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 <td><p>type</p></td>
 <td colspan="2"><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="9"><ul class="simple">
+<tr class="row-odd"><td rowspan="10"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
@@ -796,8 +877,8 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="3"><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="7"><p>items</p></td>
-<td rowspan="7"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="8"><p>items</p></td>
+<td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -810,29 +891,33 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="11"><ul class="simple">
+<tr class="row-odd"><td rowspan="12"><ul class="simple">
 <li><p><strong>flow</strong></p></li>
 </ul>
 </td>
 <td colspan="4"><p><em>Flow</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p>Overflow behavior for out-of-bounds values</p></td>
+<tr class="row-even"><td colspan="4"><p>Overflow behavior for out-of-bounds values</p></td>
 </tr>
-<tr class="row-even"><td rowspan="9"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="10"><p>anyOf</p></td>
 <td colspan="3"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>number</em></p></td>
@@ -941,7 +1026,7 @@ of the correction object</p>
 <tr class="row-odd"><td><p>items</p></td>
 <td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-even"><td rowspan="9"><ul class="simple">
+<tr class="row-even"><td rowspan="10"><ul class="simple">
 <li><p><strong>data</strong></p></li>
 </ul>
 </td>
@@ -949,7 +1034,7 @@ of the correction object</p>
 </tr>
 <tr class="row-odd"><td colspan="3"><p>The root content node</p></td>
 </tr>
-<tr class="row-even"><td rowspan="7"><p>anyOf</p></td>
+<tr class="row-even"><td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -962,10 +1047,12 @@ of the correction object</p>
 </tr>
 <tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>

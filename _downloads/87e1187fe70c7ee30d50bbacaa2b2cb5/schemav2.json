@@ -149,6 +149,45 @@
             ],
             "additionalProperties": false
         },
+        "HashPRNG": {
+            "title": "HashPRNG",
+            "description": "A node that generates a pseudorandom number deterministic in its inputs\n\nThe output distribution can be chosen from a set of fixed values,\ndownstream code could then shift and scale it as necessary.",
+            "type": "object",
+            "properties": {
+                "nodetype": {
+                    "title": "Nodetype",
+                    "enum": [
+                        "hashprng"
+                    ],
+                    "type": "string"
+                },
+                "inputs": {
+                    "title": "Inputs",
+                    "description": "The names of the input variables to use as entropy sources",
+                    "minItems": 1,
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "distribution": {
+                    "title": "Distribution",
+                    "description": "The output distribution to draw from",
+                    "enum": [
+                        "stdflat",
+                        "stdnormal",
+                        "normal"
+                    ],
+                    "type": "string"
+                }
+            },
+            "required": [
+                "nodetype",
+                "inputs",
+                "distribution"
+            ],
+            "additionalProperties": false
+        },
         "Transform": {
             "title": "Transform",
             "description": "A node that rewrites one real or integer input according to a rule as given by a content node\n\nAny downstream nodes will see a different value for the rewritten input\nIf the input is an integer type, the rule output will be cast from a\ndouble to integer type before using. These should be used sparingly and at\nhigh levels in the tree, since they require an allocation.",
@@ -189,6 +228,9 @@
                             "$ref": "#/definitions/Transform"
                         },
                         {
+                            "$ref": "#/definitions/HashPRNG"
+                        },
+                        {
                             "type": "number"
                         }
                     ]
@@ -214,6 +256,9 @@
                         },
                         {
                             "$ref": "#/definitions/Transform"
+                        },
+                        {
+                            "$ref": "#/definitions/HashPRNG"
                         },
                         {
                             "type": "number"
@@ -265,6 +310,9 @@
                         },
                         {
                             "$ref": "#/definitions/Transform"
+                        },
+                        {
+                            "$ref": "#/definitions/HashPRNG"
                         },
                         {
                             "type": "number"
@@ -322,6 +370,9 @@
                         },
                         {
                             "$ref": "#/definitions/Transform"
+                        },
+                        {
+                            "$ref": "#/definitions/HashPRNG"
                         },
                         {
                             "type": "number"
@@ -393,6 +444,9 @@
                                 "$ref": "#/definitions/Transform"
                             },
                             {
+                                "$ref": "#/definitions/HashPRNG"
+                            },
+                            {
                                 "type": "number"
                             }
                         ]
@@ -419,6 +473,9 @@
                         },
                         {
                             "$ref": "#/definitions/Transform"
+                        },
+                        {
+                            "$ref": "#/definitions/HashPRNG"
                         },
                         {
                             "type": "number"
@@ -491,6 +548,9 @@
                                 "$ref": "#/definitions/Transform"
                             },
                             {
+                                "$ref": "#/definitions/HashPRNG"
+                            },
+                            {
                                 "type": "number"
                             }
                         ]
@@ -517,6 +577,9 @@
                         },
                         {
                             "$ref": "#/definitions/Transform"
+                        },
+                        {
+                            "$ref": "#/definitions/HashPRNG"
                         },
                         {
                             "type": "number"
@@ -604,6 +667,9 @@
                         },
                         {
                             "$ref": "#/definitions/Transform"
+                        },
+                        {
+                            "$ref": "#/definitions/HashPRNG"
                         },
                         {
                             "type": "number"
