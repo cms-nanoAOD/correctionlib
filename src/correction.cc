@@ -5,7 +5,10 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
+#include <random>
 #include "correction.h"
+#include "xxhash.hpp"
+#include "pcg_random.hpp"
 #if __has_include(<zlib.h>)
 #include <zlib.h>
 #include "gzfilereadstream.h"
@@ -102,6 +105,7 @@ namespace {
       else if ( type == "formula" ) { return Formula(obj, context); }
       else if ( type == "formularef" ) { return FormulaRef(obj, context); }
       else if ( type == "transform" ) { return Transform(obj, context); }
+      else if ( type == "hashprng" ) { return HashPRNG(obj, context); }
       else { throw std::runtime_error("Unrecognized Content object nodetype"); }
     }
     throw std::runtime_error("Invalid Content node type");
@@ -125,6 +129,9 @@ namespace {
       return node.evaluate(values);
     };
     double operator() (const Transform& node) {
+      return node.evaluate(values);
+    };
+    double operator() (const HashPRNG& node) {
       return node.evaluate(values);
     };
 
@@ -246,6 +253,58 @@ double Transform::evaluate(const std::vector<Variable::Type>& values) const {
     throw std::logic_error("I should not have ever seen a string");
   }
   return std::visit(node_evaluate{new_values}, *content_);
+}
+
+HashPRNG::HashPRNG(const JSONObject& json, const Correction& context)
+{
+  const auto& inputs = json.getRequired<rapidjson::Value::ConstArray>("inputs");
+  variablesIdx_.reserve(inputs.Size());
+  for (const auto& input : inputs) {
+    if ( ! input.IsString() ) { throw std::runtime_error("invalid hashprng input type"); }
+    size_t idx = context.input_index(input.GetString());
+    if ( context.inputs().at(idx).type() == Variable::VarType::string ) {
+      throw std::runtime_error("HashPRNG cannot use string inputs as entropy sources");
+    }
+    variablesIdx_.push_back(idx);
+  }
+  auto dist = json.getRequired<std::string_view>("distribution");
+  if (dist == "stdflat") { dist_ = Distribution::stdflat; }
+  else if (dist == "stdnormal") { dist_ = Distribution::stdnormal; }
+  else if (dist == "normal") { dist_ = Distribution::normal; }
+  else { throw std::runtime_error("invalid distribution type for hashprng"); }
+
+}
+
+double HashPRNG::evaluate(const std::vector<Variable::Type>& values) const {
+  pcg32_oneseq gen;
+  size_t nbytes = sizeof(uint64_t)*variablesIdx_.size();
+  uint64_t* seedData = (uint64_t*) alloca(nbytes);
+  for(size_t i=0; i<variablesIdx_.size(); ++i) {
+    if ( auto v = std::get_if<int>(&values[variablesIdx_[i]]) ) {
+      seedData[i] = static_cast<uint64_t>(*v);
+    }
+    else if ( auto v = std::get_if<double>(&values[variablesIdx_[i]]) ) {
+      seedData[i] = *reinterpret_cast<const uint64_t*>(v);
+    }
+    else { throw std::logic_error("I should not have ever seen a string"); }
+  }
+  gen.seed(xxh::xxhash<64>((const void*) seedData, nbytes));
+  switch (dist_) {
+    case Distribution::stdflat:
+      return std::uniform_real_distribution<>()(gen);
+    case Distribution::stdnormal:
+      // if not a temporary, it may reuse the spare value
+      return std::normal_distribution<>()(gen);
+    case Distribution::normal:
+      double u, v, s;
+      do {
+        // cheap but wrong-ish https://www.pcg-random.org/using-pcg-c.html#generating-doubles
+        u = std::ldexp(gen(), -31) - 1;
+        v = std::ldexp(gen(), -31) - 1;
+        s = u*u + v*v;
+      } while ( s>= 1.0 || s == 0.0 );
+      return u * std::sqrt(-2.0 * std::log(s) / s);
+  };
 }
 
 Binning::Binning(const JSONObject& json, const Correction& context)

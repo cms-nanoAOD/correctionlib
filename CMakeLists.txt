@@ -44,6 +44,8 @@ target_include_directories(correctionlib
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/xxhash/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pcg-cpp/include>
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
 if(ZLIB_FOUND)
