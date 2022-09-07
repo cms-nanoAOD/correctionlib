@@ -71,9 +71,9 @@ def from_histogram(
         if len(axis) == 0:
             raise ValueError(f"Zero-length axis {axis}, what to do?")
         elif isinstance(axis[0], str):
-            axtype = "str"
+            axtype = "string"
         elif isinstance(axis[0], int):
-            axtype = "integer"
+            axtype = "int"
         axname = getattr(
             axis, "name", f"axis{pos}" if axis_names is None else axis_names[pos]
         )
