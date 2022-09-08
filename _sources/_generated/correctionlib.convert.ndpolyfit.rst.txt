@@ -1,0 +1,6 @@
+correctionlib.convert.ndpolyfit
+===============================
+
+.. currentmodule:: correctionlib.convert
+
+.. autofunction:: ndpolyfit
