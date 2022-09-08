@@ -81,14 +81,16 @@ class Correction:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
-        vargs = [arg for arg in args if isinstance(arg, numpy.ndarray)]
+        vargs = [
+            numpy.asarray(arg) for arg in args if not isinstance(arg, (str, int, float))
+        ]
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
             oshape = bargs[0].shape
             fargs = (arg.flatten() for arg in bargs)
             out = self._base.evalv(
                 *(
-                    next(fargs) if isinstance(arg, numpy.ndarray) else arg
+                    next(fargs) if not isinstance(arg, (str, int, float)) else arg
                     for arg in args
                 )
             )
@@ -130,14 +132,16 @@ class CompoundCorrection:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
-        vargs = [arg for arg in args if isinstance(arg, numpy.ndarray)]
+        vargs = [
+            numpy.asarray(arg) for arg in args if not isinstance(arg, (str, int, float))
+        ]
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
             oshape = bargs[0].shape
             fargs = (arg.flatten() for arg in bargs)
             out = self._base.evalv(
                 *(
-                    next(fargs) if isinstance(arg, numpy.ndarray) else arg
+                    next(fargs) if not isinstance(arg, (str, int, float)) else arg
                     for arg in args
                 )
             )

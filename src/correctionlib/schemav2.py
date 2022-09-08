@@ -53,7 +53,14 @@ class Variable(Model):
 
 # py3.7+: ForwardRef can be used instead of strings
 Content = Union[
-    "Binning", "MultiBinning", "Category", "Formula", "FormulaRef", "Transform", float
+    "Binning",
+    "MultiBinning",
+    "Category",
+    "Formula",
+    "FormulaRef",
+    "Transform",
+    "HashPRNG",
+    float,
 ]
 
 
@@ -119,6 +126,28 @@ class Transform(Model):
         inputstats[self.input].transform = True
         if not isinstance(self.content, float):
             self.content.summarize(nodecount, inputstats)
+
+
+class HashPRNG(Model):
+    """A node that generates a pseudorandom number deterministic in its inputs
+
+    The output distribution can be chosen from a set of fixed values,
+    downstream code could then shift and scale it as necessary.
+    """
+
+    nodetype: Literal["hashprng"]
+    inputs: List[str] = Field(
+        description="The names of the input variables to use as entropy sources",
+        min_items=1,
+    )
+    distribution: Literal["stdflat", "stdnormal", "normal"] = Field(
+        description="The output distribution to draw from"
+    )
+
+    def summarize(
+        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+    ) -> None:
+        nodecount["HashPRNG"] += 1
 
 
 class Binning(Model):
