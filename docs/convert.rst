@@ -8,3 +8,4 @@ Conversion utilities for common alternative formats
 
     from_uproot_THx
     from_histogram
+    ndpolyfit
