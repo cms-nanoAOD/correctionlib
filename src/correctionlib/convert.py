@@ -1,6 +1,5 @@
 """Tools to convert other formats to correctionlib
 
-Mostly TODO right now
 """
 from numbers import Real
 from typing import (
@@ -37,10 +36,6 @@ else:
         from typing import Literal
     except ImportError:
         from typing_extensions import Literal
-
-
-def blah(x: Literal["a", "b"]) -> str:
-    return x + "c"
 
 
 def from_uproot_THx(
@@ -193,12 +188,12 @@ def ndpolyfit(
     weights: "ndarray[Any, Any]",
     varnames: List[str],
     degree: Tuple[int],
-) -> Correction:
+) -> Tuple[Correction, Any]:
     """Fit an n-dimensional polynomial to data points with weight
 
     Example::
 
-        corr = convert.ndpolyfit(
+        corr, fitresult = convert.ndpolyfit(
             points=[np.array([0.0, 1.0, 0.0, 1.0]), np.array([10., 20., 10., 20.])],
             values=np.array([0.9, 0.95, 0.94, 0.98]),
             weights=np.array([0.1, 0.1, 0.1, 0.1]),
@@ -206,8 +201,7 @@ def ndpolyfit(
             degree=(1, 1),
         )
 
-    Returns a Correction object that includes some details of the least
-    squares fit result.
+    Returns a Correction object along with the least squares fit result
     """
     from scipy.optimize import lsq_linear
     from scipy.stats import chi2
@@ -224,7 +218,7 @@ def ndpolyfit(
         raise ValueError("Dimension mismatch between varnames and degree")
     if len(degree) > 4:
         raise NotImplementedError(
-            "correctionlib Formula not available for more than 4 variables?"
+            "correctionlib Formula not available for more than 4 variables"
         )
     _degree: "ndarray[Any, Any]" = numpy.array(degree, dtype=int)
     npoints = len(values)
@@ -250,16 +244,19 @@ def ndpolyfit(
         ]
         expr.append("*".join(term))
     degreestr = ",".join(map(str, degree))
-    return Correction(
-        name="formula",
-        description=f"Fit to polynomial of order {degreestr}\nFit status: {fitstatus}",
-        version=1,
-        inputs=[Variable(name=name, type="real") for name in varnames],
-        output=Variable(name="output", type="real"),
-        data=Formula(
-            nodetype="formula",
-            expression="+".join(expr),
-            parser="TFormula",
-            variables=varnames,
+    return (
+        Correction(
+            name="formula",
+            description=f"Fit to polynomial of order {degreestr}\nFit status: {fitstatus}",
+            version=1,
+            inputs=[Variable(name=name, type="real") for name in varnames],
+            output=Variable(name="output", type="real"),
+            data=Formula(
+                nodetype="formula",
+                expression="+".join(expr),
+                parser="TFormula",
+                variables=varnames,
+            ),
         ),
+        fit,
     )
