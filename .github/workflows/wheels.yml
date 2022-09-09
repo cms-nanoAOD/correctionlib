@@ -40,7 +40,8 @@ jobs:
         CIBW_SKIP: pp*-macosx* pp*-win*
         CIBW_TEST_EXTRAS: test
         CIBW_TEST_COMMAND: pytest {project}/tests
-        CIBW_TEST_SKIP: cp311* pp311* cp310-win32 pp*
+        CIBW_TEST_SKIP: cp311* cp310-win32 pp*
+        PIP_ONLY_BINARY: ":all:"
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
     - name: Upload wheels
