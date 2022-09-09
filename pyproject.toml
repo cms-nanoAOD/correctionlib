@@ -19,16 +19,9 @@ test-requires = "pytest"
 test-command = "python -m pytest {package}/tests"
 # update skip when numpy wheels become available
 test-skip = ["*-musllinux_*", "cp310-win32", "cp310-manylinux_i686"]
-# to match numpy, we use manylinux2014 for cp310+
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 
 [tool.cibuildwheel.environment]
 # this makes sure that we build only on platforms that have a corresponding numpy wheel
 PIP_ONLY_BINARY = ":all:"
-
-[[tool.cibuildwheel.overrides]]
-# to match numpy, we use manylinux2010 for cp36 to cp39
-select = "cp3?-*"
-manylinux-x86_64-image = "manylinux2010"
-manylinux-i686-image = "manylinux2010"
