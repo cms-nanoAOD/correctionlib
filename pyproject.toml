@@ -14,7 +14,7 @@ build-backend = "setuptools.build_meta"
 write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
-skip = ["pp*-macosx*", "pp*-win*"]
+skip = ["pp*-macosx*", "pp*-win*", "cp311-*"]
 test-extras = "test"
 test-command = "python -m pytest {package}/tests"
 # update skip when numpy wheels become available
