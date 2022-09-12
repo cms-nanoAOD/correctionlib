@@ -77,6 +77,14 @@ class Correction:
     def version(self) -> int:
         return self._base.version
 
+    @property
+    def inputs(self) -> List[correctionlib._core.Variable]:
+        return self._base.inputs
+
+    @property
+    def output(self) -> correctionlib._core.Variable:
+        return self._base.output
+
     def evaluate(
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
@@ -127,6 +135,14 @@ class CompoundCorrection:
     @property
     def description(self) -> str:
         return self._base.description
+
+    @property
+    def inputs(self) -> List[correctionlib._core.Variable]:
+        return self._base.inputs
+
+    @property
+    def output(self) -> correctionlib._core.Variable:
+        return self._base.output
 
     def evaluate(
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
