@@ -1,0 +1,4 @@
+awkward==1.8.0
+correctionlib[convert]==2.2.1
+hist[plot]
+matplotlib

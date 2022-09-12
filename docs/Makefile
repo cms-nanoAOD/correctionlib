@@ -13,8 +13,8 @@ all: generated html
 
 generated:
 	sphinx-autogen *.rst
-	python -m correctionlib.schemav1 _generated
-	python -m correctionlib.schemav2 _generated
+	python3 -m correctionlib.schemav1 _generated
+	python3 -m correctionlib.schemav2 _generated
 
 # Put it first so that "make" without argument is like "make help".
 help:
