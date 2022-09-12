@@ -63,6 +63,7 @@ glob:
 ---
 Introduction <self>
 install
+correctionlib_tutorial.ipynb
 highlevel
 schemav1
 schemav2
