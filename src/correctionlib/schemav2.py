@@ -178,7 +178,7 @@ class Binning(Model):
             nbins = len(values["edges"]) - 1
             if nbins != len(content):
                 raise ValueError(
-                    f"Binning content length ({len(content)}) is not one larger than edges ({nbins + 1})"
+                    f"Binning content length ({len(content)}) is not one less than edges ({nbins + 1})"
                 )
         return content
 

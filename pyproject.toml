@@ -12,3 +12,16 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 write_to = "src/correctionlib/version.py"
+
+[tool.cibuildwheel]
+skip = ["pp*-*", "cp311-*"]
+test-extras = "test"
+test-command = "python -m pytest {package}/tests"
+# update skip when numpy wheels become available
+test-skip = ["*-musllinux_*", "cp310-win32", "cp310-manylinux_i686"]
+manylinux-x86_64-image = "manylinux2014"
+manylinux-i686-image = "manylinux2014"
+
+[tool.cibuildwheel.environment]
+# this makes sure that we build only on platforms that have a corresponding numpy wheel
+PIP_ONLY_BINARY = ":all:"
