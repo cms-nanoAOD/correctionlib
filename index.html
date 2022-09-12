@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -41,6 +42,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correctionlib_tutorial.html">Correctionlib tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="highlevel.html">correctionlib.highlevel</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schemav1.html">Schema v1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="schemav2.html">Schema v2</a></li>
@@ -72,7 +74,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="correctionlib">
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="correctionlib">
 <h1>correctionlib<a class="headerlink" href="#correctionlib" title="Permalink to this heading"></a></h1>
 <p>The purpose of this library is to provide a well-structured JSON data format for a
 wide variety of ad-hoc correction factors encountered in a typical HEP analysis and
@@ -131,6 +157,19 @@ at levels other than the entrypoint.</p>
 <li class="toctree-l2"><a class="reference internal" href="install.html#outside-cmssw">Outside CMSSW</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html#with-python-2-outside-cmssw">With python 2 (outside CMSSW)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="install.html#usage-from-python-and-c">Usage from python and C++</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="correctionlib_tutorial.html">Correctionlib tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Basic-evaluator-usage">Basic evaluator usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Creating-new-corrections">Creating new corrections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Formulas">Formulas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Converting-from-histograms">Converting from histograms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Polynomial-fits">Polynomial fits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Resolution-models">Resolution models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Chaining-with-CompoundCorrection">Chaining with CompoundCorrection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Systematics">Systematics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Writing-it-all-out">Writing it all out</a></li>
+<li class="toctree-l2"><a class="reference internal" href="correctionlib_tutorial.html#Command-line-utility">Command-line utility</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="highlevel.html">correctionlib.highlevel</a><ul>
