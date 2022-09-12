@@ -69,11 +69,13 @@ Detailed instructions for installing and using this package are provided in the 
 
 ## Creating new corrections
 
+A demo/tutorial of the features is available in the [documentation][rtd-link] and also available interactively
+on [binder](https://mybinder.org/v2/gh/cms-nanoAOD/correctionlib/HEAD?labpath=binder%2Fcorrectionlib_tutorial.ipynb)
+
 The `correctionlib.schemav2` module provides a helpful framework for defining correction objects
 and `correctionlib.convert` includes select conversion routines for common types. Nodes can be type-checked as they are
 constructed using the [parse_obj](https://pydantic-docs.helpmanual.io/usage/models/#helper-functions)
 class method or by directly constructing them using keyword arguments.
-Some examples can be found in `data/conversion.py`. The `tests/` directory may also be helpful.
 
 ## Developing
 See CONTRIBUTING.md
