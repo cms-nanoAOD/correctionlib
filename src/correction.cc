@@ -7,7 +7,8 @@
 #include <cmath>
 #include <random>
 #include "correction.h"
-#include "xxhash.hpp"
+#define XXH_INLINE_ALL 1
+#include "xxhash.h"
 #include "pcg_random.hpp"
 #if __has_include(<zlib.h>)
 #include <zlib.h>
@@ -288,7 +289,7 @@ double HashPRNG::evaluate(const std::vector<Variable::Type>& values) const {
     }
     else { throw std::logic_error("I should not have ever seen a string"); }
   }
-  gen.seed(xxh::xxhash<64>((const void*) seedData, nbytes));
+  gen.seed(XXH64((const void*) seedData, nbytes, 0ul));
   switch (dist_) {
     case Distribution::stdflat:
       return std::uniform_real_distribution<>()(gen);

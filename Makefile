@@ -10,7 +10,7 @@ else
 	PYLDFLAG=-Wl,-rpath,'$$ORIGIN/lib'
 endif
 OSXFLAG=$(shell uname|grep -q Darwin && echo "-undefined dynamic_lookup")
-CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib $(PYINC) -Iinclude
+CFLAGS=--std=c++17 -O3 -Wall -fPIC -Irapidjson/include -Ipybind11/include -Icpp-peglib -Ixxhash -Ipcg-cpp/include $(PYINC) -Iinclude
 PREFIX ?= correctionlib
 STRVER=$(shell git describe --tags)
 MAJOR=$(shell git describe --tags|sed -n "s/v\([0-9]\+\)\..*/\1/p")
