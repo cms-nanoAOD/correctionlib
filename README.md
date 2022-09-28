@@ -20,9 +20,7 @@ scalar inputs that produce a scalar output.
 In python, the function signature is:
 
 ```python
-from typing import Union
-
-def f(*args: Union[str,int,float]) -> float:
+def f(*args: str | int | float) -> float:
     return ...
 ```
 
