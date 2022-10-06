@@ -159,7 +159,8 @@ This will output a <code class="docutils literal notranslate"><span class="pre">
 <p>The above command will try to use python wheels, prebuilt binary packages,
 since it is faster and more efficient.
 When using the C++ evaluator, e.g. from ROOT or a standalone executable,
-the C++ ABI needs to be compatible, otherwise you will get linker errors.
+the C++ ABI needs to be compatible, otherwise you will get linker errors such
+as <code class="docutils literal notranslate"><span class="pre">undefined</span> <span class="pre">symbol:</span> <span class="pre">_ZN10correction13CorrectionSet9from_file...</span></code>.
 To avoid this pass the <code class="docutils literal notranslate"><span class="pre">--no-binary=correctionlib</span></code> option to <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span></code>,
 which will start from the source package and build the C++ components in your environment.</p>
 </div>
