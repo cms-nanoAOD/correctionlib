@@ -53,7 +53,8 @@ python3 -m pip install correctionlib
 The above command will try to use python wheels, prebuilt binary packages,
 since it is faster and more efficient.
 When using the C++ evaluator, e.g. from ROOT or a standalone executable,
-the C++ ABI needs to be compatible, otherwise you will get linker errors.
+the C++ ABI needs to be compatible, otherwise you will get linker errors such
+as `undefined symbol: _ZN10correction13CorrectionSet9from_file...`.
 To avoid this pass the `--no-binary=correctionlib` option to `pip install`,
 which will start from the source package and build the C++ components in your environment.
 ```
