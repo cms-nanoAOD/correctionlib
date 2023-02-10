@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Installation &mdash; correctionlib  documentation</title>
@@ -30,11 +30,15 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> correctionlib
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            correctionlib
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -71,8 +75,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Installation</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/install.md.txt" rel="nofollow"> View page source</a>
       </li>
@@ -126,11 +130,11 @@ which has the schema version 2.0 that is used by most of the corrections.
 If the tool included in CMSSW supports the version you want to use,
 no additional installation is needed.
 The package version can also be found with the command-line tool:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>correction config --version
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>correction<span class="w"> </span>config<span class="w"> </span>--version
 </pre></div>
 </div>
 <p>For older release cycles the package can be installed in the user area with</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install --user --no-binary<span class="o">=</span>correctionlib correctionlib
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>--no-binary<span class="o">=</span>correctionlib<span class="w"> </span>correctionlib
 </pre></div>
 </div>
 <p>for python3.
@@ -138,10 +142,10 @@ Alternatively, <a class="reference external" href="https://gist.github.com/piete
 can be used to install a <code class="docutils literal notranslate"><span class="pre">py3-correctionlib</span></code> tool similar to the one provided in more recent releases,
 or a <code class="docutils literal notranslate"><span class="pre">py2-correctionlib</span></code> tool with limited functionality.</p>
 <p>The package can be built as follows:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
-<span class="nb">cd</span> correctionlib
-make <span class="nv">PYTHON</span><span class="o">=</span>python
-make install  <span class="c1"># set PREFIX=... to change from default (./correctionlib)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recursive<span class="w"> </span>git@github.com:cms-nanoAOD/correctionlib.git
+<span class="nb">cd</span><span class="w"> </span>correctionlib
+make<span class="w"> </span><span class="nv">PYTHON</span><span class="o">=</span>python
+make<span class="w"> </span>install<span class="w">  </span><span class="c1"># set PREFIX=... to change from default (./correctionlib)</span>
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">python</span></code> is the name of the python scram tool you intend to link against.
@@ -150,7 +154,7 @@ This will output a <code class="docutils literal notranslate"><span class="pre">
 <section id="outside-cmssw">
 <h2>Outside CMSSW<a class="headerlink" href="#outside-cmssw" title="Permalink to this heading"></a></h2>
 <p>To install in an environment that has python 3, you can simply</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install correctionlib
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>correctionlib
 </pre></div>
 </div>
 <p>(possibly with <code class="docutils literal notranslate"><span class="pre">--user</span></code>, or in a virtualenv, etc.)</p>
@@ -165,7 +169,7 @@ To avoid this pass the <code class="docutils literal notranslate"><span class="p
 which will start from the source package and build the C++ components in your environment.</p>
 </div>
 <p>If you wish to install the latest development version, this should work:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/cms-nanoAOD/correctionlib.git
 </pre></div>
 </div>
 </section>
@@ -176,10 +180,10 @@ If you considered that and still want to use python2, the following recipe may w
 to install only the <code class="docutils literal notranslate"><span class="pre">correctionlib._core</span></code> evaluator,
 which allows to use the C++ evaluator from python2 and python3
 (the schema tools and high-level bindings are python3-only):</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
-<span class="nb">cd</span> correctionlib
-make <span class="nv">PYTHON</span><span class="o">=</span>python2
-make install  <span class="c1"># set PREFIX=... to change from default (./correctionlib)</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recursive<span class="w"> </span>git@github.com:cms-nanoAOD/correctionlib.git
+<span class="nb">cd</span><span class="w"> </span>correctionlib
+make<span class="w"> </span><span class="nv">PYTHON</span><span class="o">=</span>python2
+make<span class="w"> </span>install<span class="w">  </span><span class="c1"># set PREFIX=... to change from default (./correctionlib)</span>
 </pre></div>
 </div>
 <p>This will output a <code class="docutils literal notranslate"><span class="pre">correctionlib</span></code> directory that acts as a python package, and can be moved where needed.</p>
@@ -198,8 +202,8 @@ example that builds a user C++ application against correctionlib and ROOT RDataF
 can be <a class="reference external" href="https://gist.github.com/pieterdavid/a560e65658386d70a1720cb5afe4d3e9">found here</a>.</p>
 <p>For manual compilation, include and linking definitions can similarly be found via <code class="docutils literal notranslate"><span class="pre">correction</span> <span class="pre">config</span> <span class="pre">--cflags</span> <span class="pre">--ldflags</span></code>.
 For example, the demo application can be compiled with:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget https://raw.githubusercontent.com/cms-nanoAOD/correctionlib/master/src/demo.cc
-g++ <span class="k">$(</span>correction config --cflags --ldflags --rpath<span class="k">)</span> demo.cc -o demo
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://raw.githubusercontent.com/cms-nanoAOD/correctionlib/master/src/demo.cc
+g++<span class="w"> </span><span class="k">$(</span>correction<span class="w"> </span>config<span class="w"> </span>--cflags<span class="w"> </span>--ldflags<span class="w"> </span>--rpath<span class="k">)</span><span class="w"> </span>demo.cc<span class="w"> </span>-o<span class="w"> </span>demo
 </pre></div>
 </div>
 </section>
