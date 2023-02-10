@@ -86,7 +86,7 @@ def merge(console: Console, args: argparse.Namespace) -> int:
         for corr2 in cset2.corrections:
             if any(corr.name == corr2.name for corr in cset.corrections):
                 console.print(
-                    f"[red]Correction '{corr2.name}' from {file} is a duplicate"
+                    f"[red]Correction {corr2.name!r} from {file} is a duplicate"
                 )
                 return 1
             cset.corrections.append(corr2)
@@ -95,7 +95,7 @@ def merge(console: Console, args: argparse.Namespace) -> int:
                 cset.compound_corrections = []
             if any(corr.name == corr2.name for corr in cset.compound_corrections):
                 console.print(
-                    f"[red]Compound correction '{corr2.name}' from {file} is a duplicate"
+                    f"[red]Compound correction {corr2.name!r} from {file} is a duplicate"
                 )
                 return 1
             cset.compound_corrections.append(corr2)
