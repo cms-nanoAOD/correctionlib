@@ -48,16 +48,19 @@ namespace {
     auto output = py::array_t<double>((vargs.size() > 0) ? vargs.front().second.size : 1);
     py::buffer_info outbuffer = output.request();
     double * outptr = static_cast<double*>(outbuffer.ptr);
-    for (size_t i=0; i < outbuffer.shape[0]; ++i) {
-      for (const auto& varg : vargs) {
-        if ( std::holds_alternative<int>(inputs[varg.first]) ) {
-          inputs[varg.first] = static_cast<int*>(varg.second.ptr)[i];
+    {
+      py::gil_scoped_release release;
+      for (size_t i=0; i < outbuffer.shape[0]; ++i) {
+        for (const auto& varg : vargs) {
+          if ( std::holds_alternative<int>(inputs[varg.first]) ) {
+            inputs[varg.first] = static_cast<int*>(varg.second.ptr)[i];
+          }
+          else if ( std::holds_alternative<double>(inputs[varg.first]) ) {
+            inputs[varg.first] = static_cast<double*>(varg.second.ptr)[i];
+          }
         }
-        else if ( std::holds_alternative<double>(inputs[varg.first]) ) {
-          inputs[varg.first] = static_cast<double*>(varg.second.ptr)[i];
-        }
+        outptr[i] = c.evaluate(inputs);
       }
-      outptr[i] = c.evaluate(inputs);
     }
     return output;
   }
