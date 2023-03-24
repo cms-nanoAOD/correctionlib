@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
+#include <cstdlib> // std::abort
 #include <random>
 #include "correction.h"
 #define XXH_INLINE_ALL 1
@@ -311,6 +312,8 @@ double HashPRNG::evaluate(const std::vector<Variable::Type>& values) const {
         s = u*u + v*v;
       } while ( s>= 1.0 || s == 0.0 );
       return u * std::sqrt(-2.0 * std::log(s) / s);
+    default:
+      std::abort(); // never reached if the switch is exhaustive
   };
 }
 
