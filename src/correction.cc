@@ -643,7 +643,8 @@ double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) c
   std::vector<Variable::Type> ivalues(values);
   std::vector<Variable::Type> cvalues;
   cvalues.reserve(values.size());
-  double out, sf;
+  double out = 0.;
+  double sf = 0.;
   bool start{true};
   for(const auto& [inmap, corr] : stack_) {
     cvalues.clear();
