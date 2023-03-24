@@ -1,4 +1,10 @@
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#ifndef __clang__
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
 #include <rapidjson/document.h>
+#pragma GCC diagnostic pop
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/error/en.h>
 #include <optional>
