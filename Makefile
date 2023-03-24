@@ -33,9 +33,15 @@ lib/libcorrectionlib.so: build/correction.o build/formula_ast.o
 
 pythonbinding: build/python.o lib/libcorrectionlib.so
 	$(CXX) -fPIC -shared $(PYLDFLAG) $< -Llib -lcorrectionlib -o _core$(PYEXT)
-	touch __init__.py
 
-install: pythonbinding
+initpy:
+	echo "from .binding import register_pyroot_binding" > __init__.py
+	echo "from .highlevel import Correction, CorrectionSet" >> __init__.py
+	echo "from .version import version as __version__" >> __init__.py
+	echo "__all__ = (\"__version__\", \"CorrectionSet\", \"Correction\", \"register_pyroot_binding\")" >> __init__.py
+
+
+install: pythonbinding initpy
 	mkdir -p $(PREFIX)/include
 	mkdir -p $(PREFIX)/lib
 	install -m 644 include/correction.h $(PREFIX)/include
@@ -43,6 +49,9 @@ install: pythonbinding
 	install -m 755 _core$(PYEXT) $(PREFIX)
 	install -m 755 lib/libcorrectionlib.so $(PREFIX)/lib
 	install -m 644 __init__.py $(PREFIX)
+	install -m 644 src/correctionlib/binding.py $(PREFIX)
+	install -m 644 src/correctionlib/highlevel.py $(PREFIX)
+	install -m 644 src/correctionlib/version.py $(PREFIX)
 
 clean:
 	rm -rf build
