@@ -52,6 +52,8 @@ install: pythonbinding initpy
 	install -m 644 src/correctionlib/binding.py $(PREFIX)
 	install -m 644 src/correctionlib/highlevel.py $(PREFIX)
 	install -m 644 src/correctionlib/version.py $(PREFIX)
+	install -m 644 src/correctionlib/schemav1.py $(PREFIX)
+	install -m 644 src/correctionlib/schemav2.py $(PREFIX)
 
 clean:
 	rm -rf build
