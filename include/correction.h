@@ -153,13 +153,24 @@ class HashPRNG {
 // common internal for Binning and MultiBinning
 enum class _FlowBehavior {value, clamp, error};
 
+using _NonUniformBins = std::vector<double>;
+
+struct _UniformBins {
+   double lower; // lower edge of first bin
+   double upper; // upper edge of last bin
+   std::size_t n; // number of bins
+};
+
 class Binning {
   public:
     Binning(const JSONObject& json, const Correction& context);
     const Content& child(const std::vector<Variable::Type>& values) const;
 
   private:
-    std::vector<std::tuple<double, Content>> bins_;
+    std::variant<_UniformBins, _NonUniformBins> bins_; // bin edges
+    // bin contents: contents_[i] is the value corresponding to bins_[i+1].
+    // the default value is at contents_[0]
+    std::vector<Content> contents_;
     size_t variableIdx_;
     _FlowBehavior flow_;
 };

@@ -343,19 +343,71 @@ Binning::Binning(const JSONObject& json, const Correction& context)
     flow_ = _FlowBehavior::value;
     default_value = resolve_content(flowbehavior, context);
   }
-  bins_.reserve(edges.size());
-  // first bin is never accessed for content in range (corresponds to std::upper_bound underflow)
-  // use it to store default value
-  bins_.push_back({*edges.begin(), std::move(default_value)});
-  for (size_t i=0; i < content.Size(); ++i) {
-    bins_.push_back({edges[i + 1], resolve_content(content[i], context)});
+
+  // set bin contents
+  contents_.push_back(std::move(default_value));
+  for (size_t i=0; i < content.Size(); ++i)
+    contents_.push_back(resolve_content(content[i], context));
+
+  // helper function to check whether two floating point values are equal within a relative tolerance, a la math.isclose
+  // always returns false if a or b are a positive or negative infinity.
+  auto is_close = [](double a, double b) {
+    if (std::isinf(a) || std::isinf(b))
+        return false;
+    const double relative_tolerance = 1e-6;
+    return std::fabs(b - a) <= relative_tolerance * std::max(std::fabs(a), std::fabs(b));
+  };
+
+  // check whether we have uniform binning
+  bool isBinningUniform = true;
+  const double firstBinWidth = edges.size() > 1 ? edges[1] - edges[0] : 0.;
+  for (auto i = 1u; i < edges.size() - 1; ++i) {
+    const double binWidth = edges[i + 1] - edges[i];
+    if (!is_close(binWidth, firstBinWidth)) {
+      isBinningUniform = false;
+      break;
+    }
+  }
+
+  // set bin edges
+  if (isBinningUniform) {
+    bins_ = _UniformBins{/*lower*/edges.front(), /*upper*/edges.back(), /*n*/edges.size() - 1u};
+  } else {
+    _NonUniformBins bins{std::move(edges)};
+    bins_ = std::move(bins);
   }
 }
 
 const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   double value = std::get<double>(values[variableIdx_]);
-  auto it = std::upper_bound(std::begin(bins_), std::end(bins_), value, [](const double& a, const auto& b) { return a < std::get<0>(b); });
-  if ( it == std::begin(bins_) ) {
+
+  if ( auto *bins = std::get_if<_UniformBins>(&bins_) ) { // uniform binning
+    std::size_t binIdx = int (bins->n * (value - bins->lower) / (bins->upper - bins->lower));
+
+    switch (flow_) {
+      case _FlowBehavior::value:
+        if (binIdx < 0 || binIdx >= contents_.size())
+          binIdx = 0; // default value is at index 0
+        break;
+      case _FlowBehavior::clamp:
+        binIdx = std::clamp(binIdx, std::size_t(1u), contents_.size() - 1u); // assuming size is always > 0
+        break;
+      case _FlowBehavior::error:
+        if (binIdx < 0 || binIdx >= contents_.size()) {
+          const std::string belowOrAbove = binIdx < 0 ? "below" : "above";
+          const auto msg = "Index " + belowOrAbove + " bounds in Binning for input argument " + std::to_string(variableIdx_) + " value: " + std::to_string(value);
+          throw std::runtime_error(std::move(msg));
+        }
+    }
+
+    return contents_[binIdx + 1]; // +1 because contents_[0] is the default value; actual bin contents are offset by 1
+  }
+
+  // otherwise we have non-uniform binning
+  const auto bins = std::get<_NonUniformBins>(bins_);
+
+  auto it = std::upper_bound(std::begin(bins), std::end(bins), value);
+  if ( it == std::begin(bins) ) {
     if ( flow_ == _FlowBehavior::value ) {
       // default value already at std::begin
     }
@@ -366,9 +418,9 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
       it++;
     }
   }
-  else if ( it == std::end(bins_) ) {
+  else if ( it == std::end(bins) ) {
     if ( flow_ == _FlowBehavior::value ) {
-      it = std::begin(bins_);
+      it = std::begin(bins);
     }
     else if ( flow_ == _FlowBehavior::error ) {
       throw std::runtime_error("Index above bounds in Binning for input argument " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
@@ -377,7 +429,8 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
       it--;
     }
   }
-  return std::get<1>(*it);
+
+  return contents_[std::distance(std::begin(bins), it)];
 }
 
 MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
