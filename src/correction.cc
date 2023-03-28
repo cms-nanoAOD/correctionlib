@@ -319,17 +319,35 @@ double HashPRNG::evaluate(const std::vector<Variable::Type>& values) const {
 
 Binning::Binning(const JSONObject& json, const Correction& context)
 {
-  std::vector<double> edges;
-  for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("edges")) {
-    if ( ! item.IsDouble() ) { throw std::runtime_error("Invalid edges array type"); }
-    double val = item.GetDouble();
-    if ( edges.size() > 0 && edges.back() >= val ) { throw std::runtime_error("binning edges are not monotone increasing"); }
-    edges.push_back(val);
-  }
   const auto& content = json.getRequired<rapidjson::Value::ConstArray>("content");
-  if ( edges.size() != content.Size() + 1 ) {
-    throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
+
+  // set bins_
+  const auto &edgesObj = json.getRequiredValue("edges");
+  if ( edgesObj.IsArray() ) { // non-uniform binning
+    std::vector<double> edges;
+    rapidjson::Value::ConstArray edgesArr = edgesObj.GetArray();
+    for (const auto& edge : edgesArr) {
+      if ( ! edge.IsDouble() ) { throw std::runtime_error("Invalid edges array type"); }
+      double val = edge.GetDouble();
+      if ( edges.size() > 0 && edges.back() >= val ) { throw std::runtime_error("binning edges are not monotone increasing"); }
+      edges.push_back(val);
+    }
+    if ( edges.size() != content.Size() + 1 ) {
+      throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
+    }
+    _NonUniformBins bins{std::move(edges)};
+    bins_ = std::move(bins);
+  } else { // must be UniformBinning
+    const JSONObject uniformBins{edgesObj.GetObject()};
+    const auto n = uniformBins.getRequired<uint64_t>("n");
+    if ( n != content.Size() ) {
+      throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
+    }
+    const auto low = uniformBins.getRequired<double>("low");
+    const auto high = uniformBins.getRequired<double>("high");
+    bins_ = _UniformBins{n, low, high};
   }
+
   variableIdx_ = context.input_index(json.getRequired<std::string_view>("input"));
   Content default_value{0.};
   const auto& flowbehavior = json.getRequiredValue("flow");
@@ -343,19 +361,40 @@ Binning::Binning(const JSONObject& json, const Correction& context)
     flow_ = _FlowBehavior::value;
     default_value = resolve_content(flowbehavior, context);
   }
-  bins_.reserve(edges.size());
-  // first bin is never accessed for content in range (corresponds to std::upper_bound underflow)
-  // use it to store default value
-  bins_.push_back({*edges.begin(), std::move(default_value)});
-  for (size_t i=0; i < content.Size(); ++i) {
-    bins_.push_back({edges[i + 1], resolve_content(content[i], context)});
-  }
+
+  // set bin contents
+  contents_.push_back(std::move(default_value));
+  for (size_t i=0; i < content.Size(); ++i)
+    contents_.push_back(resolve_content(content[i], context));
 }
 
 const Content& Binning::child(const std::vector<Variable::Type>& values) const {
   double value = std::get<double>(values[variableIdx_]);
-  auto it = std::upper_bound(std::begin(bins_), std::end(bins_), value, [](const double& a, const auto& b) { return a < std::get<0>(b); });
-  if ( it == std::begin(bins_) ) {
+
+  if ( auto *bins = std::get_if<_UniformBins>(&bins_) ) { // uniform binning
+    std::size_t binIdx = bins->n * ((value - bins->low) / (bins->high - bins->low));
+    if (value < bins->low || value > bins->high) {
+      switch (flow_) {
+        case _FlowBehavior::value:
+            return contents_[0u]; // the default value
+        case _FlowBehavior::clamp:
+          binIdx = value < bins->low ? 0 : bins->n - 1; // assuming we always have at least 1 bin
+          break;
+        case _FlowBehavior::error:
+          const std::string belowOrAbove = value < bins->low ? "below" : "above";
+          const auto msg = "Index " + belowOrAbove + " bounds in Binning for input argument " + std::to_string(variableIdx_) + " value: " + std::to_string(value);
+          throw std::runtime_error(std::move(msg));
+      }
+    }
+
+    return contents_[binIdx + 1u]; // skipping the default value at index 0
+  }
+
+  // otherwise we have non-uniform binning
+  const auto bins = std::get<_NonUniformBins>(bins_);
+
+  auto it = std::upper_bound(std::begin(bins), std::end(bins), value);
+  if ( it == std::begin(bins) ) {
     if ( flow_ == _FlowBehavior::value ) {
       // default value already at std::begin
     }
@@ -366,9 +405,9 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
       it++;
     }
   }
-  else if ( it == std::end(bins_) ) {
+  else if ( it == std::end(bins) ) {
     if ( flow_ == _FlowBehavior::value ) {
-      it = std::begin(bins_);
+      it = std::begin(bins);
     }
     else if ( flow_ == _FlowBehavior::error ) {
       throw std::runtime_error("Index above bounds in Binning for input argument " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
@@ -377,7 +416,8 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
       it--;
     }
   }
-  return std::get<1>(*it);
+
+  return contents_[std::distance(std::begin(bins), it)];
 }
 
 MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
