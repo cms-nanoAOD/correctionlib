@@ -1,10 +1,17 @@
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#ifndef __clang__
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#endif
 #include <rapidjson/document.h>
+#pragma GCC diagnostic pop
 #include <rapidjson/filereadstream.h>
 #include <rapidjson/error/en.h>
 #include <optional>
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
+#include <cstdlib> // std::abort
 #include <random>
 #include "correction.h"
 #define XXH_INLINE_ALL 1
@@ -305,6 +312,8 @@ double HashPRNG::evaluate(const std::vector<Variable::Type>& values) const {
         s = u*u + v*v;
       } while ( s>= 1.0 || s == 0.0 );
       return u * std::sqrt(-2.0 * std::log(s) / s);
+    default:
+      std::abort(); // never reached if the switch is exhaustive
   };
 }
 
@@ -634,7 +643,8 @@ double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) c
   std::vector<Variable::Type> ivalues(values);
   std::vector<Variable::Type> cvalues;
   cvalues.reserve(values.size());
-  double out, sf;
+  double out = 0.;
+  double sf = 0.;
   bool start{true};
   for(const auto& [inmap, corr] : stack_) {
     cvalues.clear();

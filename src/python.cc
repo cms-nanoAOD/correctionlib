@@ -50,7 +50,7 @@ namespace {
     double * outptr = static_cast<double*>(outbuffer.ptr);
     {
       py::gil_scoped_release release;
-      for (size_t i=0; i < outbuffer.shape[0]; ++i) {
+      for (long i=0; i < outbuffer.shape[0]; ++i) {
         for (const auto& varg : vargs) {
           if ( std::holds_alternative<int>(inputs[varg.first]) ) {
             inputs[varg.first] = static_cast<int*>(varg.second.ptr)[i];
