@@ -1,5 +1,6 @@
 #include <mutex>
 #include <cmath>
+#include <cstdlib> // std::abort
 #include "peglib.h"
 #include "correction.h"
 
@@ -232,7 +233,7 @@ double FormulaAst::evaluate(const std::vector<Variable::Type>& values, const std
           );
     case NodeType::Undefined:
       throw std::runtime_error("Unrecognized AST node");
-    case NodeType::Expression:
+    case NodeType::Expression: {
       auto left = children_[0].evaluate(values, params);
       auto right = children_[1].evaluate(values, params);
       switch (std::get<BinaryOp>(data_)) {
@@ -248,5 +249,8 @@ double FormulaAst::evaluate(const std::vector<Variable::Type>& values, const std
         case BinaryOp::Times: return left * right;
         case BinaryOp::Pow: return std::pow(left, right);
       };
+    }
+    default:
+      std::abort(); // never reached if the switch/case is exhaustive
   }
 }
