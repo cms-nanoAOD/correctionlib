@@ -386,21 +386,21 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
 
     switch (flow_) {
       case _FlowBehavior::value:
-        if (binIdx < 0 || binIdx >= contents_.size())
-          binIdx = 0; // default value is at index 0
+        if (binIdx < 0 || binIdx >= bins->n)
+          return contents_[0u]; // the default value
         break;
       case _FlowBehavior::clamp:
-        binIdx = std::clamp(binIdx, std::size_t(1u), contents_.size() - 1u); // assuming size is always > 0
+        binIdx = std::clamp(binIdx, std::size_t(0u), bins->n - 1u); // assuming we always have at least 1 bin
         break;
       case _FlowBehavior::error:
-        if (binIdx < 0 || binIdx >= contents_.size()) {
+        if (binIdx < 0 || binIdx >= bins->n) {
           const std::string belowOrAbove = binIdx < 0 ? "below" : "above";
           const auto msg = "Index " + belowOrAbove + " bounds in Binning for input argument " + std::to_string(variableIdx_) + " value: " + std::to_string(value);
           throw std::runtime_error(std::move(msg));
         }
     }
 
-    return contents_[binIdx + 1]; // +1 because contents_[0] is the default value; actual bin contents are offset by 1
+    return contents_[binIdx + 1u]; // skipping the default value at index 0
   }
 
   // otherwise we have non-uniform binning
