@@ -337,15 +337,20 @@ Binning::Binning(const JSONObject& json, const Correction& context)
     }
     _NonUniformBins bins{std::move(edges)};
     bins_ = std::move(bins);
-  } else { // must be UniformBinning
+  } else if ( edgesObj.IsObject() ) { // UniformBinning
     const JSONObject uniformBins{edgesObj.GetObject()};
     const auto n = uniformBins.getRequired<uint64_t>("n");
+    if ( n == 0 ) {
+      throw std::runtime_error("Error when processing Binning with UniformBinning: number of bins is zero");
+    }
     if ( n != content.Size() ) {
       throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
     }
     const auto low = uniformBins.getRequired<double>("low");
     const auto high = uniformBins.getRequired<double>("high");
     bins_ = _UniformBins{n, low, high};
+  } else {
+    throw std::runtime_error ("Error when processing Binning: edges are neither an array nor a UniformBinning object");
   }
 
   variableIdx_ = context.input_index(json.getRequired<std::string_view>("input"));
