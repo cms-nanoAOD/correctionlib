@@ -706,7 +706,11 @@ def test_category():
 
 
 def test_binning():
-    def binning(flow):
+    def binning(flow, uniform=True):
+        if uniform:
+            edges = schema.UniformBinning(n=2, low=0., high=3.)
+        else:
+            edges = [0.0, 1.0, 3.0]
         cset = wrap(
             schema.Correction(
                 name="test",
@@ -716,7 +720,7 @@ def test_binning():
                 data=schema.Binning(
                     nodetype="binning",
                     input="x",
-                    edges=[0.0, 1.0, 3.0],
+                    edges=edges,
                     content=[1.0, 2.0],
                     flow=flow,
                 ),
@@ -724,27 +728,28 @@ def test_binning():
         )
         return cset["test"]
 
-    corr = binning(flow="error")
-    with pytest.raises(RuntimeError):
-        corr.evaluate(-1.0)
-    assert corr.evaluate(0.0) == 1.0
-    assert corr.evaluate(0.2) == 1.0
-    assert corr.evaluate(1.0) == 2.0
-    with pytest.raises(RuntimeError):
-        corr.evaluate(3.0)
+    for use_uniform_binning in [True, False]:
+        corr = binning(flow="error", uniform=use_uniform_binning)
+        with pytest.raises(RuntimeError):
+            corr.evaluate(-1.0)
+        assert corr.evaluate(0.0) == 1.0
+        assert corr.evaluate(0.2) == 1.0
+        assert corr.evaluate(1.0) == 1.0 if use_uniform_binning else 2.0
+        with pytest.raises(RuntimeError):
+            corr.evaluate(3.0)
 
-    corr = binning(flow="clamp")
-    assert corr.evaluate(-1.0) == 1.0
-    assert corr.evaluate(1.0) == 2.0
-    assert corr.evaluate(3.0) == 2.0
-    assert corr.evaluate(3000.0) == 2.0
+        corr = binning(flow="clamp", uniform=use_uniform_binning)
+        assert corr.evaluate(-1.0) == 1.0
+        assert corr.evaluate(1.0) == 1.0 if use_uniform_binning else 2.0
+        assert corr.evaluate(3.0) == 2.0
+        assert corr.evaluate(3000.0) == 2.0
 
-    corr = binning(flow=42.0)
-    assert corr.evaluate(-1.0) == 42.0
-    assert corr.evaluate(0.0) == 1.0
-    assert corr.evaluate(1.0) == 2.0
-    assert corr.evaluate(2.9) == 2.0
-    assert corr.evaluate(3.0) == 42.0
+        corr = binning(flow=42.0, uniform=use_uniform_binning)
+        assert corr.evaluate(-1.0) == 42.0
+        assert corr.evaluate(0.0) == 1.0
+        assert corr.evaluate(1.0) == 1.0 if use_uniform_binning else 2.0
+        assert corr.evaluate(2.9) == 2.0
+        assert corr.evaluate(3.0) == 42.0
 
     def multibinning(flow):
         cset = wrap(
