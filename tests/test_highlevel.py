@@ -1,5 +1,6 @@
 import pickle
 
+import awkward
 import numpy
 import pytest
 
@@ -45,3 +46,20 @@ def test_highlevel():
 
     sf2 = pickle.loads(pickle.dumps(sf))
     assert sf2.evaluate(1.0, 1.0) == 1.234
+
+    numpy.testing.assert_array_equal(
+        awkward.flatten(sf.evaluate(awkward.unflatten(numpy.ones(6), [3, 2, 1]), 1.0)),
+        numpy.full(6, 1.234),
+    )
+    numpy.testing.assert_array_equal(
+        awkward.flatten(
+            sf.evaluate(awkward.unflatten(numpy.ones(6), [3, 2, 1]), numpy.ones(1))
+        ),
+        numpy.full(6, 1.234),
+    )
+    numpy.testing.assert_array_equal(
+        awkward.flatten(
+            sf.evaluate(awkward.unflatten(numpy.ones(6), [3, 2, 1]), numpy.ones(3))
+        ),
+        numpy.full(6, 1.234),
+    )

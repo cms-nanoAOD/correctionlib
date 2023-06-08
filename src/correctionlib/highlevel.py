@@ -3,7 +3,7 @@
 """
 import json
 from numbers import Integral
-from typing import Any, Dict, Iterator, List, Mapping, Union
+from typing import Any, Callable, Dict, Iterator, List, Mapping, Union
 
 import numpy
 
@@ -43,6 +43,83 @@ def model_auto(data: str) -> Any:
 
         return correctionlib.schemav2.CorrectionSet.parse_obj(data)
     raise ValueError(f"Unknown CorrectionSet schema version ({version})")
+
+
+# TODO: create a ufunc with numpy.vectorize in constructor?
+def _call_as_numpy(
+    array_args: Any,
+    func: Callable[..., Any] = lambda: None,
+    non_array_args: Any = tuple(),
+    arg_indices: Any = tuple(),
+    **kwargs: Any,
+) -> Any:
+    import awkward
+
+    if not isinstance(array_args, (list, tuple)):
+        array_args = (array_args,)
+
+    if all(
+        isinstance(x, (awkward.contents.NumpyArray, awkward.contents.EmptyArray))
+        or not isinstance(x, (awkward.contents.Content))
+        for x in array_args
+    ):
+        vargs = [
+            awkward.to_numpy(awkward.typetracer.empty_if_typetracer(arg))
+            for arg in array_args
+        ]
+        bargs = numpy.broadcast_arrays(*vargs)
+        oshape = bargs[0].shape
+        fargs = (arg.flatten() for arg in bargs)
+
+        repacked_args = [None] * len(arg_indices)
+        array_args_len = len(array_args)
+        for i in range(len(arg_indices)):
+            if i < array_args_len:
+                repacked_args[arg_indices[i]] = next(fargs)
+            else:
+                repacked_args[arg_indices[i]] = non_array_args[i - array_args_len]
+
+        out = func(*repacked_args)
+        out = awkward.contents.NumpyArray(out.reshape(oshape))
+        if awkward.backend(*array_args) == "typetracer":
+            out = out.to_typetracer(forget_length=True)
+        return out
+    return None
+
+
+def _wrap_awkward(
+    func: Callable[..., Any],
+    *args: Union["numpy.ndarray[Any, Any]", str, int, float],
+) -> Any:
+    from functools import partial
+
+    import awkward
+
+    array_args = []
+    non_array_args = []
+    array_indices = []
+    non_array_indices = []
+
+    for iarg, arg in enumerate(args):
+        if not isinstance(arg, (str, int, float)):
+            array_args.append(arg)
+            array_indices.append(iarg)
+        else:
+            non_array_args.append(arg)
+            non_array_indices.append(iarg)
+
+    array_args = awkward.broadcast_arrays(*array_args)
+
+    arg_indices = array_indices + non_array_indices
+
+    tocall = partial(
+        _call_as_numpy,
+        func=func,  # type: ignore
+        non_array_args=non_array_args,
+        arg_indices=arg_indices,
+    )
+
+    return awkward.transform(tocall, *array_args)
 
 
 class Correction:
@@ -89,6 +166,9 @@ class Correction:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
+        if any("'awkward." in str(type(arg)) for arg in args):
+            return _wrap_awkward(self._base.evalv, *args)  # type: ignore
+
         vargs = [
             numpy.asarray(arg) for arg in args if not isinstance(arg, (str, int, float))
         ]
