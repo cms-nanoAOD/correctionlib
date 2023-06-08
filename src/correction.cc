@@ -378,7 +378,7 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
 
   if ( auto *bins = std::get_if<_UniformBins>(&bins_) ) { // uniform binning
     std::size_t binIdx = bins->n * ((value - bins->low) / (bins->high - bins->low));
-    if (value < bins->low || value > bins->high) {
+    if (value < bins->low || value >= bins->high) {
       switch (flow_) {
         case _FlowBehavior::value:
             return contents_[0u]; // the default value
