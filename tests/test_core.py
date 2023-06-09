@@ -708,7 +708,7 @@ def test_category():
 def test_binning():
     def binning(flow, uniform=True):
         if uniform:
-            edges = schema.UniformBinning(n=2, low=0., high=3.)
+            edges = schema.UniformBinning(n=2, low=0.0, high=3.0)
         else:
             edges = [0.0, 1.0, 3.0]
         cset = wrap(
