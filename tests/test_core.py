@@ -751,7 +751,11 @@ def test_binning():
         assert corr.evaluate(2.9) == 2.0
         assert corr.evaluate(3.0) == 42.0
 
-    def multibinning(flow):
+    def multibinning(flow, uniform=True):
+        if uniform:
+            edges_x = schema.UniformBinning(n=2, low=0.0, high=3.0)
+        else:
+            edges_x = [0.0, 1.0, 3.0]
         cset = wrap(
             schema.Correction(
                 name="test",
@@ -765,7 +769,7 @@ def test_binning():
                     nodetype="multibinning",
                     inputs=["x", "y"],
                     edges=[
-                        [0.0, 1.0, 3.0],
+                        edges_x,
                         [10.0, 20.0, 30.0, 40.0],
                     ],
                     content=[float(i) for i in range(2 * 3)],
@@ -775,51 +779,53 @@ def test_binning():
         )
         return cset["test"]
 
-    corr = multibinning(flow="error")
-    with pytest.raises(RuntimeError):
-        corr.evaluate(0.0, 5.0)
-    with pytest.raises(RuntimeError):
-        corr.evaluate(-1.0, 5.0)
-    assert corr.evaluate(0.0, 10.0) == 0.0
-    assert corr.evaluate(0.0, 20.0) == 1.0
-    assert corr.evaluate(0.0, 30.0) == 2.0
-    with pytest.raises(RuntimeError):
-        corr.evaluate(0.0, 40.0)
-    assert corr.evaluate(1.0, 10.0) == 3.0
-    assert corr.evaluate(1.0, 20.0) == 4.0
-    assert corr.evaluate(1.0, 30.0) == 5.0
-    with pytest.raises(RuntimeError):
-        corr.evaluate(2.0, 5.0)
+    for use_uniform_binning in [True, False]:
+        corr = multibinning(flow="error", uniform=use_uniform_binning)
+        with pytest.raises(RuntimeError):
+            corr.evaluate(0.0, 5.0)
+        with pytest.raises(RuntimeError):
+            corr.evaluate(-1.0, 5.0)
+        assert corr.evaluate(0.0, 10.0) == 0.0
+        assert corr.evaluate(0.0, 20.0) == 1.0
+        assert corr.evaluate(0.0, 30.0) == 2.0
+        with pytest.raises(RuntimeError):
+            corr.evaluate(0.0, 40.0)
+        assert corr.evaluate(1.0, 10.0) == 0.0 if use_uniform_binning else 3.0
+        assert corr.evaluate(1.0, 20.0) == 1.0 if use_uniform_binning else 4.0
+        assert corr.evaluate(1.0, 30.0) == 2.0 if use_uniform_binning else 5.0
+        with pytest.raises(RuntimeError):
+            corr.evaluate(2.0, 5.0)
 
-    corr = multibinning(flow="clamp")
-    assert corr.evaluate(-1.0, 5.0) == 0.0
-    assert corr.evaluate(-1.0, 25.0) == 1.0
-    assert corr.evaluate(-1.0, 35.0) == 2.0
-    assert corr.evaluate(-1.0, 45.0) == 2.0
-    assert corr.evaluate(0.0, 45.0) == 2.0
-    assert corr.evaluate(2.0, 45.0) == 5.0
-    assert corr.evaluate(3.0, 45.0) == 5.0
-    assert corr.evaluate(3.0, 35.0) == 5.0
-    assert corr.evaluate(3.0, 25.0) == 4.0
-    assert corr.evaluate(3.0, 15.0) == 3.0
-    assert corr.evaluate(3.0, 5.0) == 3.0
-    assert corr.evaluate(0.0, 5.0) == 0.0
+        corr = multibinning(flow="clamp", uniform=use_uniform_binning)
+        assert corr.evaluate(-1.0, 5.0) == 0.0
+        assert corr.evaluate(-1.0, 25.0) == 1.0
+        assert corr.evaluate(-1.0, 35.0) == 2.0
+        assert corr.evaluate(-1.0, 45.0) == 2.0
+        assert corr.evaluate(0.0, 45.0) == 2.0
+        assert corr.evaluate(2.0, 45.0) == 5.0
+        assert corr.evaluate(3.0, 45.0) == 5.0
+        assert corr.evaluate(3.0, 35.0) == 5.0
+        assert corr.evaluate(3.0, 25.0) == 4.0
+        assert corr.evaluate(3.0, 15.0) == 3.0
+        assert corr.evaluate(3.0, 5.0) == 3.0
+        assert corr.evaluate(0.0, 5.0) == 0.0
 
-    corr = multibinning(flow=42.0)
-    assert corr.evaluate(-1.0, 5.0) == 42.0
-    assert corr.evaluate(2.0, 45.0) == 42.0
-    assert corr.evaluate(3.0, 5.0) == 42.0
+        corr = multibinning(flow=42.0, uniform=use_uniform_binning)
+        assert corr.evaluate(-1.0, 5.0) == 42.0
+        assert corr.evaluate(2.0, 45.0) == 42.0
+        assert corr.evaluate(3.0, 5.0) == 42.0
 
-    corr = multibinning(
-        flow=schema.Formula(
-            nodetype="formula",
-            expression="2.*x + 5.*y",
-            parser="TFormula",
-            variables=["x", "y"],
+        corr = multibinning(
+            flow=schema.Formula(
+                nodetype="formula",
+                expression="2.*x + 5.*y",
+                parser="TFormula",
+                variables=["x", "y"],
+            ),
+            uniform=use_uniform_binning,
         )
-    )
-    assert corr.evaluate(-1.0, 5.0) == 2.0 * -1 + 5.0 * 5.0
-    assert corr.evaluate(0.0, 10.0) == 0.0
+        assert corr.evaluate(-1.0, 5.0) == 2.0 * -1 + 5.0 * 5.0
+        assert corr.evaluate(0.0, 10.0) == 0.0
 
 
 def test_formularef():
