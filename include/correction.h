@@ -175,6 +175,12 @@ class Binning {
     _FlowBehavior flow_;
 };
 
+struct _MultiBinningAxis {
+  size_t variableIdx;
+  size_t stride;
+  std::variant<_UniformBins, _NonUniformBins> bins;
+};
+
 class MultiBinning {
   public:
     MultiBinning(const JSONObject& json, const Correction& context);
@@ -182,8 +188,9 @@ class MultiBinning {
     const Content& child(const std::vector<Variable::Type>& values) const;
 
   private:
-    // variableIdx, stride, edges
-    std::vector<std::tuple<size_t, size_t, std::vector<double>>> axes_;
+    size_t nbins(size_t dimension) const;
+
+    std::vector<_MultiBinningAxis> axes_;
     std::vector<Content> content_;
     _FlowBehavior flow_;
 };

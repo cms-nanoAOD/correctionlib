@@ -427,30 +427,47 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
 
 MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
 {
-  const auto& edges = json.getRequired<rapidjson::Value::ConstArray>("edges");
   const auto& inputs = json.getRequired<rapidjson::Value::ConstArray>("inputs");
+
+  const auto& edges = json.getRequired<rapidjson::Value::ConstArray>("edges");
   axes_.reserve(edges.Size());
   size_t idx {0};
   for (const auto& dimension : edges) {
-    if ( ! dimension.IsArray() ) { throw std::runtime_error("Invalid MultiBinning edges array"); }
-    std::vector<double> dim_edges;
-    dim_edges.reserve(dimension.GetArray().Size());
-    for (const auto& item : dimension.GetArray()) {
-      double val = item.GetDouble();
-      if ( dim_edges.size() > 0 && dim_edges.back() >= val ) { throw std::runtime_error("binning edges are not monotone increasing"); }
-      dim_edges.push_back(val);
-    }
     const auto& input = inputs[idx];
-    if ( ! input.IsString() ) { throw std::runtime_error("invalid multibinning input type"); }
-    axes_.push_back({context.input_index(input.GetString()), 0, std::move(dim_edges)});
-    idx++;
+    if ( dimension.IsArray() ) { // non-uniform binning
+      std::vector<double> dim_edges;
+      dim_edges.reserve(dimension.GetArray().Size());
+      for (const auto& item : dimension.GetArray()) {
+        double val = item.GetDouble();
+        if ( dim_edges.size() > 0 && dim_edges.back() >= val ) { throw std::runtime_error("binning edges are not monotone increasing"); }
+        dim_edges.push_back(val);
+      }
+      if ( ! input.IsString() ) { throw std::runtime_error("invalid multibinning input type"); }
+      axes_.push_back({context.input_index(input.GetString()), 0, _NonUniformBins(std::move(dim_edges))});
+    } else if ( dimension.IsObject() ) { // UniformBinning
+      const JSONObject uniformBins{dimension.GetObject()};
+      const auto n = uniformBins.getRequired<uint64_t>("n");
+      if ( n == 0 ) {
+        auto msg = "Error when processing MultiBinning: number of bins for dimension " + std::to_string(idx) + " is zero";
+        throw std::runtime_error(std::move(msg));
+      }
+      const auto low = uniformBins.getRequired<double>("low");
+      const auto high = uniformBins.getRequired<double>("high");
+      axes_.push_back({context.input_index(input.GetString()), 0, _UniformBins{n, low, high}});
+    } else {
+      auto msg = "Error when processing MultiBinning: edges for dimension " + std::to_string(idx) + " are neither an array nor a UniformBinning object";
+      throw std::runtime_error (std::move(msg));
+    }
+    ++idx;
   }
 
   const auto& content = json.getRequired<rapidjson::Value::ConstArray>("content");
   size_t stride {1};
+  --idx; // now corresponds to the last dimension
   for (auto it=axes_.rbegin(); it != axes_.rend(); ++it) {
-    std::get<1>(*it) = stride;
-    stride *= std::get<2>(*it).size() - 1;
+    it->stride = stride;
+    stride *= nbins(idx);
+    --idx;
   }
   content_.reserve(content.Size() + 1); // + 1 for default value
   for (const auto& item : content) {
@@ -474,37 +491,73 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
   }
 }
 
+// TODO factor out logic in common with Binning::child.
+// One notable difference is that MultiBinning stores the default value at the end of content_ instead of the beginning.
 const Content& MultiBinning::child(const std::vector<Variable::Type>& values) const {
   size_t idx {0};
-  for (const auto& [variableIdx, stride, edges] : axes_) {
+  size_t localidx {0};
+
+  for (const auto& [variableIdx, stride, edgesVariant] : axes_) {
     double value = std::get<double>(values[variableIdx]);
-    auto it = std::upper_bound(std::begin(edges), std::end(edges), value);
-    if ( it == std::begin(edges) ) {
-      if ( flow_ == _FlowBehavior::value ) {
-        return *content_.rbegin();
+
+    if ( auto *bins = std::get_if<_UniformBins>(&edgesVariant) ) { // uniform bins
+      std::size_t binIdx = bins->n * ((value - bins->low) / (bins->high - bins->low));
+      if (value < bins->low || value >= bins->high) {
+        switch (flow_) {
+          case _FlowBehavior::value:
+              return content_.back(); // the default value
+          case _FlowBehavior::clamp:
+            binIdx = value < bins->low ? 0 : bins->n - 1; // assuming we always have at least 1 bin
+            break;
+          case _FlowBehavior::error:
+            const std::string belowOrAbove = value < bins->low ? "below" : "above";
+            const auto msg = "Index " + belowOrAbove + " bounds in MultiBinning for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value);
+            throw std::runtime_error(std::move(msg));
+        }
       }
-      else if ( flow_ == _FlowBehavior::error ) {
-        throw std::runtime_error("Index below bounds in MultiBinning for input argument " + std::to_string(variableIdx) + " val: " + std::to_string(value));
+      localidx = binIdx;
+    } else { // non-uniform bins
+      const auto edges = std::get<_NonUniformBins>(edgesVariant);
+      auto it = std::upper_bound(std::begin(edges), std::end(edges), value);
+      if ( it == std::begin(edges) ) {
+        if ( flow_ == _FlowBehavior::value ) {
+          return *content_.rbegin();
+        }
+        else if ( flow_ == _FlowBehavior::error ) {
+          throw std::runtime_error("Index below bounds in MultiBinning for input argument " + std::to_string(variableIdx) + " val: " + std::to_string(value));
+        }
+        else { // clamp
+          it++;
+        }
       }
-      else { // clamp
-        it++;
+      else if ( it == std::end(edges) ) {
+        if ( flow_ == _FlowBehavior::value ) {
+          return content_.back();
+        }
+        else if ( flow_ == _FlowBehavior::error ) {
+          throw std::runtime_error("Index above bounds in MultiBinning input argument" + std::to_string(variableIdx) + " val: " + std::to_string(value));
+        }
+        else { // clamp
+          it--;
+        }
       }
+      localidx = std::distance(std::begin(edges), it) - 1;
     }
-    else if ( it == std::end(edges) ) {
-      if ( flow_ == _FlowBehavior::value ) {
-        return *content_.rbegin();
-      }
-      else if ( flow_ == _FlowBehavior::error ) {
-        throw std::runtime_error("Index above bounds in MultiBinning input argument" + std::to_string(variableIdx) + " val: " + std::to_string(value));
-      }
-      else { // clamp
-        it--;
-      }
-    }
-    size_t localidx = std::distance(std::begin(edges), it) - 1;
+
     idx += localidx * stride;
   }
+
   return content_.at(idx);
+}
+
+size_t MultiBinning::nbins(size_t dimension) const
+{
+  if ( const auto *bins = std::get_if<_UniformBins>(&axes_[dimension].bins) )
+    return bins->n; // using uniform bins
+
+  // otherwise we must have non-uniform bins
+  const auto &bins = std::get<_NonUniformBins>(axes_[dimension].bins);
+  return bins.size() - 1;
 }
 
 Category::Category(const JSONObject& json, const Correction& context)

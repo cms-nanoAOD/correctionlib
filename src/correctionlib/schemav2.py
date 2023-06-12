@@ -238,7 +238,9 @@ class MultiBinning(Model):
         description="The names of the correction input variables this binning applies to",
         min_items=1,
     )
-    edges: List[List[float]] = Field(description="Bin edges for each input")
+    edges: List[Union[List[float], UniformBinning]] = Field(
+        description="Bin edges for each input"
+    )
     content: List[Content] = Field(
         description="""Bin contents as a flattened array
         This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
@@ -250,25 +252,31 @@ class MultiBinning(Model):
     )
 
     @validator("edges")
-    def validate_edges(cls, edges: List[List[float]], values: Any) -> List[List[float]]:
+    def validate_edges(
+        cls, edges: List[Union[List[float], UniformBinning]], values: Any
+    ) -> List[Union[List[float], UniformBinning]]:
         for i, dim in enumerate(edges):
-            for lo, hi in zip(dim[:-1], dim[1:]):
-                if hi <= lo:
-                    raise ValueError(
-                        f"MultiBinning edges for axis {i} are not monotone increasing: {dim}"
-                    )
+            if isinstance(dim, list):
+                for lo, hi in zip(dim[:-1], dim[1:]):
+                    if hi <= lo:
+                        raise ValueError(
+                            f"MultiBinning edges for axis {i} are not monotone increasing: {dim}"
+                        )
         return edges
 
     @validator("content")
     def validate_content(cls, content: List[Content], values: Any) -> List[Content]:
-        if "edges" in values:
-            nbins = 1
-            for dim in values["edges"]:
+        assert "edges" in values
+        nbins = 1
+        for dim in values["edges"]:
+            if isinstance(dim, list):
                 nbins *= len(dim) - 1
-            if nbins != len(content):
-                raise ValueError(
-                    f"MultiBinning content length ({len(content)}) does not match the product of dimension sizes ({nbins})"
-                )
+            else:
+                nbins *= dim.n
+        if nbins != len(content):
+            raise ValueError(
+                f"MultiBinning content length ({len(content)}) does not match the product of dimension sizes ({nbins})"
+            )
         return content
 
     def summarize(
@@ -276,9 +284,11 @@ class MultiBinning(Model):
     ) -> None:
         nodecount["MultiBinning"] += 1
         for input, edges in zip(self.inputs, self.edges):
+            low = edges[0] if isinstance(edges, list) else edges.low
+            high = edges[-1] if isinstance(edges, list) else edges.high
             inputstats[input].overflow &= self.flow != "error"
-            inputstats[input].min = min(inputstats[input].min, edges[0])
-            inputstats[input].max = max(inputstats[input].max, edges[-1])
+            inputstats[input].min = min(inputstats[input].min, low)
+            inputstats[input].max = max(inputstats[input].max, high)
         for item in self.content:
             if not isinstance(item, float):
                 item.summarize(nodecount, inputstats)
