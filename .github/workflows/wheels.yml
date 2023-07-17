@@ -35,7 +35,7 @@ jobs:
       with:
         submodules: recursive
 
-    - uses: pypa/cibuildwheel@v2.10.0
+    - uses: pypa/cibuildwheel@v2.14.1
       env:
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
