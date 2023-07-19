@@ -150,6 +150,29 @@ class HashPRNG(Model):
         nodecount["HashPRNG"] += 1
 
 
+class UniformBinning(Model):
+    """Uniform binning description, to be used as the `edges` attribute of Binning or MultiBinning."""
+
+    n: int = Field(description="Number of bins")
+    low: float = Field(description="Lower edge of first bin")
+    high: float = Field(description="Higher edge of last bin")
+
+    @validator("n")
+    def validate_n(cls, n: int) -> int:
+        if n <= 0:  # downstream C++ logic assumes there is at least one bin
+            raise ValueError(f"Number of bins must be greater than 0, got {n}")
+        return n
+
+    @validator("high")
+    def validate_edges(cls, high: float, values: Any) -> float:
+        low = values["low"]
+        if low >= high:
+            raise ValueError(
+                f"Higher bin edge must be larger than lower, got {[low, high]}"
+            )
+        return high
+
+
 class Binning(Model):
     """1-dimensional binning in an input variable"""
 
@@ -157,8 +180,8 @@ class Binning(Model):
     input: str = Field(
         description="The name of the correction input variable this binning applies to"
     )
-    edges: List[float] = Field(
-        description="Edges of the binning, where edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
+    edges: Union[List[float], UniformBinning] = Field(
+        description="Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
     )
     content: List[Content]
     flow: Union[Content, Literal["clamp", "error"]] = Field(
@@ -166,20 +189,29 @@ class Binning(Model):
     )
 
     @validator("edges")
-    def validate_edges(cls, edges: List[float], values: Any) -> List[float]:
-        for lo, hi in zip(edges[:-1], edges[1:]):
-            if hi <= lo:
-                raise ValueError(f"Binning edges not monotone increasing: {edges}")
+    def validate_edges(
+        cls, edges: Union[List[float], UniformBinning]
+    ) -> Union[List[float], UniformBinning]:
+        if isinstance(edges, list):
+            for lo, hi in zip(edges[:-1], edges[1:]):
+                if hi <= lo:
+                    raise ValueError(
+                        f"Binning edges not monotonically increasing: {edges}"
+                    )
+
         return edges
 
     @validator("content")
     def validate_content(cls, content: List[Content], values: Any) -> List[Content]:
-        if "edges" in values:
+        assert "edges" in values
+        if isinstance(values["edges"], list):
             nbins = len(values["edges"]) - 1
-            if nbins != len(content):
-                raise ValueError(
-                    f"Binning content length ({len(content)}) is not one less than edges ({nbins + 1})"
-                )
+        else:
+            nbins = values["edges"].n
+        if nbins != len(content):
+            raise ValueError(
+                f"Binning content length ({len(content)}) is not one less than edges ({nbins + 1})"
+            )
         return content
 
     def summarize(
@@ -187,8 +219,10 @@ class Binning(Model):
     ) -> None:
         nodecount["Binning"] += 1
         inputstats[self.input].overflow &= self.flow != "error"
-        inputstats[self.input].min = min(inputstats[self.input].min, self.edges[0])
-        inputstats[self.input].max = max(inputstats[self.input].max, self.edges[-1])
+        low = self.edges[0] if isinstance(self.edges, list) else self.edges.low
+        high = self.edges[-1] if isinstance(self.edges, list) else self.edges.high
+        inputstats[self.input].min = min(inputstats[self.input].min, low)
+        inputstats[self.input].max = max(inputstats[self.input].max, high)
         for item in self.content:
             if not isinstance(item, float):
                 item.summarize(nodecount, inputstats)
@@ -204,7 +238,9 @@ class MultiBinning(Model):
         description="The names of the correction input variables this binning applies to",
         min_items=1,
     )
-    edges: List[List[float]] = Field(description="Bin edges for each input")
+    edges: List[Union[List[float], UniformBinning]] = Field(
+        description="Bin edges for each input"
+    )
     content: List[Content] = Field(
         description="""Bin contents as a flattened array
         This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
@@ -216,25 +252,31 @@ class MultiBinning(Model):
     )
 
     @validator("edges")
-    def validate_edges(cls, edges: List[List[float]], values: Any) -> List[List[float]]:
+    def validate_edges(
+        cls, edges: List[Union[List[float], UniformBinning]], values: Any
+    ) -> List[Union[List[float], UniformBinning]]:
         for i, dim in enumerate(edges):
-            for lo, hi in zip(dim[:-1], dim[1:]):
-                if hi <= lo:
-                    raise ValueError(
-                        f"MultiBinning edges for axis {i} are not monotone increasing: {dim}"
-                    )
+            if isinstance(dim, list):
+                for lo, hi in zip(dim[:-1], dim[1:]):
+                    if hi <= lo:
+                        raise ValueError(
+                            f"MultiBinning edges for axis {i} are not monotone increasing: {dim}"
+                        )
         return edges
 
     @validator("content")
     def validate_content(cls, content: List[Content], values: Any) -> List[Content]:
-        if "edges" in values:
-            nbins = 1
-            for dim in values["edges"]:
+        assert "edges" in values
+        nbins = 1
+        for dim in values["edges"]:
+            if isinstance(dim, list):
                 nbins *= len(dim) - 1
-            if nbins != len(content):
-                raise ValueError(
-                    f"MultiBinning content length ({len(content)}) does not match the product of dimension sizes ({nbins})"
-                )
+            else:
+                nbins *= dim.n
+        if nbins != len(content):
+            raise ValueError(
+                f"MultiBinning content length ({len(content)}) does not match the product of dimension sizes ({nbins})"
+            )
         return content
 
     def summarize(
@@ -242,9 +284,11 @@ class MultiBinning(Model):
     ) -> None:
         nodecount["MultiBinning"] += 1
         for input, edges in zip(self.inputs, self.edges):
+            low = edges[0] if isinstance(edges, list) else edges.low
+            high = edges[-1] if isinstance(edges, list) else edges.high
             inputstats[input].overflow &= self.flow != "error"
-            inputstats[input].min = min(inputstats[input].min, edges[0])
-            inputstats[input].max = max(inputstats[input].max, edges[-1])
+            inputstats[input].min = min(inputstats[input].min, low)
+            inputstats[input].max = max(inputstats[input].max, high)
         for item in self.content:
             if not isinstance(item, float):
                 item.summarize(nodecount, inputstats)
