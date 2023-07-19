@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
@@ -9,10 +10,9 @@ from rich.tree import Tree
 
 import correctionlib.highlevel
 
-# py3.8+: no longer necessary
-try:
-    from typing import Literal  # type: ignore
-except ImportError:
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
     from typing_extensions import Literal
 
 
@@ -42,7 +42,8 @@ class Variable(Model):
         description="A string, a 64 bit integer, or a double-precision floating point value"
     )
     description: Optional[str] = Field(
-        description="A nice description of what this variable means"
+        description="A nice description of what this variable means",
+        default=None,
     )
 
     def __rich__(self) -> str:
@@ -74,7 +75,8 @@ class Formula(Model):
         description="The names of the correction input variables this formula applies to"
     )
     parameters: Optional[List[float]] = Field(
-        description="Parameters, if the parser supports them (e.g. [0] for TFormula)"
+        description="Parameters, if the parser supports them (e.g. [0] for TFormula)",
+        default=None,
     )
 
     def summarize(
@@ -314,7 +316,7 @@ class Category(Model):
         description="The name of the correction input variable this category node applies to"
     )
     content: List[CategoryItem]
-    default: Optional[Content]
+    default: Optional[Content] = None
 
     @validator("content")
     def validate_content(cls, content: List[CategoryItem]) -> List[CategoryItem]:
@@ -353,7 +355,8 @@ Category.update_forward_refs()
 class Correction(Model):
     name: str
     description: Optional[str] = Field(
-        description="Detailed description of the correction"
+        description="Detailed description of the correction",
+        default=None,
     )
     version: int = Field(
         description="Some value that may increase over time due to bugfixes"
@@ -369,7 +372,8 @@ class Correction(Model):
         the expression and inputs can be declared once with a generic formula, deferring the parameter
         declaration to the more lightweight FormulaRef nodes. This can speed up both loading and evaluation
         of the correction object
-        """
+        """,
+        default=None,
     )
     data: Content = Field(description="The root content node")
 
@@ -434,7 +438,7 @@ class Correction(Model):
 
     def to_evaluator(self) -> correctionlib.highlevel.Correction:
         # TODO: consider refactoring highlevel.Correction to be independent
-        cset = CorrectionSet(schema_version=VERSION, corrections=[self])
+        cset = CorrectionSet(schema_version=2, corrections=[self])
         return correctionlib.highlevel.CorrectionSet(cset)[self.name]
 
 
@@ -451,7 +455,8 @@ class CompoundCorrection(Model):
 
     name: str
     description: Optional[str] = Field(
-        description="Detailed description of the correction stack"
+        description="Detailed description of the correction stack",
+        default=None,
     )
     inputs: List[Variable] = Field(
         description="The function signature of the correction"
@@ -499,12 +504,13 @@ class CompoundCorrection(Model):
 
 
 class CorrectionSet(Model):
-    schema_version: Literal[VERSION] = Field(description="The overall schema version")
+    schema_version: Literal[2] = Field(description="The overall schema version")
     description: Optional[str] = Field(
-        description="A nice description of what is in this CorrectionSet means"
+        description="A nice description of what is in this CorrectionSet means",
+        default=None,
     )
     corrections: List[Correction]
-    compound_corrections: Optional[List[CompoundCorrection]]
+    compound_corrections: Optional[List[CompoundCorrection]] = None
 
     @validator("corrections")
     def validate_corrections(cls, items: List[Correction]) -> List[Correction]:

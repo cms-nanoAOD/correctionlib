@@ -37,8 +37,8 @@ repos:
     additional_dependencies: [flake8-bugbear, flake8-print]
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v0.931
+  rev: v1.4.1
   hooks:
   - id: mypy
     files: src
-    additional_dependencies: [uhi, pydantic, numpy, types-setuptools]
+    additional_dependencies: [uhi, pydantic==1.10.9, numpy, types-setuptools]

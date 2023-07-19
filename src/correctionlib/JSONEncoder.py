@@ -69,7 +69,7 @@ class JSONEncoder(json.JSONEncoder):
                 isinstance(x, (int, float, str)) for x in obj
             ):  # list of primitives only
                 strlen = sum(len(s) for s in obj if isinstance(s, str))
-                indent_str = " " * (self._indent + self.indent)
+                indent_str = " " * (self._indent + self.indent)  # type: ignore
                 if strlen > self.maxstrlen and any(
                     len(s) > 3 for s in obj if isinstance(s, str)
                 ):
@@ -121,18 +121,18 @@ class JSONEncoder(json.JSONEncoder):
                     else:  # do not break first line
                         retval = (
                             "["
-                            + " " * (self.indent - 1)
+                            + " " * (self.indent - 1)  # type: ignore
                             + lines
                             + "\n"
                             + " " * self._indent
                             + "]"
                         )
             else:  # list of lists, tuples, dictionaries
-                self._indent += self.indent
+                self._indent += self.indent  # type: ignore
                 indent_str = " " * self._indent
                 for item in obj:
                     output.append(indent_str + self.encode(item))
-                self._indent -= self.indent
+                self._indent -= self.indent  # type: ignore
                 indent_str = " " * self._indent
                 retval = "[\n" + ",\n".join(output) + "\n" + indent_str + "]"
         elif isinstance(obj, dict):  # dictionaries
@@ -149,7 +149,7 @@ class JSONEncoder(json.JSONEncoder):
                     + " }"
                 )
             else:  # break long dict into multiple line
-                self._indent += self.indent
+                self._indent += self.indent  # type: ignore
                 indent_str = " " * self._indent
                 first = (
                     grandparent not in (type(None), dict) and not self.breakbrackets
@@ -159,12 +159,12 @@ class JSONEncoder(json.JSONEncoder):
                     if (
                         first and "\n" not in valstr
                     ):  # no break between opening brace and first key
-                        row = " " * (self.indent - 1) + json.dumps(key) + ": " + valstr
+                        row = " " * (self.indent - 1) + json.dumps(key) + ": " + valstr  # type: ignore
                     else:  # break before key
                         row = "\n" + indent_str + json.dumps(key) + ": " + valstr
                     output.append(row)
                     first = False
-                self._indent -= self.indent
+                self._indent -= self.indent  # type: ignore
                 indent_str = " " * self._indent
                 retval = "{" + ",".join(output) + "\n" + indent_str + "}"
         else:  # use default formatting
