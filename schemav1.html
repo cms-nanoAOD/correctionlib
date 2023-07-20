@@ -51,12 +51,12 @@
 <li class="toctree-l1"><a class="reference internal" href="highlevel.html">correctionlib.highlevel</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Schema v1</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#correctionset">CorrectionSet</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#binning">Binning</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#category">Category</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#correction">Correction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#formula">Formula</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#multibinning">MultiBinning</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#variable">Variable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#formula">Formula</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#category">Category</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multibinning">MultiBinning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#binning">Binning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#correction">Correction</a></li>
 </ul>
 </li>
 </ul>
@@ -103,232 +103,76 @@
 </tr>
 <tr class="row-even"><td colspan="3"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="2"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>schema_version</strong></p></li>
 </ul>
 </td>
 <td colspan="2"><p><em>Schema Version</em></p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
+<tr class="row-even"><td><p>type</p></td>
+<td><p><em>integer</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>enum</p></td>
 <td><p>1</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<tr class="row-even"><td rowspan="3"><ul class="simple">
 <li><p><strong>corrections</strong></p></li>
 </ul>
 </td>
 <td colspan="2"><p><em>Corrections</em></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>items</p></td>
+<tr class="row-even"><td><p>items</p></td>
 <td><p><a class="reference internal" href="#correction">Correction</a></p></td>
 </tr>
-<tr class="row-even"><td><p>additionalProperties</p></td>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
 <td colspan="2"><p>False</p></td>
 </tr>
 </tbody>
 </table>
-<section id="binning">
-<span id="binning"></span><h3>Binning<a class="headerlink" href="#binning" title="Permalink to this heading"></a></h3>
+<section id="variable">
+<span id="variable"></span><h3>Variable<a class="headerlink" href="#variable" title="Permalink to this heading"></a></h3>
 <table class="docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p>type</p></td>
-<td colspan="4"><p><em>object</em></p></td>
+<td colspan="2"><p><em>object</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="5"><p>properties</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="2"><ul class="simple">
-<li><p><strong>nodetype</strong></p></li>
-</ul>
-</td>
-<td colspan="4"><p><em>Nodetype</em></p></td>
-</tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="3"><p>binning</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="3"><ul class="simple">
-<li><p><strong>edges</strong></p></li>
-</ul>
-</td>
-<td colspan="4"><p><em>Edges</em></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td colspan="3"><p><em>array</em></p></td>
-</tr>
-<tr class="row-odd"><td><p>items</p></td>
-<td><p>type</p></td>
-<td colspan="2"><p><em>number</em></p></td>
-</tr>
-<tr class="row-even"><td rowspan="7"><ul class="simple">
-<li><p><strong>content</strong></p></li>
-</ul>
-</td>
-<td colspan="4"><p><em>Content</em></p></td>
-</tr>
-<tr class="row-odd"><td><p>type</p></td>
-<td colspan="3"><p><em>array</em></p></td>
-</tr>
-<tr class="row-even"><td rowspan="5"><p>items</p></td>
-<td rowspan="5"><p>anyOf</p></td>
-<td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
-</tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
-</tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
-</tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td><p><em>number</em></p></td>
-</tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
-<td colspan="4"><p>False</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="category">
-<span id="category"></span><h3>Category<a class="headerlink" href="#category" title="Permalink to this heading"></a></h3>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p>type</p></td>
-<td colspan="4"><p><em>object</em></p></td>
-</tr>
-<tr class="row-even"><td colspan="5"><p>properties</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="2"><ul class="simple">
-<li><p><strong>nodetype</strong></p></li>
-</ul>
-</td>
-<td colspan="4"><p><em>Nodetype</em></p></td>
-</tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="3"><p>category</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
-<li><p><strong>keys</strong></p></li>
-</ul>
-</td>
-<td colspan="4"><p><em>Keys</em></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td colspan="3"><p><em>array</em></p></td>
-</tr>
-<tr class="row-odd"><td rowspan="2"><p>items</p></td>
-<td rowspan="2"><p>anyOf</p></td>
-<td><p>type</p></td>
-<td><p><em>string</em></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td><p><em>integer</em></p></td>
-</tr>
-<tr class="row-odd"><td rowspan="7"><ul class="simple">
-<li><p><strong>content</strong></p></li>
-</ul>
-</td>
-<td colspan="4"><p><em>Content</em></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td colspan="3"><p><em>array</em></p></td>
-</tr>
-<tr class="row-odd"><td rowspan="5"><p>items</p></td>
-<td rowspan="5"><p>anyOf</p></td>
-<td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
-</tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
-</tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
-</tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
-</tr>
-<tr class="row-odd"><td><p>type</p></td>
-<td><p><em>number</em></p></td>
-</tr>
-<tr class="row-even"><td><p>additionalProperties</p></td>
-<td colspan="4"><p>False</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="correction">
-<span id="correction"></span><h3>Correction<a class="headerlink" href="#correction" title="Permalink to this heading"></a></h3>
-<table class="docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p>type</p></td>
-<td colspan="3"><p><em>object</em></p></td>
-</tr>
-<tr class="row-even"><td colspan="4"><p>properties</p></td>
+<tr class="row-even"><td colspan="3"><p>properties</p></td>
 </tr>
 <tr class="row-odd"><td rowspan="2"><ul class="simple">
 <li><p><strong>name</strong></p></li>
 </ul>
 </td>
-<td colspan="3"><p><em>Name</em></p></td>
+<td colspan="2"><p><em>Name</em></p></td>
 </tr>
 <tr class="row-even"><td><p>type</p></td>
-<td colspan="2"><p><em>string</em></p></td>
-</tr>
-<tr class="row-odd"><td rowspan="3"><ul class="simple">
-<li><p><strong>description</strong></p></li>
-</ul>
-</td>
-<td colspan="3"><p><em>Description</em></p></td>
-</tr>
-<tr class="row-even"><td rowspan="2"><p>anyOf</p></td>
-<td><p>type</p></td>
 <td><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
-<td><p><em>null</em></p></td>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p><strong>type</strong></p></li>
+</ul>
+</td>
+<td colspan="2"><p><em>Type</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>enum</p></td>
+<td><p>string, int, real</p></td>
 </tr>
 <tr class="row-even"><td rowspan="2"><ul class="simple">
-<li><p><strong>version</strong></p></li>
+<li><p>description</p></li>
 </ul>
 </td>
-<td colspan="3"><p><em>Version</em></p></td>
+<td colspan="2"><p><em>Description</em></p></td>
 </tr>
 <tr class="row-odd"><td><p>type</p></td>
-<td colspan="2"><p><em>integer</em></p></td>
-</tr>
-<tr class="row-even"><td rowspan="3"><ul class="simple">
-<li><p><strong>inputs</strong></p></li>
-</ul>
-</td>
-<td colspan="3"><p><em>Inputs</em></p></td>
-</tr>
-<tr class="row-odd"><td><p>type</p></td>
-<td colspan="2"><p><em>array</em></p></td>
-</tr>
-<tr class="row-even"><td><p>items</p></td>
-<td colspan="2"><p><a class="reference internal" href="#variable">Variable</a></p></td>
-</tr>
-<tr class="row-odd"><td><ul class="simple">
-<li><p><strong>output</strong></p></li>
-</ul>
-</td>
-<td colspan="3"><p><a class="reference internal" href="#variable">Variable</a></p></td>
-</tr>
-<tr class="row-even"><td rowspan="6"><ul class="simple">
-<li><p><strong>data</strong></p></li>
-</ul>
-</td>
-<td colspan="3"><p><em>Data</em></p></td>
-</tr>
-<tr class="row-odd"><td rowspan="5"><p>anyOf</p></td>
-<td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
-</tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
-</tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
-</tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
-</tr>
-<tr class="row-odd"><td><p>type</p></td>
-<td><p><em>number</em></p></td>
+<td><p><em>string</em></p></td>
 </tr>
 <tr class="row-even"><td><p>additionalProperties</p></td>
-<td colspan="3"><p>False</p></td>
+<td colspan="2"><p>False</p></td>
 </tr>
 </tbody>
 </table>
@@ -382,6 +226,72 @@
 </tbody>
 </table>
 </section>
+<section id="category">
+<span id="category"></span><h3>Category<a class="headerlink" href="#category" title="Permalink to this heading"></a></h3>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="4"><p><em>object</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="5"><p>properties</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p><strong>nodetype</strong></p></li>
+</ul>
+</td>
+<td colspan="4"><p><em>Nodetype</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="3"><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>enum</p></td>
+<td colspan="3"><p>category</p></td>
+</tr>
+<tr class="row-even"><td rowspan="4"><ul class="simple">
+<li><p><strong>keys</strong></p></li>
+</ul>
+</td>
+<td colspan="4"><p><em>Keys</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="3"><p><em>array</em></p></td>
+</tr>
+<tr class="row-even"><td rowspan="2"><p>items</p></td>
+<td rowspan="2"><p>anyOf</p></td>
+<td><p>type</p></td>
+<td><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td><p><em>integer</em></p></td>
+</tr>
+<tr class="row-even"><td rowspan="7"><ul class="simple">
+<li><p><strong>content</strong></p></li>
+</ul>
+</td>
+<td colspan="4"><p><em>Content</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="3"><p><em>array</em></p></td>
+</tr>
+<tr class="row-even"><td rowspan="5"><p>items</p></td>
+<td rowspan="5"><p>anyOf</p></td>
+<td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+</tr>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p><em>number</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
+<td colspan="4"><p>False</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="multibinning">
 <span id="multibinning"></span><h3>MultiBinning<a class="headerlink" href="#multibinning" title="Permalink to this heading"></a></h3>
 <p>N-dimensional rectangular binning</p>
@@ -392,31 +302,96 @@
 </tr>
 <tr class="row-even"><td colspan="5"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="2"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>nodetype</strong></p></li>
 </ul>
 </td>
 <td colspan="4"><p><em>Nodetype</em></p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="3"><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>enum</p></td>
 <td colspan="3"><p>multibinning</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-even"><td rowspan="4"><ul class="simple">
 <li><p><strong>edges</strong></p></li>
 </ul>
 </td>
 <td colspan="4"><p><em>Edges</em></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="3"><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="2"><p>items</p></td>
+<tr class="row-even"><td rowspan="2"><p>items</p></td>
 <td><p>type</p></td>
 <td colspan="2"><p><em>array</em></p></td>
 </tr>
-<tr class="row-even"><td><p>items</p></td>
+<tr class="row-odd"><td><p>items</p></td>
 <td><p>type</p></td>
 <td><p><em>number</em></p></td>
+</tr>
+<tr class="row-even"><td rowspan="7"><ul class="simple">
+<li><p><strong>content</strong></p></li>
+</ul>
+</td>
+<td colspan="4"><p><em>Content</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="3"><p><em>array</em></p></td>
+</tr>
+<tr class="row-even"><td rowspan="5"><p>items</p></td>
+<td rowspan="5"><p>anyOf</p></td>
+<td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+</tr>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p><em>number</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
+<td colspan="4"><p>False</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="binning">
+<span id="binning"></span><h3>Binning<a class="headerlink" href="#binning" title="Permalink to this heading"></a></h3>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="4"><p><em>object</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="5"><p>properties</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p><strong>nodetype</strong></p></li>
+</ul>
+</td>
+<td colspan="4"><p><em>Nodetype</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="3"><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>enum</p></td>
+<td colspan="3"><p>binning</p></td>
+</tr>
+<tr class="row-even"><td rowspan="3"><ul class="simple">
+<li><p><strong>edges</strong></p></li>
+</ul>
+</td>
+<td colspan="4"><p><em>Edges</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="3"><p><em>array</em></p></td>
+</tr>
+<tr class="row-even"><td><p>items</p></td>
+<td><p>type</p></td>
+<td colspan="2"><p><em>number</em></p></td>
 </tr>
 <tr class="row-odd"><td rowspan="7"><ul class="simple">
 <li><p><strong>content</strong></p></li>
@@ -446,8 +421,8 @@
 </tbody>
 </table>
 </section>
-<section id="variable">
-<span id="variable"></span><h3>Variable<a class="headerlink" href="#variable" title="Permalink to this heading"></a></h3>
+<section id="correction">
+<span id="correction"></span><h3>Correction<a class="headerlink" href="#correction" title="Permalink to this heading"></a></h3>
 <table class="docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p>type</p></td>
@@ -464,30 +439,59 @@
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="3"><ul class="simple">
-<li><p><strong>type</strong></p></li>
-</ul>
-</td>
-<td colspan="3"><p><em>Type</em></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td colspan="2"><p><em>string</em></p></td>
-</tr>
-<tr class="row-odd"><td><p>enum</p></td>
-<td colspan="2"><p>string, int, real</p></td>
-</tr>
-<tr class="row-even"><td rowspan="3"><ul class="simple">
-<li><p><strong>description</strong></p></li>
+<tr class="row-odd"><td rowspan="2"><ul class="simple">
+<li><p>description</p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Description</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="2"><p>anyOf</p></td>
-<td><p>type</p></td>
-<td><p><em>string</em></p></td>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="2"><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td rowspan="2"><ul class="simple">
+<li><p><strong>version</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Version</em></p></td>
 </tr>
 <tr class="row-even"><td><p>type</p></td>
-<td><p><em>null</em></p></td>
+<td colspan="2"><p><em>integer</em></p></td>
+</tr>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p><strong>inputs</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Inputs</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="2"><p><em>array</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>items</p></td>
+<td colspan="2"><p><a class="reference internal" href="#variable">Variable</a></p></td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p><strong>output</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><a class="reference internal" href="#variable">Variable</a></p></td>
+</tr>
+<tr class="row-odd"><td rowspan="6"><ul class="simple">
+<li><p><strong>data</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Data</em></p></td>
+</tr>
+<tr class="row-even"><td rowspan="5"><p>anyOf</p></td>
+<td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+</tr>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p><em>number</em></p></td>
 </tr>
 <tr class="row-odd"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
