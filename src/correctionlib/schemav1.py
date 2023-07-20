@@ -1,10 +1,11 @@
+import sys
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-try:
-    from typing import Literal  # type: ignore
-except ImportError:
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
     from typing_extensions import Literal
 
 
@@ -81,7 +82,7 @@ class Correction(Model):
 
 
 class CorrectionSet(Model):
-    schema_version: Literal[VERSION]
+    schema_version: Literal[1]
     "Schema version"
     corrections: List[Correction]
 

@@ -4,7 +4,7 @@ requires = [
     "setuptools>=42",
     "setuptools_scm[toml]>=3.4",
     "pybind11>=2.6.1",
-    "scikit-build",
+    "scikit-build>=0.12",
     "cmake>=3.11.0",
     "make"
 ]
@@ -14,7 +14,7 @@ build-backend = "setuptools.build_meta"
 write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
-skip = ["pp*-*", "cp311-*"]
+skip = ["pp*-*"]
 test-extras = "test"
 test-command = "python -m pytest {package}/tests"
 # update skip when numpy wheels become available
