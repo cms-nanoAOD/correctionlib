@@ -339,7 +339,7 @@ Binning::Binning(const JSONObject& json, const Correction& context)
     bins_ = std::move(bins);
   } else if ( edgesObj.IsObject() ) { // UniformBinning
     const JSONObject uniformBins{edgesObj.GetObject()};
-    const auto n = uniformBins.getRequired<uint64_t>("n");
+    const auto n = uniformBins.getRequired<size_t>("n");
     if ( n == 0 ) {
       throw std::runtime_error("Error when processing Binning with UniformBinning: number of bins is zero");
     }
@@ -446,7 +446,7 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
       axes_.push_back({context.input_index(input.GetString()), 0, _NonUniformBins(std::move(dim_edges))});
     } else if ( dimension.IsObject() ) { // UniformBinning
       const JSONObject uniformBins{dimension.GetObject()};
-      const auto n = uniformBins.getRequired<uint64_t>("n");
+      const auto n = uniformBins.getRequired<size_t>("n");
       if ( n == 0 ) {
         auto msg = "Error when processing MultiBinning: number of bins for dimension " + std::to_string(idx) + " is zero";
         throw std::runtime_error(std::move(msg));
