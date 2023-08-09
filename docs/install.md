@@ -23,6 +23,10 @@ The package version can also be found with the command-line tool:
 correction config --version
 ```
 
+In CMSSW `10_6_30`, there is a dedicated backport of correctionlib, however
+it is only the python 2 version and hence only provides the `correctionlib._core`
+bindings.
+
 For older release cycles the package can be installed in the user area with
 ```bash
 python3 -m pip install --user --no-binary=correctionlib correctionlib
