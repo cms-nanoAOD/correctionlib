@@ -108,6 +108,9 @@ The package version can also be found with the command-line tool:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>correction<span class="w"> </span>config<span class="w"> </span>--version
 </pre></div>
 </div>
+<p>In CMSSW <code class="docutils literal notranslate"><span class="pre">10_6_30</span></code>, there is a dedicated backport of correctionlib, however
+it is only the python 2 version and hence only provides the <code class="docutils literal notranslate"><span class="pre">correctionlib._core</span></code>
+bindings.</p>
 <p>For older release cycles the package can be installed in the user area with</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>--no-binary<span class="o">=</span>correctionlib<span class="w"> </span>correctionlib
 </pre></div>
