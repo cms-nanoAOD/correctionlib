@@ -12,11 +12,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -95,7 +95,7 @@
            <div itemprop="articleBody">
              
   <section id="Correctionlib-tutorial">
-<h1>Correctionlib tutorial<a class="headerlink" href="#Correctionlib-tutorial" title="Permalink to this heading"></a></h1>
+<h1>Correctionlib tutorial<a class="headerlink" href="#Correctionlib-tutorial" title="Link to this heading"></a></h1>
 <p>The purpose of this library is to provide a well-structured JSON data format for a wide variety of ad-hoc correction factors encountered in a typical HEP analysis and a companion evaluation tool suitable for use in C++ and python programs. Here we restrict our definition of correction factors to a class of functions with scalar inputs that produce a scalar output.</p>
 <p>In python, the function signature is:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span> <span class="o">...</span>
@@ -115,7 +115,7 @@
 <li><p>compositions of the above.</p></li>
 </ul>
 <section id="Basic-evaluator-usage">
-<h2>Basic evaluator usage<a class="headerlink" href="#Basic-evaluator-usage" title="Permalink to this heading"></a></h2>
+<h2>Basic evaluator usage<a class="headerlink" href="#Basic-evaluator-usage" title="Link to this heading"></a></h2>
 <p>We can import a previously defined set of correction objects using the</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">correctionlib</span><span class="o">.</span><span class="n">CorrectionSet</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
 </pre></div>
@@ -246,7 +246,7 @@ weight
 </div>
 </section>
 <section id="Creating-new-corrections">
-<h2>Creating new corrections<a class="headerlink" href="#Creating-new-corrections" title="Permalink to this heading"></a></h2>
+<h2>Creating new corrections<a class="headerlink" href="#Creating-new-corrections" title="Link to this heading"></a></h2>
 <p>Alongside the evaluator we just demonstrated, <code class="docutils literal notranslate"><span class="pre">correctionlib</span></code> also contains a complete JSON Schema defining the expected fields and types found in a correction json object. The complete schema (version 2) is defined in the <a class="reference external" href="https://cms-nanoaod.github.io/correctionlib/schemav2.html">documentation</a>. In the package, we use <a class="reference external" href="https://pydantic-docs.helpmanual.io/">pydantic</a> to help us validate the data and build correction objects in an easier way. The basic object is the <code class="docutils literal notranslate"><span class="pre">Correction</span></code> which,
 besides some metadata like a name and version, defines upfront the inputs and output. Below we make our first correction, which will always return <code class="docutils literal notranslate"><span class="pre">1.1</span></code> as the output:</p>
 <div class="nbinput docutils container">
@@ -395,7 +395,7 @@ Node counts: <span style="font-weight: bold">Binning</span>: <span style="color:
 </div>
 </section>
 <section id="Formulas">
-<h2>Formulas<a class="headerlink" href="#Formulas" title="Permalink to this heading"></a></h2>
+<h2>Formulas<a class="headerlink" href="#Formulas" title="Link to this heading"></a></h2>
 <p>Formula support currently includes a mostly-complete subset of the ROOT library TFormula class, and is implemented in a threadsafe standalone manner. The parsing grammar is formally defined and parsed through the use of a header-only PEG parser library. This allows for extremely fast parsing of thousands of formulas encountered sometimes in binned formula (spline) correction types. Below we demonstrate a simple formula for a made-up <span class="math notranslate nohighlight">\(\phi\)</span>-dependent efficiency correction. This also
 demonstrates nesting a content node inside another for the first time, with the outer Category node defining which formula to use depending on the particle charge</p>
 <div class="nbinput docutils container">
@@ -478,7 +478,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 <p>Try evaluating the correction for a neutral particle (<code class="docutils literal notranslate"><span class="pre">charge=0</span></code>) What can we change to the above definition to allow it to return a reasonable value for neutral particles rather than an error?</p>
 </section>
 <section id="Converting-from-histograms">
-<h2>Converting from histograms<a class="headerlink" href="#Converting-from-histograms" title="Permalink to this heading"></a></h2>
+<h2>Converting from histograms<a class="headerlink" href="#Converting-from-histograms" title="Link to this heading"></a></h2>
 <p>Often one wants to convert a histogram into a correction object. Here we show how to do that using histgrams made with the <a class="reference external" href="https://hist.readthedocs.io/en/latest/">hist</a> package, but any histogram that respects the <a class="reference external" href="https://uhi.readthedocs.io/en/latest/plotting.html#plotting">Unified Histogram Interface Plottable</a> protocol (including, for example, ROOT TH1s) should work as well.</p>
 <p>Note: some of the conversion utilities require extra packages installed. The simplest way to ensure you have all dependencies is via the <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">correctionlib[convert]</span></code> extras configuration.</p>
 <p>Here we create some mock data for two slightly different pt and eta spectra (say, from two different generators) and derive a correction to reweight one sample to the other.</p>
@@ -640,7 +640,7 @@ ax.legend(title=&quot;dataset&quot;)
 </div>
 </section>
 <section id="Polynomial-fits">
-<h2>Polynomial fits<a class="headerlink" href="#Polynomial-fits" title="Permalink to this heading"></a></h2>
+<h2>Polynomial fits<a class="headerlink" href="#Polynomial-fits" title="Link to this heading"></a></h2>
 <p>It is apparent from the plot of the 2D correction factor that we do not have sufficient sample statistics to derive a smooth correction. One approach to improve the quality is to fit it to a polynomial. A utility method, <code class="docutils literal notranslate"><span class="pre">correctionlib.convert.ndpolyfit</span></code> allows to fit an arbitrary-dimensional polynomial to a set of data points and return a correction object representing the result.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
@@ -758,7 +758,7 @@ corr_pol = gen2_to_gen1_poly.to_evaluator()
 </div>
 </section>
 <section id="Resolution-models">
-<h2>Resolution models<a class="headerlink" href="#Resolution-models" title="Permalink to this heading"></a></h2>
+<h2>Resolution models<a class="headerlink" href="#Resolution-models" title="Link to this heading"></a></h2>
 <p>In some instances, one might want to smear the value of a variable, e.g. jet energy, to simulate a degradation of resolution with respect to what was expected from simulation. If we can deterministically generate pseudorandom numbers, we can then use them after suitable scaling to correct the jet momentum. To do so in correctionlib, we gather entropy sources such as the kinematics of the jet and event-level quantities, hash them together using the extremely fast
 <a class="reference external" href="https://cyan4973.github.io/xxHash/">xxhash</a> algorithm to generate an integer seed, and use that to initialize a <a class="reference external" href="https://www.pcg-random.org/">PCG64</a> random number generator, which can then be drawn from to build a normal-distributed (or otherwise) value. See <a class="reference external" href="https://github.com/cms-nanoAOD/correctionlib/issues/130">issue #130</a> for further details.</p>
 <div class="nbinput nblast docutils container">
@@ -842,7 +842,7 @@ Text(0.5, 0, &#39;Smeared $p_T$ - Unsmeared $p_T$&#39;)
 </div>
 </section>
 <section id="Chaining-with-CompoundCorrection">
-<h2>Chaining with CompoundCorrection<a class="headerlink" href="#Chaining-with-CompoundCorrection" title="Permalink to this heading"></a></h2>
+<h2>Chaining with CompoundCorrection<a class="headerlink" href="#Chaining-with-CompoundCorrection" title="Link to this heading"></a></h2>
 <p>A CompoundCorrection allows to apply a sequence of corrections in order, refering to other corrections in the same CorrectionSet object. For example, we can merge the smearing and RNG into one:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
@@ -894,7 +894,7 @@ True
 <p>Note the <code class="docutils literal notranslate"><span class="pre">inputs_update</span></code> and <code class="docutils literal notranslate"><span class="pre">input_op</span></code> fields can be used to update inputs as they go through the stack, which is useful for chained corrections such as jet energy corrections.</p>
 </section>
 <section id="Systematics">
-<h2>Systematics<a class="headerlink" href="#Systematics" title="Permalink to this heading"></a></h2>
+<h2>Systematics<a class="headerlink" href="#Systematics" title="Link to this heading"></a></h2>
 <p>There are many ways to encode systematic uncertainties within correctionlib, although no nodes are dedicated to the task. See <a class="reference external" href="https://github.com/cms-nanoAOD/correctionlib/issues/4">issue #4</a> to discuss further the idea of having a dedicated systematic node. The most straightforward option is to use a Category node with string lookup to switch the behavior depending on the active systematic. Below we modify our <code class="docutils literal notranslate"><span class="pre">ptweight</span></code> from before to produce a systematically larger event weight when the
 <code class="docutils literal notranslate"><span class="pre">MuonEffUp</span></code> systematic is specified, while producing the nominal event weight for any other string key, by taking advantage of the <code class="docutils literal notranslate"><span class="pre">default=</span></code> keywoard in the Category node. We also use the <code class="docutils literal notranslate"><span class="pre">flow=</span></code> keyword in the shifted binning to increase the systematic uncertainty for data with muon <span class="math notranslate nohighlight">\(p_T\)</span> larger than 120.</p>
 <div class="nbinput docutils container">
@@ -976,7 +976,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 </div>
 </section>
 <section id="Writing-it-all-out">
-<h2>Writing it all out<a class="headerlink" href="#Writing-it-all-out" title="Permalink to this heading"></a></h2>
+<h2>Writing it all out<a class="headerlink" href="#Writing-it-all-out" title="Link to this heading"></a></h2>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
@@ -1003,7 +1003,7 @@ with gzip.open(&quot;mycorrections.json.gz&quot;, &quot;wt&quot;) as fout:
 </div>
 </section>
 <section id="Command-line-utility">
-<h2>Command-line utility<a class="headerlink" href="#Command-line-utility" title="Permalink to this heading"></a></h2>
+<h2>Command-line utility<a class="headerlink" href="#Command-line-utility" title="Link to this heading"></a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">correction</span></code> utility, bundled with the library, provides useful tools for viewing, combining, and validating correction json sets. It also can provide the necessary compile flags for C++ programs to use correctionlib:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
