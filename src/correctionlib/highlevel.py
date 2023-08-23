@@ -59,7 +59,11 @@ def _call_as_numpy(
     import awkward
 
     if version.parse(awkward.__version__) < _version_two:
-        raise RuntimeError(f"imported awkward is version {awkward.__version__} < 2.0.0")
+        raise RuntimeError(
+            f"""imported awkward is version {awkward.__version__} < 2.0.0
+            If you cannot upgrade, try doing: ak.flatten(arrays) -> result = correction(arrays) -> ak.unflatten(result, counts)
+            """
+        )
 
     if not isinstance(array_args, (list, tuple)):
         array_args = (array_args,)
