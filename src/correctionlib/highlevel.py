@@ -3,6 +3,7 @@
 """
 import json
 from numbers import Integral
+from packaging import version
 from typing import Any, Callable, Dict, Iterator, List, Mapping, Union
 
 import numpy
@@ -10,6 +11,7 @@ import numpy
 import correctionlib._core
 import correctionlib.version
 
+_version_two = version.parse('2')
 
 def open_auto(filename: str) -> str:
     """Open a file and return its contents"""
@@ -54,6 +56,9 @@ def _call_as_numpy(
     **kwargs: Any,
 ) -> Any:
     import awkward
+
+    if version.parse(awkward.__version__) < _version_two:
+        raise RuntimeError(f"imported awkward is version {awkward.__version__} < 2.0.0")
 
     if not isinstance(array_args, (list, tuple)):
         array_args = (array_args,)
@@ -162,7 +167,7 @@ class Correction:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
-        if any("'awkward." in str(type(arg)) for arg in args):
+        if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
             return _wrap_awkward(self._base.evalv, *args)  # type: ignore
 
         vargs = [
