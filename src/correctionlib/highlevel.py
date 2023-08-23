@@ -3,15 +3,16 @@
 """
 import json
 from numbers import Integral
-from packaging import version
 from typing import Any, Callable, Dict, Iterator, List, Mapping, Union
 
 import numpy
+from packaging import version
 
 import correctionlib._core
 import correctionlib.version
 
-_version_two = version.parse('2')
+_version_two = version.parse("2")
+
 
 def open_auto(filename: str) -> str:
     """Open a file and return its contents"""
@@ -63,7 +64,9 @@ def _call_as_numpy(
     if not isinstance(array_args, (list, tuple)):
         array_args = (array_args,)
 
-    if all(x.is_numpy() or not isinstance(x, awkward.contents.Content) for x in array_args):
+    if all(
+        x.is_numpy() or not isinstance(x, awkward.contents.Content) for x in array_args
+    ):
         vargs = [
             awkward.to_numpy(awkward.typetracer.empty_if_typetracer(arg))
             for arg in array_args
