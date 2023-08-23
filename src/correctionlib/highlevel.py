@@ -58,11 +58,7 @@ def _call_as_numpy(
     if not isinstance(array_args, (list, tuple)):
         array_args = (array_args,)
 
-    if all(
-        isinstance(x, (awkward.contents.NumpyArray, awkward.contents.EmptyArray))
-        or not isinstance(x, (awkward.contents.Content))
-        for x in array_args
-    ):
+    if all(x.is_numpy() for x in array_args):
         vargs = [
             awkward.to_numpy(awkward.typetracer.empty_if_typetracer(arg))
             for arg in array_args
