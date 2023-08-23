@@ -170,12 +170,18 @@ class Correction:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
-        if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
-            return _wrap_awkward(self._base.evalv, *args)  # type: ignore
+        try:
+            vargs = [
+                numpy.asarray(arg)
+                for arg in args
+                if not isinstance(arg, (str, int, float))
+            ]
+        except ValueError:
+            if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
+                return _wrap_awkward(self._base.evalv, *args)  # type: ignore
+        except Exception as err:
+            raise err
 
-        vargs = [
-            numpy.asarray(arg) for arg in args if not isinstance(arg, (str, int, float))
-        ]
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
             oshape = bargs[0].shape
