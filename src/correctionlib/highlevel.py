@@ -180,7 +180,7 @@ class Correction:
                 for arg in args
                 if not isinstance(arg, (str, int, float))
             ]
-        except ValueError:
+        except (ValueError, TypeError):
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
         except Exception as err:

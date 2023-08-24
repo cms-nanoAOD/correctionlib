@@ -65,7 +65,7 @@ def test_highlevel():
     )
 
 
-def test_highevel_dask():
+def test_highlevel_dask():
     cset = correctionlib.CorrectionSet(
         model.CorrectionSet(
             schema_version=model.VERSION,
