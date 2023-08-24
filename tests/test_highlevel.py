@@ -63,3 +63,40 @@ def test_highlevel():
         ),
         numpy.full(6, 1.234),
     )
+
+
+def test_highevel_dask():
+    cset = correctionlib.CorrectionSet(
+        model.CorrectionSet(
+            schema_version=model.VERSION,
+            corrections=[
+                model.Correction(
+                    name="test corr",
+                    version=2,
+                    inputs=[
+                        model.Variable(name="a", type="real"),
+                        model.Variable(name="b", type="real"),
+                    ],
+                    output=model.Variable(name="a scale", type="real"),
+                    data=1.234,
+                )
+            ],
+        )
+    )
+    sf = cset["test corr"]
+
+    dask_awkward = pytest.importorskip("dask_awkward")
+
+    x = awkward.unflatten(numpy.ones(6), [3, 2, 1])
+    dx = dask_awkward.from_awkward(x, 3)
+
+    evaluate = dask_awkward.map_partitions(
+        sf.evaluate,
+        dx,
+        1.0,
+    )
+
+    numpy.testing.assert_array_equal(
+        awkward.flatten(evaluate).compute(),
+        numpy.full(6, 1.234),
+    )
