@@ -1,5 +1,6 @@
 import pickle
 
+import awkward
 import numpy
 import pytest
 
@@ -45,3 +46,57 @@ def test_highlevel():
 
     sf2 = pickle.loads(pickle.dumps(sf))
     assert sf2.evaluate(1.0, 1.0) == 1.234
+
+    numpy.testing.assert_array_equal(
+        awkward.flatten(sf.evaluate(awkward.unflatten(numpy.ones(6), [3, 2, 1]), 1.0)),
+        numpy.full(6, 1.234),
+    )
+    numpy.testing.assert_array_equal(
+        awkward.flatten(
+            sf.evaluate(awkward.unflatten(numpy.ones(6), [3, 2, 1]), numpy.ones(1))
+        ),
+        numpy.full(6, 1.234),
+    )
+    numpy.testing.assert_array_equal(
+        awkward.flatten(
+            sf.evaluate(awkward.unflatten(numpy.ones(6), [3, 2, 1]), numpy.ones(3))
+        ),
+        numpy.full(6, 1.234),
+    )
+
+
+def test_highlevel_dask():
+    cset = correctionlib.CorrectionSet(
+        model.CorrectionSet(
+            schema_version=model.VERSION,
+            corrections=[
+                model.Correction(
+                    name="test corr",
+                    version=2,
+                    inputs=[
+                        model.Variable(name="a", type="real"),
+                        model.Variable(name="b", type="real"),
+                    ],
+                    output=model.Variable(name="a scale", type="real"),
+                    data=1.234,
+                )
+            ],
+        )
+    )
+    sf = cset["test corr"]
+
+    dask_awkward = pytest.importorskip("dask_awkward")
+
+    x = awkward.unflatten(numpy.ones(6), [3, 2, 1])
+    dx = dask_awkward.from_awkward(x, 3)
+
+    evaluate = dask_awkward.map_partitions(
+        sf.evaluate,
+        dx,
+        1.0,
+    )
+
+    numpy.testing.assert_array_equal(
+        awkward.flatten(evaluate).compute(),
+        numpy.full(6, 1.234),
+    )
