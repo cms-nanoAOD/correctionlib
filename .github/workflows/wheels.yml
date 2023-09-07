@@ -18,6 +18,7 @@ jobs:
       with:
         submodules: recursive
         fetch-tags: true
+        fetch-depth: 0
 
     - name: Build SDist
       run: pipx run build --sdist
@@ -39,6 +40,7 @@ jobs:
       with:
         submodules: recursive
         fetch-tags: true
+        fetch-depth: 0
 
     - uses: pypa/cibuildwheel@v2.14.1
       env:
