@@ -72,7 +72,7 @@ def _call_as_numpy(
         x.is_numpy or not isinstance(x, awkward.contents.Content) for x in array_args
     ):
         vargs = [
-            awkward.to_numpy(awkward.typetracer.empty_if_typetracer(arg))
+            awkward.to_numpy(awkward.typetracer.length_zero_if_typetracer(arg))
             for arg in array_args
         ]
         bargs = numpy.broadcast_arrays(*vargs)
