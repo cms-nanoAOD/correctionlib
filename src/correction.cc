@@ -368,9 +368,9 @@ Binning::Binning(const JSONObject& json, const Correction& context)
   }
 
   // set bin contents
-  contents_.push_back(std::move(default_value));
   for (size_t i=0; i < content.Size(); ++i)
     contents_.push_back(resolve_content(content[i], context));
+  contents_.push_back(std::move(default_value));
 }
 
 const Content& Binning::child(const std::vector<Variable::Type>& values) const {
@@ -381,7 +381,7 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
     if (value < bins->low || value >= bins->high) {
       switch (flow_) {
         case _FlowBehavior::value:
-            return contents_[0u]; // the default value
+            return contents_.back(); // the default value
         case _FlowBehavior::clamp:
           binIdx = value < bins->low ? 0 : bins->n - 1; // assuming we always have at least 1 bin
           break;
@@ -392,16 +392,16 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
       }
     }
 
-    return contents_[binIdx + 1u]; // skipping the default value at index 0
+    return contents_[binIdx];
   }
 
   // otherwise we have non-uniform binning
   const auto bins = std::get<_NonUniformBins>(bins_);
 
   auto it = std::upper_bound(std::begin(bins), std::end(bins), value);
-  if ( it == std::begin(bins) ) {
+  if ( it == std::begin(bins) ) { // underflow
     if ( flow_ == _FlowBehavior::value ) {
-      // default value already at std::begin
+      return contents_.back(); // the default value
     }
     else if ( flow_ == _FlowBehavior::error ) {
       throw std::runtime_error("Index below bounds in Binning for input argument " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
@@ -410,9 +410,9 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
       it++;
     }
   }
-  else if ( it == std::end(bins) ) {
+  else if ( it == std::end(bins) ) { // overflow
     if ( flow_ == _FlowBehavior::value ) {
-      it = std::begin(bins);
+      return contents_.back();
     }
     else if ( flow_ == _FlowBehavior::error ) {
       throw std::runtime_error("Index above bounds in Binning for input argument " + std::to_string(variableIdx_) + " value: " + std::to_string(value));
@@ -422,7 +422,9 @@ const Content& Binning::child(const std::vector<Variable::Type>& values) const {
     }
   }
 
-  return contents_[std::distance(std::begin(bins), it)];
+  // -1 because upper_bound returns the edge _after_ the bin we are interested in
+  const std::size_t binIdx = std::distance(std::begin(bins), it) - 1;
+  return contents_[binIdx];
 }
 
 MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
@@ -492,7 +494,6 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
 }
 
 // TODO factor out logic in common with Binning::child.
-// One notable difference is that MultiBinning stores the default value at the end of content_ instead of the beginning.
 const Content& MultiBinning::child(const std::vector<Variable::Type>& values) const {
   size_t idx {0};
   size_t localidx {0};
