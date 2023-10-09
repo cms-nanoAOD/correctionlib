@@ -2,14 +2,11 @@ import sys
 
 if sys.platform.startswith("win32"):
     import ctypes
-    import os.path
 
-    import pkg_resources
+    import importlib.resources
 
     ctypes.CDLL(
-        pkg_resources.resource_filename(
-            "correctionlib", os.path.join("lib", "correctionlib.dll")
-        )
+        str(importlib.resources.files("correctionlib") / "lib" / "correctionlib.dll")
     )
 
 

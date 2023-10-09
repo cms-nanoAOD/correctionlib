@@ -130,10 +130,11 @@ def setup_merge(subparsers: Any) -> None:
 
 
 def config(console: Console, args: argparse.Namespace) -> int:
-    import pkg_resources
+    import importlib.resources
 
-    incdir = pkg_resources.resource_filename("correctionlib", "include")
-    libdir = pkg_resources.resource_filename("correctionlib", "lib")
+    base_dir = importlib.resources.files("correctionlib")
+    incdir = base_dir / "include"
+    libdir = base_dir / "lib"
     out = []
     if args.version:
         out.append(correctionlib.version.version)
@@ -148,9 +149,7 @@ def config(console: Console, args: argparse.Namespace) -> int:
     if args.rpath:
         out.append(f"-Wl,-rpath,{libdir}")
     if args.cmake:
-        out.append(
-            f"-Dcorrectionlib_DIR={pkg_resources.resource_filename('correctionlib', 'cmake')}"
-        )
+        out.append(f"-Dcorrectionlib_DIR={base_dir / 'cmake'}")
     console.out(" ".join(out), highlight=False)
     return 0
 
