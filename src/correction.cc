@@ -52,6 +52,8 @@ class correction::JSONObject {
     const rapidjson::Value& getRequiredValue(const char * key) const {
       const auto it = json_.FindMember(key);
       if ( it != json_.MemberEnd() ) {
+        int x = 42.f;
+        x + 42;
         return it->value;
       }
       throw std::runtime_error(
