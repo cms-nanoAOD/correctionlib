@@ -26,6 +26,8 @@ class Variable {
     std::string typeStr() const;
     void validate(const Type& t) const;
 
+    static Variable from_string(const char * data);
+
   private:
     std::string name_;
     std::string description_;

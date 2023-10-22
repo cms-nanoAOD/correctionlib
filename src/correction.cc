@@ -183,6 +183,19 @@ void Variable::validate(const Type& t) const {
   }
 }
 
+Variable Variable::from_string(const char * data) {
+  rapidjson::Document json;
+  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
+  if (!ok) {
+    throw std::runtime_error(
+        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
+        + " at offset " + std::to_string(ok.Offset())
+        );
+  }
+  if ( ! json.IsObject() ) { throw std::runtime_error("Expected Variable object"); }
+  return Variable(json);
+}
+
 Formula::Formula(const JSONObject& json, const Correction& context, bool generic) :
   expression_(json.getRequired<const char *>("expression")),
   generic_(generic)
