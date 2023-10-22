@@ -196,7 +196,10 @@ Variable Variable::from_string(const char * data) {
   return Variable(json);
 }
 
-Formula::Formula(const JSONObject& json, const Correction& context, bool generic) :
+Formula::Formula(const JSONObject& json, const Correction& context, bool generic)
+  : Formula(json, context.inputs(), generic) {}
+
+Formula::Formula(const JSONObject& json, const std::vector<Variable>& inputs, bool generic) :
   expression_(json.getRequired<const char *>("expression")),
   generic_(generic)
 {
@@ -210,10 +213,11 @@ Formula::Formula(const JSONObject& json, const Correction& context, bool generic
 
   std::vector<size_t> variableIdx;
   for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("variables")) {
-    auto idx = context.input_index(item.GetString());
-    if ( context.inputs()[idx].type() != Variable::VarType::real ) {
+    auto idx = std::distance(std::begin(inputs),
+                             std::find_if(inputs.begin(), inputs.end(), [&](const Variable& v) { return v.name() == item.GetString(); }));
+    if ( inputs[idx].type() != Variable::VarType::real ) {
       throw std::runtime_error("Formulas only accept real-valued inputs, got type "
-          + context.inputs()[idx].typeStr() + " for variable " + context.inputs()[idx].name());
+          + inputs[idx].typeStr() + " for variable " + inputs[idx].name());
     }
     variableIdx.push_back(idx);
   }
@@ -226,6 +230,19 @@ Formula::Formula(const JSONObject& json, const Correction& context, bool generic
   }
 
   ast_ = std::make_unique<FormulaAst>(FormulaAst::parse(type_, expression_, params, variableIdx, !generic));
+}
+
+Formula::Ref Formula::from_string(const char * data, std::vector<Variable>& inputs) {
+  rapidjson::Document json;
+  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
+  if (!ok) {
+    throw std::runtime_error(
+        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
+        + " at offset " + std::to_string(ok.Offset())
+        );
+  }
+  if ( ! json.IsObject() ) { throw std::runtime_error("Expected Formula object"); }
+  return std::make_shared<Formula>(json, inputs);
 }
 
 double Formula::evaluate(const std::vector<Variable::Type>& values) const {

@@ -107,4 +107,59 @@ PYBIND11_MODULE(_core, m) {
           return py::make_key_iterator(v.begin(), v.end());
         }, py::keep_alive<0, 1>())
         .def_property_readonly("compound", &CorrectionSet::compound);
+
+    py::class_<Formula, std::shared_ptr<Formula>>(m, "Formula")
+      .def_static("from_string", &Formula::from_string)
+      .def_property_readonly("expression", &Formula::expression)
+      .def_property_readonly("ast", &Formula::ast);
+
+    py::class_<FormulaAst, std::shared_ptr<FormulaAst>> formula_ast(m, "FormulaAst");
+
+    formula_ast.def_property_readonly("nodetype", &FormulaAst::nodetype)
+      .def_property_readonly("data", &FormulaAst::data)
+      .def_property_readonly("children", &FormulaAst::children);
+
+    py::enum_<FormulaAst::NodeType>(formula_ast, "NodeType")
+      .value("LITERAL", FormulaAst::NodeType::Literal)
+      .value("VARIABLE", FormulaAst::NodeType::Variable)
+      .value("PARAMETER", FormulaAst::NodeType::Parameter)
+      .value("UNARY", FormulaAst::NodeType::Unary)
+      .value("BINARY", FormulaAst::NodeType::Binary);
+
+    py::enum_<FormulaAst::BinaryOp>(formula_ast, "BinaryOp")
+      .value("EQUAL", FormulaAst::BinaryOp::Equal)
+      .value("NOTEQUAL", FormulaAst::BinaryOp::NotEqual)
+      .value("GREATER", FormulaAst::BinaryOp::Greater)
+      .value("LESS", FormulaAst::BinaryOp::Less)
+      .value("GREATEREQ", FormulaAst::BinaryOp::GreaterEq)
+      .value("LESSEQ", FormulaAst::BinaryOp::LessEq)
+      .value("MINUS", FormulaAst::BinaryOp::Minus)
+      .value("PLUS", FormulaAst::BinaryOp::Plus)
+      .value("DIV", FormulaAst::BinaryOp::Div)
+      .value("TIMES", FormulaAst::BinaryOp::Times)
+      .value("POW", FormulaAst::BinaryOp::Pow)
+      .value("ATAN2", FormulaAst::BinaryOp::Atan2)
+      .value("MAX", FormulaAst::BinaryOp::Max)
+      .value("MIN", FormulaAst::BinaryOp::Min);
+
+    py::enum_<FormulaAst::UnaryOp>(formula_ast, "UnaryOp")
+      .value("NEGATIVE", FormulaAst::UnaryOp::Negative)
+      .value("LOG", FormulaAst::UnaryOp::Log)
+      .value("LOG10", FormulaAst::UnaryOp::Log10)
+      .value("EXP", FormulaAst::UnaryOp::Exp)
+      .value("ERF", FormulaAst::UnaryOp::Erf)
+      .value("SQRT", FormulaAst::UnaryOp::Sqrt)
+      .value("ABS", FormulaAst::UnaryOp::Abs)
+      .value("COS", FormulaAst::UnaryOp::Cos)
+      .value("SIN", FormulaAst::UnaryOp::Sin)
+      .value("TAN", FormulaAst::UnaryOp::Tan)
+      .value("ACOS", FormulaAst::UnaryOp::Acos)
+      .value("ASIN", FormulaAst::UnaryOp::Asin)
+      .value("ATAN", FormulaAst::UnaryOp::Atan)
+      .value("COSH", FormulaAst::UnaryOp::Cosh)
+      .value("SINH", FormulaAst::UnaryOp::Sinh)
+      .value("TANH", FormulaAst::UnaryOp::Tanh)
+      .value("ACOSH", FormulaAst::UnaryOp::Acosh)
+      .value("ASINH", FormulaAst::UnaryOp::Asinh)
+      .value("ATANH", FormulaAst::UnaryOp::Atanh);
 }

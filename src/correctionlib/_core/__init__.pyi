@@ -56,3 +56,28 @@ class CorrectionSet:
     def __iter__(self) -> Iterator[str]: ...
     @property
     def compound(self) -> Dict[str, CompoundCorrection]: ...
+
+class FormulaAst:
+    class NodeType:
+        name: str
+        value: int
+
+    class UnaryOp:
+        name: str
+        value: int
+
+    class BinaryOp:
+        name: str
+        value: int
+    @property
+    def nodetype(self) -> NodeType: ...
+    @property
+    def data(self) -> Union[None, float, int, UnaryOp, BinaryOp]: ...
+    @property
+    def children(self) -> list[FormulaAst]: ...
+
+class Formula:
+    @property
+    def expression(self) -> str: ...
+    @property
+    def ast(self) -> FormulaAst: ...
