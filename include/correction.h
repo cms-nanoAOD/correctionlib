@@ -49,11 +49,8 @@ class FormulaAst {
       Literal,
       Variable,
       Parameter,
-      UnaryCall,
-      BinaryCall,
-      UAtom,
-      Expression,
-      Undefined,
+      Unary,
+      Binary,
     };
     enum class BinaryOp {
       Equal,
@@ -67,21 +64,40 @@ class FormulaAst {
       Div,
       Times,
       Pow,
+      Atan2,
+      Max,
+      Min
     };
-    enum class UnaryOp { Negative };
-    typedef double (*UnaryFcn)(double);
-    typedef double (*BinaryFcn)(double, double);
-    typedef std::variant<
+    enum class UnaryOp {
+      Negative,
+      Log,
+      Log10,
+      Exp,
+      Erf,
+      Sqrt,
+      Abs,
+      Cos,
+      Sin,
+      Tan,
+      Acos,
+      Asin,
+      Atan,
+      Cosh,
+      Sinh,
+      Tanh,
+      Acosh,
+      Asinh,
+      Atanh
+    };
+    using NodeData = std::variant<
       std::monostate,
       double, // literal/parameter
       size_t, // parameter/variable index
       UnaryOp,
-      BinaryOp,
-      UnaryFcn,
-      BinaryFcn
-    > NodeData;
+      BinaryOp
+    >;
     // TODO: try std::unique_ptr<const Ast> child1, child2 or std::array
-    typedef std::vector<FormulaAst> Children;
+    using Children = std::vector<FormulaAst>;
 
     static FormulaAst parse(
         ParserType type,
@@ -91,7 +107,6 @@ class FormulaAst {
         bool bind_parameters
         );
 
-    FormulaAst() : nodetype_(NodeType::Undefined) {};
     FormulaAst(NodeType nodetype, NodeData data, Children children) :
       nodetype_(nodetype), data_(data), children_(children) {};
     double evaluate(const std::vector<Variable::Type>& variables, const std::vector<double>& parameters) const;
