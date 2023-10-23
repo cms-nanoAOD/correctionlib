@@ -263,8 +263,6 @@ double FormulaAst::evaluate(const std::vector<Variable::Type>& values, const std
         case BinaryOp::Min: return std::min(left, right);
       };
     }
-    case NodeType::Undefined:
-      throw std::runtime_error("Unrecognized AST node");
     default:
       std::abort(); // never reached if the switch/case is exhaustive
   }

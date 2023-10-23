@@ -51,7 +51,6 @@ class FormulaAst {
       Parameter,
       Unary,
       Binary,
-      Undefined,
     };
     enum class BinaryOp {
       Equal,
@@ -108,7 +107,6 @@ class FormulaAst {
         bool bind_parameters
         );
 
-    FormulaAst() : nodetype_(NodeType::Undefined) {};
     FormulaAst(NodeType nodetype, NodeData data, Children children) :
       nodetype_(nodetype), data_(data), children_(children) {};
     double evaluate(const std::vector<Variable::Type>& variables, const std::vector<double>& parameters) const;
