@@ -241,7 +241,6 @@ class Correction {
     std::string description() const { return description_; };
     int version() const { return version_; };
     const std::vector<Variable>& inputs() const { return inputs_; };
-    size_t input_index(const std::string_view name) const;
     Formula::Ref formula_ref(size_t idx) const { return formula_refs_.at(idx); };
     const Variable& output() const { return output_; };
     double evaluate(const std::vector<Variable::Type>& values) const;
