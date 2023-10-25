@@ -14,6 +14,7 @@ correctionlib.\_core.Variable
    .. autosummary::
    
       ~Variable.__init__
+      ~Variable.from_string
    
    
 
