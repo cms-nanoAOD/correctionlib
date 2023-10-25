@@ -26,6 +26,8 @@ class Variable {
     std::string typeStr() const;
     void validate(const Type& t) const;
 
+    static Variable from_string(const char * data);
+
   private:
     std::string name_;
     std::string description_;
@@ -109,6 +111,9 @@ class FormulaAst {
 
     FormulaAst(NodeType nodetype, NodeData data, Children children) :
       nodetype_(nodetype), data_(data), children_(children) {};
+    const NodeType &nodetype() const { return nodetype_; }
+    const NodeData &data() const { return data_; }
+    const Children& children() const { return children_; }
     double evaluate(const std::vector<Variable::Type>& variables, const std::vector<double>& parameters) const;
 
   private:
@@ -122,9 +127,13 @@ class Formula {
     typedef std::shared_ptr<const Formula> Ref;
 
     Formula(const JSONObject& json, const Correction& context, bool generic = false);
+    Formula(const JSONObject& json, const std::vector<Variable>& inputs, bool generic = false);
     std::string expression() const { return expression_; };
+    const FormulaAst &ast() const { return *ast_; };
     double evaluate(const std::vector<Variable::Type>& values) const;
     double evaluate(const std::vector<Variable::Type>& values, const std::vector<double>& parameters) const;
+
+    static Ref from_string(const char * data, std::vector<Variable>& inputs);
 
   private:
     std::string expression_;
@@ -232,7 +241,6 @@ class Correction {
     std::string description() const { return description_; };
     int version() const { return version_; };
     const std::vector<Variable>& inputs() const { return inputs_; };
-    size_t input_index(const std::string_view name) const;
     Formula::Ref formula_ref(size_t idx) const { return formula_refs_.at(idx); };
     const Variable& output() const { return output_; };
     double evaluate(const std::vector<Variable::Type>& values) const;
