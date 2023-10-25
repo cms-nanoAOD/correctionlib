@@ -26,6 +26,8 @@ class Variable {
     std::string typeStr() const;
     void validate(const Type& t) const;
 
+    static Variable from_string(const char * data);
+
   private:
     std::string name_;
     std::string description_;
@@ -49,11 +51,8 @@ class FormulaAst {
       Literal,
       Variable,
       Parameter,
-      UnaryCall,
-      BinaryCall,
-      UAtom,
-      Expression,
-      Undefined,
+      Unary,
+      Binary,
     };
     enum class BinaryOp {
       Equal,
@@ -67,21 +66,40 @@ class FormulaAst {
       Div,
       Times,
       Pow,
+      Atan2,
+      Max,
+      Min
     };
-    enum class UnaryOp { Negative };
-    typedef double (*UnaryFcn)(double);
-    typedef double (*BinaryFcn)(double, double);
-    typedef std::variant<
+    enum class UnaryOp {
+      Negative,
+      Log,
+      Log10,
+      Exp,
+      Erf,
+      Sqrt,
+      Abs,
+      Cos,
+      Sin,
+      Tan,
+      Acos,
+      Asin,
+      Atan,
+      Cosh,
+      Sinh,
+      Tanh,
+      Acosh,
+      Asinh,
+      Atanh
+    };
+    using NodeData = std::variant<
       std::monostate,
       double, // literal/parameter
       size_t, // parameter/variable index
       UnaryOp,
-      BinaryOp,
-      UnaryFcn,
-      BinaryFcn
-    > NodeData;
+      BinaryOp
+    >;
     // TODO: try std::unique_ptr<const Ast> child1, child2 or std::array
-    typedef std::vector<FormulaAst> Children;
+    using Children = std::vector<FormulaAst>;
 
     static FormulaAst parse(
         ParserType type,
@@ -91,9 +109,11 @@ class FormulaAst {
         bool bind_parameters
         );
 
-    FormulaAst() : nodetype_(NodeType::Undefined) {};
     FormulaAst(NodeType nodetype, NodeData data, Children children) :
       nodetype_(nodetype), data_(data), children_(children) {};
+    const NodeType &nodetype() const { return nodetype_; }
+    const NodeData &data() const { return data_; }
+    const Children& children() const { return children_; }
     double evaluate(const std::vector<Variable::Type>& variables, const std::vector<double>& parameters) const;
 
   private:
@@ -107,9 +127,13 @@ class Formula {
     typedef std::shared_ptr<const Formula> Ref;
 
     Formula(const JSONObject& json, const Correction& context, bool generic = false);
+    Formula(const JSONObject& json, const std::vector<Variable>& inputs, bool generic = false);
     std::string expression() const { return expression_; };
+    const FormulaAst &ast() const { return *ast_; };
     double evaluate(const std::vector<Variable::Type>& values) const;
     double evaluate(const std::vector<Variable::Type>& values, const std::vector<double>& parameters) const;
+
+    static Ref from_string(const char * data, std::vector<Variable>& inputs);
 
   private:
     std::string expression_;
@@ -217,7 +241,6 @@ class Correction {
     std::string description() const { return description_; };
     int version() const { return version_; };
     const std::vector<Variable>& inputs() const { return inputs_; };
-    size_t input_index(const std::string_view name) const;
     Formula::Ref formula_ref(size_t idx) const { return formula_refs_.at(idx); };
     const Variable& output() const { return output_; };
     double evaluate(const std::vector<Variable::Type>& values) const;

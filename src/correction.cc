@@ -202,6 +202,15 @@ namespace {
     const std::size_t binIdx = std::distance(std::begin(bins), it) - 1;
     return binIdx;
   }
+
+  size_t input_index(const std::string_view name, const std::vector<Variable> &inputs) {
+    size_t idx = 0;
+    for (const auto& var : inputs) {
+      if ( name == var.name() ) return idx;
+      idx++;
+    }
+    throw std::runtime_error("Error: could not find variable " + std::string(name) + " in inputs");
+  }
 } // end of anonymous namespace
 
 Variable::Variable(const JSONObject& json) :
@@ -240,7 +249,23 @@ void Variable::validate(const Type& t) const {
   }
 }
 
-Formula::Formula(const JSONObject& json, const Correction& context, bool generic) :
+Variable Variable::from_string(const char * data) {
+  rapidjson::Document json;
+  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
+  if (!ok) {
+    throw std::runtime_error(
+        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
+        + " at offset " + std::to_string(ok.Offset())
+        );
+  }
+  if ( ! json.IsObject() ) { throw std::runtime_error("Expected Variable object"); }
+  return Variable(json);
+}
+
+Formula::Formula(const JSONObject& json, const Correction& context, bool generic)
+  : Formula(json, context.inputs(), generic) {}
+
+Formula::Formula(const JSONObject& json, const std::vector<Variable>& inputs, bool generic) :
   expression_(json.getRequired<const char *>("expression")),
   generic_(generic)
 {
@@ -254,10 +279,10 @@ Formula::Formula(const JSONObject& json, const Correction& context, bool generic
 
   std::vector<size_t> variableIdx;
   for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("variables")) {
-    auto idx = context.input_index(item.GetString());
-    if ( context.inputs()[idx].type() != Variable::VarType::real ) {
+    auto idx = input_index(item.GetString(), inputs);
+    if ( inputs[idx].type() != Variable::VarType::real ) {
       throw std::runtime_error("Formulas only accept real-valued inputs, got type "
-          + context.inputs()[idx].typeStr() + " for variable " + context.inputs()[idx].name());
+          + inputs[idx].typeStr() + " for variable " + inputs[idx].name());
     }
     variableIdx.push_back(idx);
   }
@@ -270,6 +295,19 @@ Formula::Formula(const JSONObject& json, const Correction& context, bool generic
   }
 
   ast_ = std::make_unique<FormulaAst>(FormulaAst::parse(type_, expression_, params, variableIdx, !generic));
+}
+
+Formula::Ref Formula::from_string(const char * data, std::vector<Variable>& inputs) {
+  rapidjson::Document json;
+  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
+  if (!ok) {
+    throw std::runtime_error(
+        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
+        + " at offset " + std::to_string(ok.Offset())
+        );
+  }
+  if ( ! json.IsObject() ) { throw std::runtime_error("Expected Formula object"); }
+  return std::make_shared<Formula>(json, inputs);
 }
 
 double Formula::evaluate(const std::vector<Variable::Type>& values) const {
@@ -295,7 +333,7 @@ double FormulaRef::evaluate(const std::vector<Variable::Type>& values) const {
 }
 
 Transform::Transform(const JSONObject& json, const Correction& context) {
-  variableIdx_ = context.input_index(json.getRequired<std::string_view>("input"));
+  variableIdx_ = input_index(json.getRequired<std::string_view>("input"), context.inputs());
   const auto& variable = context.inputs()[variableIdx_];
   if ( variable.type() == Variable::VarType::string ) {
     throw std::runtime_error("Transform cannot rewrite string inputs");
@@ -326,7 +364,7 @@ HashPRNG::HashPRNG(const JSONObject& json, const Correction& context)
   variablesIdx_.reserve(inputs.Size());
   for (const auto& input : inputs) {
     if ( ! input.IsString() ) { throw std::runtime_error("invalid hashprng input type"); }
-    size_t idx = context.input_index(input.GetString());
+    size_t idx = input_index(input.GetString(), context.inputs());
     if ( context.inputs().at(idx).type() == Variable::VarType::string ) {
       throw std::runtime_error("HashPRNG cannot use string inputs as entropy sources");
     }
@@ -410,7 +448,7 @@ Binning::Binning(const JSONObject& json, const Correction& context)
     throw std::runtime_error ("Error when processing Binning: edges are neither an array nor a UniformBinning object");
   }
 
-  variableIdx_ = context.input_index(json.getRequired<std::string_view>("input"));
+  variableIdx_ = input_index(json.getRequired<std::string_view>("input"), context.inputs());
   Content default_value{0.};
   const auto& flowbehavior = json.getRequiredValue("flow");
   if ( flowbehavior == "clamp" ) {
@@ -454,7 +492,7 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
         dim_edges.push_back(val);
       }
       if ( ! input.IsString() ) { throw std::runtime_error("invalid multibinning input type"); }
-      axes_.push_back({context.input_index(input.GetString()), 0, _NonUniformBins(std::move(dim_edges))});
+      axes_.push_back({input_index(input.GetString(), context.inputs()), 0, _NonUniformBins(std::move(dim_edges))});
     } else if ( dimension.IsObject() ) { // UniformBinning
       const JSONObject uniformBins{dimension.GetObject()};
       const auto n = uniformBins.getRequired<uint32_t>("n");
@@ -464,7 +502,7 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
       }
       const auto low = uniformBins.getRequired<double>("low");
       const auto high = uniformBins.getRequired<double>("high");
-      axes_.push_back({context.input_index(input.GetString()), 0, _UniformBins{n, low, high}});
+      axes_.push_back({input_index(input.GetString(), context.inputs()), 0, _UniformBins{n, low, high}});
     } else {
       auto msg = "Error when processing MultiBinning: edges for dimension " + std::to_string(idx) + " are neither an array nor a UniformBinning object";
       throw std::runtime_error (std::move(msg));
@@ -531,7 +569,7 @@ size_t MultiBinning::nbins(size_t dimension) const
 
 Category::Category(const JSONObject& json, const Correction& context)
 {
-  variableIdx_ = context.input_index(json.getRequired<std::string_view>("input"));
+  variableIdx_ = input_index(json.getRequired<std::string_view>("input"), context.inputs());
   const auto& variable = context.inputs()[variableIdx_];
   if ( variable.type() == Variable::VarType::string ) {
     map_ = StrMap();
@@ -612,15 +650,6 @@ Correction::Correction(const JSONObject& json) :
 
   data_ = resolve_content(json.getRequiredValue("data"), *this);
   initialized_ = true;
-}
-
-size_t Correction::input_index(const std::string_view name) const {
-  size_t idx = 0;
-  for (const auto& var : inputs_) {
-    if ( name == var.name() ) return idx;
-    idx++;
-  }
-  throw std::runtime_error("Error: could not find variable " + std::string(name) + " in inputs");
 }
 
 double Correction::evaluate(const std::vector<Variable::Type>& values) const {
