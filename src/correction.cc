@@ -120,28 +120,12 @@ namespace {
   }
 
   struct node_evaluate {
-    double operator() (double node) { return node; };
-    double operator() (const Binning& node) {
-      return std::visit(*this, node.child(values));
-    };
-    double operator() (const MultiBinning& node) {
-      return std::visit(*this, node.child(values));
-    };
-    double operator() (const Category& node) {
-      return std::visit(*this, node.child(values));
-    };
-    double operator() (const Formula& node) {
+    double operator() (double node) { return node; }
+
+    template <class Node>
+    double operator() (const Node &node) {
       return node.evaluate(values);
-    };
-    double operator() (const FormulaRef& node) {
-      return node.evaluate(values);
-    };
-    double operator() (const Transform& node) {
-      return node.evaluate(values);
-    };
-    double operator() (const HashPRNG& node) {
-      return node.evaluate(values);
-    };
+    }
 
     const std::vector<Variable::Type>& values;
   };
@@ -468,10 +452,12 @@ Binning::Binning(const JSONObject& json, const Correction& context)
   contents_.push_back(std::move(default_value));
 }
 
-const Content& Binning::child(const std::vector<Variable::Type>& values) const {
+double Binning::evaluate(const std::vector<Variable::Type>& values) const
+{
   double value = std::get<double>(values[variableIdx_]);
   std::size_t binIdx = find_bin_idx(value, bins_, flow_, variableIdx_, "Binning");
-  return contents_[binIdx];
+  const Content& child = contents_[binIdx];
+  return std::visit(node_evaluate{values}, child);
 }
 
 MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
@@ -540,7 +526,8 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
   }
 }
 
-const Content& MultiBinning::child(const std::vector<Variable::Type>& values) const {
+double MultiBinning::evaluate(const std::vector<Variable::Type>& values) const
+{
   size_t idx {0};
   size_t localidx {0};
   size_t dim {0};
@@ -549,12 +536,13 @@ const Content& MultiBinning::child(const std::vector<Variable::Type>& values) co
     double value = std::get<double>(values[variableIdx]);
     localidx = find_bin_idx(value, edgesVariant, flow_, variableIdx, "MultiBinning");
     if ( localidx == nbins(dim) ) // find_bin_idx is indicating we need to return the default value
-      return content_.back();
+      return std::visit(node_evaluate{values}, content_.back());
     idx += localidx * stride;
     ++dim;
   }
 
-  return content_.at(idx);
+  const Content& child = content_.at(idx);
+  return std::visit(node_evaluate{values}, child);
 }
 
 size_t MultiBinning::nbins(size_t dimension) const
@@ -602,13 +590,14 @@ Category::Category(const JSONObject& json, const Correction& context)
   }
 }
 
-const Content& Category::child(const std::vector<Variable::Type>& values) const {
+double Category::evaluate(const std::vector<Variable::Type>& values) const {
+  const Content* child = nullptr;
   if ( auto pval = std::get_if<std::string>(&values[variableIdx_]) ) {
     try {
-      return std::get<StrMap>(map_).at(*pval);
+      child = &std::get<StrMap>(map_).at(*pval);
     } catch (std::out_of_range& ex) {
       if ( default_ ) {
-        return *default_;
+        child = default_.get();
       }
       else {
         throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + *pval);
@@ -617,17 +606,20 @@ const Content& Category::child(const std::vector<Variable::Type>& values) const 
   }
   else if ( auto pval = std::get_if<int>(&values[variableIdx_]) ) {
     try {
-      return std::get<IntMap>(map_).at(*pval);
+      child = &std::get<IntMap>(map_).at(*pval);
     } catch (std::out_of_range& ex) {
       if ( default_ ) {
-        return *default_;
+        child = default_.get();
       }
       else {
         throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
       }
     }
+  } else {
+    throw std::runtime_error("Invalid variable type");
   }
-  throw std::runtime_error("Invalid variable type");
+
+  return std::visit(node_evaluate{values}, *child);
 }
 
 Correction::Correction(const JSONObject& json) :
