@@ -188,7 +188,7 @@ struct _UniformBins {
 class Binning {
   public:
     Binning(const JSONObject& json, const Correction& context);
-    const Content& child(const std::vector<Variable::Type>& values) const;
+    double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
     std::variant<_UniformBins, _NonUniformBins> bins_; // bin edges
@@ -209,7 +209,7 @@ class MultiBinning {
   public:
     MultiBinning(const JSONObject& json, const Correction& context);
     size_t ndimensions() const { return axes_.size(); };
-    const Content& child(const std::vector<Variable::Type>& values) const;
+    double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
     size_t nbins(size_t dimension) const;
@@ -222,7 +222,7 @@ class MultiBinning {
 class Category {
   public:
     Category(const JSONObject& json, const Correction& context);
-    const Content& child(const std::vector<Variable::Type>& values) const;
+    double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
     typedef std::map<int, Content> IntMap;
