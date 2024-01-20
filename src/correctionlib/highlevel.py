@@ -130,6 +130,41 @@ def _wrap_awkward(
     return awkward.transform(tocall, *array_args)
 
 
+def _call_dask_correction(
+    correction: Any,
+    *args: Union["numpy.ndarray[Any, Any]", str, int, float],
+):
+    return _wrap_awkward(correction._base.evalv, *args)
+
+
+def _wrap_dask_awkward(
+    correction: Any,
+    *args: Union["numpy.ndarray[Any, Any]", str, int, float],
+) -> Any:
+    import dask.delayed
+    import dask_awkward
+
+    if not hasattr(correction, "_delayed_correction"):
+        setattr(  # noqa: B010
+            correction,
+            "_delayed_correction",
+            dask.delayed(correction),
+        )
+
+    correction_meta = _wrap_awkward(
+        correction._base.evalv,
+        *(arg._meta if isinstance(arg, dask_awkward.Array) else arg for arg in args),
+    )
+
+    return dask_awkward.map_partitions(
+        _call_dask_correction,
+        correction._delayed_correction,
+        *args,
+        meta=correction_meta,
+        label=correction._name,
+    )
+
+
 class Correction:
     """High-level correction evaluator object
 
@@ -180,6 +215,9 @@ class Correction:
                 for arg in args
                 if not isinstance(arg, (str, int, float))
             ]
+        except NotImplementedError:
+            if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
+                return _wrap_dask_awkward(self, *args)  # type: ignore
         except (ValueError, TypeError):
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
@@ -242,9 +280,21 @@ class CompoundCorrection:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
-        vargs = [
-            numpy.asarray(arg) for arg in args if not isinstance(arg, (str, int, float))
-        ]
+        try:
+            vargs = [
+                numpy.asarray(arg)
+                for arg in args
+                if not isinstance(arg, (str, int, float))
+            ]
+        except NotImplementedError:
+            if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
+                return _wrap_dask_awkward(self, *args)  # type: ignore
+        except (ValueError, TypeError):
+            if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
+                return _wrap_awkward(self._base.evalv, *args)  # type: ignore
+        except Exception as err:
+            raise err
+
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
             oshape = bargs[0].shape
