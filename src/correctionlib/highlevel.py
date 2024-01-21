@@ -11,7 +11,8 @@ from packaging import version
 import correctionlib._core
 import correctionlib.version
 
-_version_two = version.parse("2")
+_min_version_ak = version.parse("2.0.0")
+_min_version_dak = version.parse("2024.1.1")
 
 
 def open_auto(filename: str) -> str:
@@ -58,9 +59,9 @@ def _call_as_numpy(
 ) -> Any:
     import awkward
 
-    if version.parse(awkward.__version__) < _version_two:
+    if version.parse(awkward.__version__) < _min_version_ak:
         raise RuntimeError(
-            f"""imported awkward is version {awkward.__version__} < 2.0.0
+            f"""imported awkward is version {awkward.__version__} < {str(_min_version_ak)}
             If you cannot upgrade, try doing: ak.flatten(arrays) -> result = correction(arrays) -> ak.unflatten(result, counts)
             """
         )
@@ -143,6 +144,14 @@ def _wrap_dask_awkward(
 ) -> Any:
     import dask.delayed
     import dask_awkward
+
+    if version.parse(dask_awkward.__version__) < _min_version_dak:
+        raise RuntimeError(
+            f"""imported dask_awkward is version {dask_awkward.__version__} < {str(_min_version_dak)}
+            This version of dask_awkward includes several useful bugfixes and functionality extensions.
+            Please upgrade dask_awkward.
+            """
+        )
 
     if not hasattr(correction, "_delayed_correction"):
         setattr(  # noqa: B010
