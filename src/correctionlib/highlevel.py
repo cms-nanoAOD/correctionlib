@@ -220,8 +220,8 @@ class Correction:
         # TODO: create a ufunc with numpy.vectorize in constructor?
         if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
             raise TypeError(
-                "correctionlib does not yet handle dask.array collections, "
-                "if you require this functionality (i.e. you cannot or do "
+                "Correctionlib does not yet handle dask.array collections. "
+                "If you require this functionality (i.e. you cannot or do "
                 "not want to use dask_awkward/awkward arrays) please open an "
                 "issue at https://github.com/cms-nanoAOD/correctionlib/issues."
             )
@@ -298,7 +298,7 @@ class CompoundCorrection:
         # TODO: create a ufunc with numpy.vectorize in constructor?
         if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
             raise TypeError(
-                "correctionlib does not yet handle dask.array collections, "
+                "Correctionlib does not yet handle dask.array collections. "
                 "if you require this functionality (i.e. you cannot or do "
                 "not want to use dask_awkward/awkward arrays) please open an "
                 "issue at https://github.com/cms-nanoAOD/correctionlib/issues."
