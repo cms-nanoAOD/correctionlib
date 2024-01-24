@@ -218,6 +218,13 @@ class Correction:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
+        if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
+            raise TypeError(
+                "correctionlib does not yet handle dask.array collections, "
+                "if you require this functionality (i.e. you cannot do do "
+                "not want to use dask_awkward/awkward arrays) please open an "
+                "issue at https://github.com/cms-nanoAOD/correctionlib/issues."
+            )
         try:
             vargs = [
                 numpy.asarray(arg)
@@ -289,6 +296,13 @@ class CompoundCorrection:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
+        if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
+            raise TypeError(
+                "correctionlib does not yet handle dask.array collections, "
+                "if you require this functionality (i.e. you cannot do do "
+                "not want to use dask_awkward/awkward arrays) please open an "
+                "issue at https://github.com/cms-nanoAOD/correctionlib/issues."
+            )
         try:
             vargs = [
                 numpy.asarray(arg)
