@@ -221,7 +221,7 @@ class Correction:
         if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
             raise TypeError(
                 "correctionlib does not yet handle dask.array collections, "
-                "if you require this functionality (i.e. you cannot do do "
+                "if you require this functionality (i.e. you cannot or do "
                 "not want to use dask_awkward/awkward arrays) please open an "
                 "issue at https://github.com/cms-nanoAOD/correctionlib/issues."
             )
@@ -299,7 +299,7 @@ class CompoundCorrection:
         if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
             raise TypeError(
                 "correctionlib does not yet handle dask.array collections, "
-                "if you require this functionality (i.e. you cannot do do "
+                "if you require this functionality (i.e. you cannot or do "
                 "not want to use dask_awkward/awkward arrays) please open an "
                 "issue at https://github.com/cms-nanoAOD/correctionlib/issues."
             )
