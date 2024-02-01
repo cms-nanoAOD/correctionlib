@@ -106,3 +106,28 @@ def test_highlevel_dask(cset):
         awkward.flatten(evaluate).compute(),
         numpy.full(6, 1.234),
     )
+
+
+def test_model_to_evaluator():
+    m = model.CorrectionSet(
+        schema_version=model.VERSION,
+        corrections=[
+            model.Correction(
+                name="test corr",
+                version=2,
+                inputs=[
+                    model.Variable(name="a", type="real"),
+                    model.Variable(name="b", type="real"),
+                ],
+                output=model.Variable(name="a scale", type="real"),
+                data=1.234,
+            )
+        ],
+    )
+    cset = m.to_evaluator()
+    assert set(cset) == {"test corr"}
+
+    sf = m.corrections[0].to_evaluator()
+    assert sf.version == 2
+    assert sf.description == ""
+    assert sf.evaluate(1.0, 1.0) == 1.234

@@ -3,7 +3,7 @@ import correctionlib.schemav2
 
 
 def test_hashprng():
-    cset = correctionlib.schemav2.CorrectionSet.parse_obj(
+    cset = correctionlib.schemav2.CorrectionSet.model_validate(
         {
             "schema_version": 2,
             "corrections": [
