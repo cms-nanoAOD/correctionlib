@@ -10,7 +10,7 @@ def wrap(*corrs):
         schema_version=schema.VERSION,
         corrections=list(corrs),
     )
-    return core.CorrectionSet.from_string(cset.json())
+    return core.CorrectionSet.from_string(cset.model_dump_json())
 
 
 def test_core_vectorized():

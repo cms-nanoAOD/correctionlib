@@ -82,7 +82,7 @@ def from_histogram(
         axname = getattr(
             axis, "name", f"axis{pos}" if axis_names is None else axis_names[pos]
         )
-        return Variable.parse_obj(
+        return Variable.model_validate(
             {
                 "type": axtype,
                 "name": axname,
@@ -120,7 +120,7 @@ def from_histogram(
     ) -> Content:
         vartype = variables[0].type
         if vartype in {"string", "int"}:
-            return Category.parse_obj(
+            return Category.model_validate(
                 {
                     "nodetype": "category",
                     "input": variables[0].name,
@@ -142,7 +142,7 @@ def from_histogram(
                 break
             i += 1
         if i > 1:
-            return MultiBinning.parse_obj(
+            return MultiBinning.model_validate(
                 {
                     "nodetype": "multibinning",
                     "edges": [edges(ax) for ax in axes[:i]],
@@ -156,7 +156,7 @@ def from_histogram(
                     "flow": flow,
                 }
             )
-        return Binning.parse_obj(
+        return Binning.model_validate(
             {
                 "nodetype": "binning",
                 "input": variables[0].name,
@@ -171,7 +171,7 @@ def from_histogram(
             }
         )
 
-    return Correction.parse_obj(
+    return Correction.model_validate(
         {
             "version": 0,
             "name": getattr(hist, "name", "unknown"),

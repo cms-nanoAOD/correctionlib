@@ -25,7 +25,7 @@ def test_unique():
             "stack": [],
         }
 
-    correctionlib.schemav2.CorrectionSet.parse_obj(
+    correctionlib.schemav2.CorrectionSet.model_validate(
         {
             "schema_version": 2,
             "corrections": [make("thing1"), make("thing2")],
@@ -34,12 +34,12 @@ def test_unique():
     )
 
     with pytest.raises(ValueError):
-        correctionlib.schemav2.CorrectionSet.parse_obj(
+        correctionlib.schemav2.CorrectionSet.model_validate(
             {"schema_version": 2, "corrections": [make("thing1"), make("thing1")]}
         )
 
     with pytest.raises(ValueError):
-        correctionlib.schemav2.CorrectionSet.parse_obj(
+        correctionlib.schemav2.CorrectionSet.model_validate(
             {
                 "schema_version": 2,
                 "corrections": [make("thing1"), make("thing1")],

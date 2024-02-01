@@ -101,9 +101,9 @@ def merge(console: Console, args: argparse.Namespace) -> int:
             cset.compound_corrections.append(corr2)
     cset.description = "Merged from " + " ".join(args.files)
     if args.format == "compact":
-        sys.stdout.write(cset.json())
+        sys.stdout.write(cset.model_dump_json())
     elif args.format == "indented":
-        sys.stdout.write(cset.json(indent=4) + "\n")
+        sys.stdout.write(cset.model_dump_json(indent=4) + "\n")
     elif args.format == "pretty":
         from correctionlib.JSONEncoder import dumps
 
