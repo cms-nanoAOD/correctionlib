@@ -1,8 +1,16 @@
 import sys
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
-from pydantic import BaseModel, Field, StrictInt, StrictStr, validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StrictInt,
+    StrictStr,
+    ValidationInfo,
+    field_validator,
+)
 from rich.columns import Columns
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.panel import Panel
@@ -20,8 +28,7 @@ VERSION = 2
 
 
 class Model(BaseModel):
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
 
 class _SummaryInfo:
@@ -140,7 +147,7 @@ class HashPRNG(Model):
     nodetype: Literal["hashprng"]
     inputs: List[str] = Field(
         description="The names of the input variables to use as entropy sources",
-        min_items=1,
+        min_length=1,
     )
     distribution: Literal["stdflat", "stdnormal", "normal"] = Field(
         description="The output distribution to draw from"
@@ -159,15 +166,17 @@ class UniformBinning(Model):
     low: float = Field(description="Lower edge of first bin")
     high: float = Field(description="Higher edge of last bin")
 
-    @validator("n")
+    @field_validator("n")
+    @classmethod
     def validate_n(cls, n: int) -> int:
         if n <= 0:  # downstream C++ logic assumes there is at least one bin
             raise ValueError(f"Number of bins must be greater than 0, got {n}")
         return n
 
-    @validator("high")
-    def validate_edges(cls, high: float, values: Any) -> float:
-        low = values["low"]
+    @field_validator("high")
+    @classmethod
+    def validate_edges(cls, high: float, info: ValidationInfo) -> float:
+        low = info.data["low"]
         if low >= high:
             raise ValueError(
                 f"Higher bin edge must be larger than lower, got {[low, high]}"
@@ -190,7 +199,8 @@ class Binning(Model):
         description="Overflow behavior for out-of-bounds values"
     )
 
-    @validator("edges")
+    @field_validator("edges")
+    @classmethod
     def validate_edges(
         cls, edges: Union[List[float], UniformBinning]
     ) -> Union[List[float], UniformBinning]:
@@ -203,13 +213,16 @@ class Binning(Model):
 
         return edges
 
-    @validator("content")
-    def validate_content(cls, content: List[Content], values: Any) -> List[Content]:
-        assert "edges" in values
-        if isinstance(values["edges"], list):
-            nbins = len(values["edges"]) - 1
+    @field_validator("content")
+    @classmethod
+    def validate_content(
+        cls, content: List[Content], info: ValidationInfo
+    ) -> List[Content]:
+        assert "edges" in info.data
+        if isinstance(info.data["edges"], list):
+            nbins = len(info.data["edges"]) - 1
         else:
-            nbins = values["edges"].n
+            nbins = info.data["edges"].n
         if nbins != len(content):
             raise ValueError(
                 f"Binning content length ({len(content)}) is not one less than edges ({nbins + 1})"
@@ -238,7 +251,7 @@ class MultiBinning(Model):
     nodetype: Literal["multibinning"]
     inputs: List[str] = Field(
         description="The names of the correction input variables this binning applies to",
-        min_items=1,
+        min_length=1,
     )
     edges: List[Union[List[float], UniformBinning]] = Field(
         description="Bin edges for each input"
@@ -253,9 +266,10 @@ class MultiBinning(Model):
         description="Overflow behavior for out-of-bounds values"
     )
 
-    @validator("edges")
+    @field_validator("edges")
+    @classmethod
     def validate_edges(
-        cls, edges: List[Union[List[float], UniformBinning]], values: Any
+        cls, edges: List[Union[List[float], UniformBinning]]
     ) -> List[Union[List[float], UniformBinning]]:
         for i, dim in enumerate(edges):
             if isinstance(dim, list):
@@ -266,11 +280,14 @@ class MultiBinning(Model):
                         )
         return edges
 
-    @validator("content")
-    def validate_content(cls, content: List[Content], values: Any) -> List[Content]:
-        assert "edges" in values
+    @field_validator("content")
+    @classmethod
+    def validate_content(
+        cls, content: List[Content], info: ValidationInfo
+    ) -> List[Content]:
+        assert "edges" in info.data
         nbins = 1
-        for dim in values["edges"]:
+        for dim in info.data["edges"]:
             if isinstance(dim, list):
                 nbins *= len(dim) - 1
             else:
@@ -318,7 +335,8 @@ class Category(Model):
     content: List[CategoryItem]
     default: Optional[Content] = None
 
-    @validator("content")
+    @field_validator("content")
+    @classmethod
     def validate_content(cls, content: List[CategoryItem]) -> List[CategoryItem]:
         if len(content):
             keytype = type(content[0].key)
@@ -345,11 +363,11 @@ class Category(Model):
             self.default.summarize(nodecount, inputstats)
 
 
-Transform.update_forward_refs()
-Binning.update_forward_refs()
-MultiBinning.update_forward_refs()
-CategoryItem.update_forward_refs()
-Category.update_forward_refs()
+Transform.model_rebuild()
+Binning.model_rebuild()
+MultiBinning.model_rebuild()
+CategoryItem.model_rebuild()
+Category.model_rebuild()
 
 
 class Correction(Model):
@@ -377,7 +395,8 @@ class Correction(Model):
     )
     data: Content = Field(description="The root content node")
 
-    @validator("output")
+    @field_validator("output")
+    @classmethod
     def validate_output(cls, output: Variable) -> Variable:
         if output.type != "real":
             raise ValueError(
@@ -512,7 +531,8 @@ class CorrectionSet(Model):
     corrections: List[Correction]
     compound_corrections: Optional[List[CompoundCorrection]] = None
 
-    @validator("corrections")
+    @field_validator("corrections")
+    @classmethod
     def validate_corrections(cls, items: List[Correction]) -> List[Correction]:
         seen = set()
         dupe = set()
@@ -526,7 +546,8 @@ class CorrectionSet(Model):
             )
         return items
 
-    @validator("compound_corrections")
+    @field_validator("compound_corrections")
+    @classmethod
     def validate_compound(
         cls, items: Optional[List[CompoundCorrection]]
     ) -> Optional[List[CompoundCorrection]]:

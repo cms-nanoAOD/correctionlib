@@ -13,7 +13,7 @@ def wrap(*corrs):
         schema_version=schema.VERSION,
         corrections=list(corrs),
     )
-    return core.CorrectionSet.from_string(cset.json())
+    return core.CorrectionSet.from_string(cset.model_dump_json())
 
 
 def test_evaluator():
@@ -63,14 +63,14 @@ def test_evaluator():
                 schema.Variable(name="syst", type="string"),
             ],
             output=schema.Variable(name="a scale", type="real"),
-            data=schema.Binning.parse_obj(
+            data=schema.Binning.model_validate(
                 {
                     "nodetype": "binning",
                     "input": "pt",
                     "edges": [0, 20, 40, float("inf")],
                     "flow": "error",
                     "content": [
-                        schema.Category.parse_obj(
+                        schema.Category.model_validate(
                             {
                                 "nodetype": "category",
                                 "input": "syst",
@@ -80,7 +80,7 @@ def test_evaluator():
                                 ],
                             }
                         ),
-                        schema.Category.parse_obj(
+                        schema.Category.model_validate(
                             {
                                 "nodetype": "category",
                                 "input": "syst",
@@ -164,7 +164,7 @@ def test_tformula():
                 }
             ],
         }
-        schema.CorrectionSet.parse_obj(cset)
+        schema.CorrectionSet.model_validate(cset)
         corr = core.CorrectionSet.from_string(json.dumps(cset))["test"]
         return corr.evaluate(*variables)
 

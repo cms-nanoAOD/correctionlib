@@ -33,7 +33,7 @@ def build_formula(sf):
 
     value = sf.iloc[0]["formula"]
     if "x" in value:
-        return Formula.parse_obj(
+        return Formula.model_validate(
             {
                 "nodetype": "formula",
                 "expression": value,
@@ -49,7 +49,7 @@ def build_formula(sf):
 
 def build_discrbinning(sf):
     edges = sorted(set(sf["discrMin"]) | set(sf["discrMax"]))
-    return Binning.parse_obj(
+    return Binning.model_validate(
         {
             "nodetype": "binning",
             "input": "discriminant",
@@ -65,7 +65,7 @@ def build_discrbinning(sf):
 
 def build_ptbinning(sf):
     edges = sorted(set(sf["ptMin"]) | set(sf["ptMax"]))
-    return Binning.parse_obj(
+    return Binning.model_validate(
         {
             "nodetype": "binning",
             "input": "pt",
@@ -81,7 +81,7 @@ def build_ptbinning(sf):
 
 def build_etabinning(sf):
     edges = sorted(set(sf["etaMin"]) | set(sf["etaMax"]))
-    return Binning.parse_obj(
+    return Binning.model_validate(
         {
             "nodetype": "binning",
             "input": "abseta",
@@ -97,7 +97,7 @@ def build_etabinning(sf):
 
 def build_flavor(sf):
     keys = sorted(sf["jetFlavor"].unique())
-    return Category.parse_obj(
+    return Category.model_validate(
         {
             "nodetype": "category",
             "input": "flavor",
@@ -111,7 +111,7 @@ def build_flavor(sf):
 
 def build_systs(sf):
     keys = list(sf["sysType"].unique())
-    return Category.parse_obj(
+    return Category.model_validate(
         {
             "nodetype": "category",
             "input": "systematic",
@@ -123,7 +123,7 @@ def build_systs(sf):
     )
 
 
-corr2 = Correction.parse_obj(
+corr2 = Correction.model_validate(
     {
         "version": 1,
         "name": "DeepCSV_2016LegacySF",
@@ -149,11 +149,11 @@ corr2 = Correction.parse_obj(
 )
 
 
-sf = requests.get(f"{examples}/EIDISO_WH_out.histo.json").json()
+sf = requests.get(f"{examples}/EIDISO_WH_out.histo.json").model_dump_json()
 
 
 def build_syst(sf):
-    return Category.parse_obj(
+    return Category.model_validate(
         {
             "nodetype": "category",
             "input": "systematic",
@@ -187,7 +187,7 @@ def build_pts(sf):
         edges.append(hi)
         content.append(build_syst(data))
 
-    return Binning.parse_obj(
+    return Binning.model_validate(
         {
             "nodetype": "binning",
             "input": "pt",
@@ -212,7 +212,7 @@ def build_etas(sf):
         if not found:
             raise ValueError("eta edges not in binning?")
 
-    return Binning.parse_obj(
+    return Binning.model_validate(
         {
             "nodetype": "binning",
             "input": "eta",
@@ -223,7 +223,7 @@ def build_etas(sf):
     )
 
 
-corr3 = Correction.parse_obj(
+corr3 = Correction.model_validate(
     {
         "version": 1,
         "name": "EIDISO_WH_out",
@@ -239,7 +239,7 @@ corr3 = Correction.parse_obj(
 )
 
 
-cset = CorrectionSet.parse_obj(
+cset = CorrectionSet.model_validate(
     {
         "schema_version": VERSION,
         "corrections": [
@@ -251,4 +251,4 @@ cset = CorrectionSet.parse_obj(
 )
 
 with gzip.open("data/examples.json.gz", "wt") as fout:
-    fout.write(cset.json(exclude_unset=True))
+    fout.write(cset.model_dump_json(exclude_unset=True))

@@ -41,11 +41,11 @@ def model_auto(data: str) -> Any:
     if version == 1:
         import correctionlib.schemav1
 
-        return correctionlib.schemav1.CorrectionSet.parse_obj(data)
+        return correctionlib.schemav1.CorrectionSet.model_validate(data)
     elif version == 2:
         import correctionlib.schemav2
 
-        return correctionlib.schemav2.CorrectionSet.parse_obj(data)
+        return correctionlib.schemav2.CorrectionSet.model_validate(data)
     raise ValueError(f"Unknown CorrectionSet schema version ({version})")
 
 
@@ -365,7 +365,7 @@ class CorrectionSet(Mapping[str, Correction]):
         if isinstance(data, str):
             self._data = data
         else:
-            self._data = data.json(exclude_unset=True)
+            self._data = data.model_dump_json(exclude_unset=True)
         self._base = correctionlib._core.CorrectionSet.from_string(self._data)
 
     @classmethod

@@ -29,9 +29,8 @@ def write(data: Any, fname: str, **kwargs: Any) -> None:
 def dumps(data: Any, sort_keys: bool = False, **kwargs: Any) -> str:
     """Help function to quickly dump dictionary formatted by JSONEncoder."""
     if isinstance(data, pydantic.BaseModel):  # for pydantic
-        return data.json(cls=JSONEncoder, exclude_unset=True, **kwargs)
-    else:  # for standard data structures
-        return json.dumps(data, cls=JSONEncoder, sort_keys=sort_keys, **kwargs)
+        data = data.model_dump(mode="json", exclude_unset=True)
+    return json.dumps(data, cls=JSONEncoder, sort_keys=sort_keys, **kwargs)
 
 
 class JSONEncoder(json.JSONEncoder):

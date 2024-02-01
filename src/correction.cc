@@ -103,7 +103,7 @@ std::string_view JSONObject::getRequired<std::string_view>(const char * key) con
 
 namespace {
   Content resolve_content(const rapidjson::Value& json, const Correction& context) {
-    if ( json.IsDouble() ) { return json.GetDouble(); }
+    if ( json.IsNumber() ) { return json.GetDouble(); }
     else if ( json.IsObject() && json.HasMember("nodetype") ) {
       auto obj = JSONObject(json.GetObject());
       auto type = obj.getRequired<std::string_view>("nodetype");
@@ -569,13 +569,13 @@ Category::Category(const JSONObject& json, const Correction& context)
     }
     if ( kv_pair["key"].IsString() ) {
       if ( variable.type() != Variable::VarType::string ) {
-        throw std::runtime_error("Category got a key not of type string, but its input is string type");
+        throw std::runtime_error("Category got a key of type string, but its input is type " + variable.typeStr());
       }
       std::get<StrMap>(map_).try_emplace(kv_pair["key"].GetString(), resolve_content(kv_pair["value"], context));
     }
     else if ( kv_pair["key"].IsInt() ) {
       if ( variable.type() != Variable::VarType::integer ) {
-        throw std::runtime_error("Category got a key not of type int, but its input is int type");
+        throw std::runtime_error("Category got a key of type int, but its input is type " + variable.typeStr());
       }
       std::get<IntMap>(map_).try_emplace(kv_pair["key"].GetInt(), resolve_content(kv_pair["value"], context));
     }
