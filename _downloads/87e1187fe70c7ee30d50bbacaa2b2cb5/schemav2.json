@@ -1,314 +1,180 @@
 {
-    "title": "CorrectionSet",
-    "type": "object",
-    "properties": {
-        "schema_version": {
-            "title": "Schema Version",
-            "description": "The overall schema version",
-            "enum": [
-                2
-            ],
-            "type": "integer"
-        },
-        "description": {
-            "title": "Description",
-            "description": "A nice description of what is in this CorrectionSet means",
-            "type": "string"
-        },
-        "corrections": {
-            "title": "Corrections",
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/Correction"
-            }
-        },
-        "compound_corrections": {
-            "title": "Compound Corrections",
-            "type": "array",
-            "items": {
-                "$ref": "#/definitions/CompoundCorrection"
-            }
-        }
-    },
-    "required": [
-        "schema_version",
-        "corrections"
-    ],
-    "additionalProperties": false,
-    "definitions": {
-        "Variable": {
-            "title": "Variable",
-            "description": "An input or output variable",
-            "type": "object",
-            "properties": {
-                "name": {
-                    "title": "Name",
-                    "type": "string"
-                },
-                "type": {
-                    "title": "Type",
-                    "description": "A string, a 64 bit integer, or a double-precision floating point value",
-                    "enum": [
-                        "string",
-                        "int",
-                        "real"
-                    ],
-                    "type": "string"
-                },
-                "description": {
-                    "title": "Description",
-                    "description": "A nice description of what this variable means",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "name",
-                "type"
-            ],
-            "additionalProperties": false
-        },
-        "Formula": {
-            "title": "Formula",
-            "description": "A general formula type",
-            "type": "object",
+    "$defs": {
+        "Binning": {
+            "additionalProperties": false,
+            "description": "1-dimensional binning in an input variable",
             "properties": {
                 "nodetype": {
-                    "title": "Nodetype",
-                    "enum": [
-                        "formula"
-                    ],
-                    "type": "string"
-                },
-                "expression": {
-                    "title": "Expression",
-                    "type": "string"
-                },
-                "parser": {
-                    "title": "Parser",
-                    "enum": [
-                        "TFormula"
-                    ],
-                    "type": "string"
-                },
-                "variables": {
-                    "title": "Variables",
-                    "description": "The names of the correction input variables this formula applies to",
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "parameters": {
-                    "title": "Parameters",
-                    "description": "Parameters, if the parser supports them (e.g. [0] for TFormula)",
-                    "type": "array",
-                    "items": {
-                        "type": "number"
-                    }
-                }
-            },
-            "required": [
-                "nodetype",
-                "expression",
-                "parser",
-                "variables"
-            ],
-            "additionalProperties": false
-        },
-        "UniformBinning": {
-            "title": "UniformBinning",
-            "description": "Uniform binning description, to be used as the `edges` attribute of Binning or MultiBinning.",
-            "type": "object",
-            "properties": {
-                "n": {
-                    "title": "N",
-                    "description": "Number of bins",
-                    "type": "integer"
-                },
-                "low": {
-                    "title": "Low",
-                    "description": "Lower edge of first bin",
-                    "type": "number"
-                },
-                "high": {
-                    "title": "High",
-                    "description": "Higher edge of last bin",
-                    "type": "number"
-                }
-            },
-            "required": [
-                "n",
-                "low",
-                "high"
-            ],
-            "additionalProperties": false
-        },
-        "FormulaRef": {
-            "title": "FormulaRef",
-            "description": "A reference to one of the Correction generic_formula items, with specific parameters",
-            "type": "object",
-            "properties": {
-                "nodetype": {
-                    "title": "Nodetype",
-                    "enum": [
-                        "formularef"
-                    ],
-                    "type": "string"
-                },
-                "index": {
-                    "title": "Index",
-                    "description": "Index into the Correction.generic_formulas list",
-                    "minimum": 0,
-                    "type": "integer"
-                },
-                "parameters": {
-                    "title": "Parameters",
-                    "description": "Same interpretation as Formula.parameters",
-                    "type": "array",
-                    "items": {
-                        "type": "number"
-                    }
-                }
-            },
-            "required": [
-                "nodetype",
-                "index",
-                "parameters"
-            ],
-            "additionalProperties": false
-        },
-        "HashPRNG": {
-            "title": "HashPRNG",
-            "description": "A node that generates a pseudorandom number deterministic in its inputs\n\nThe output distribution can be chosen from a set of fixed values,\ndownstream code could then shift and scale it as necessary.",
-            "type": "object",
-            "properties": {
-                "nodetype": {
-                    "title": "Nodetype",
-                    "enum": [
-                        "hashprng"
-                    ],
-                    "type": "string"
-                },
-                "inputs": {
-                    "title": "Inputs",
-                    "description": "The names of the input variables to use as entropy sources",
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "distribution": {
-                    "title": "Distribution",
-                    "description": "The output distribution to draw from",
-                    "enum": [
-                        "stdflat",
-                        "stdnormal",
-                        "normal"
-                    ],
-                    "type": "string"
-                }
-            },
-            "required": [
-                "nodetype",
-                "inputs",
-                "distribution"
-            ],
-            "additionalProperties": false
-        },
-        "Transform": {
-            "title": "Transform",
-            "description": "A node that rewrites one real or integer input according to a rule as given by a content node\n\nAny downstream nodes will see a different value for the rewritten input\nIf the input is an integer type, the rule output will be cast from a\ndouble to integer type before using. These should be used sparingly and at\nhigh levels in the tree, since they require an allocation.",
-            "type": "object",
-            "properties": {
-                "nodetype": {
-                    "title": "Nodetype",
-                    "enum": [
-                        "transform"
-                    ],
-                    "type": "string"
+                    "const": "binning",
+                    "title": "Nodetype"
                 },
                 "input": {
+                    "description": "The name of the correction input variable this binning applies to",
                     "title": "Input",
-                    "description": "The name of the input to rewrite",
                     "type": "string"
                 },
-                "rule": {
-                    "title": "Rule",
-                    "description": "A subtree that implements the rewrite rule",
+                "edges": {
                     "anyOf": [
                         {
-                            "$ref": "#/definitions/Binning"
+                            "items": {
+                                "type": "number"
+                            },
+                            "type": "array"
                         },
                         {
-                            "$ref": "#/definitions/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/definitions/Category"
-                        },
-                        {
-                            "$ref": "#/definitions/Formula"
-                        },
-                        {
-                            "$ref": "#/definitions/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/definitions/Transform"
-                        },
-                        {
-                            "$ref": "#/definitions/HashPRNG"
-                        },
-                        {
-                            "type": "number"
+                            "$ref": "#/$defs/UniformBinning"
                         }
-                    ]
+                    ],
+                    "description": "Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)",
+                    "title": "Edges"
                 },
                 "content": {
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Binning"
+                            },
+                            {
+                                "$ref": "#/$defs/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/$defs/Category"
+                            },
+                            {
+                                "$ref": "#/$defs/Formula"
+                            },
+                            {
+                                "$ref": "#/$defs/FormulaRef"
+                            },
+                            {
+                                "$ref": "#/$defs/Transform"
+                            },
+                            {
+                                "$ref": "#/$defs/HashPRNG"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    },
                     "title": "Content",
-                    "description": "A subtree that will be evaluated with transformed values",
+                    "type": "array"
+                },
+                "flow": {
                     "anyOf": [
                         {
-                            "$ref": "#/definitions/Binning"
+                            "$ref": "#/$defs/Binning"
                         },
                         {
-                            "$ref": "#/definitions/MultiBinning"
+                            "$ref": "#/$defs/MultiBinning"
                         },
                         {
-                            "$ref": "#/definitions/Category"
+                            "$ref": "#/$defs/Category"
                         },
                         {
-                            "$ref": "#/definitions/Formula"
+                            "$ref": "#/$defs/Formula"
                         },
                         {
-                            "$ref": "#/definitions/FormulaRef"
+                            "$ref": "#/$defs/FormulaRef"
                         },
                         {
-                            "$ref": "#/definitions/Transform"
+                            "$ref": "#/$defs/Transform"
                         },
                         {
-                            "$ref": "#/definitions/HashPRNG"
+                            "$ref": "#/$defs/HashPRNG"
                         },
                         {
                             "type": "number"
+                        },
+                        {
+                            "enum": [
+                                "clamp",
+                                "error"
+                            ],
+                            "type": "string"
                         }
-                    ]
+                    ],
+                    "description": "Overflow behavior for out-of-bounds values",
+                    "title": "Flow"
                 }
             },
             "required": [
                 "nodetype",
                 "input",
-                "rule",
+                "edges",
+                "content",
+                "flow"
+            ],
+            "title": "Binning",
+            "type": "object"
+        },
+        "Category": {
+            "additionalProperties": false,
+            "description": "A categorical lookup",
+            "properties": {
+                "nodetype": {
+                    "const": "category",
+                    "title": "Nodetype"
+                },
+                "input": {
+                    "description": "The name of the correction input variable this category node applies to",
+                    "title": "Input",
+                    "type": "string"
+                },
+                "content": {
+                    "items": {
+                        "$ref": "#/$defs/CategoryItem"
+                    },
+                    "title": "Content",
+                    "type": "array"
+                },
+                "default": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Binning"
+                        },
+                        {
+                            "$ref": "#/$defs/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/$defs/Category"
+                        },
+                        {
+                            "$ref": "#/$defs/Formula"
+                        },
+                        {
+                            "$ref": "#/$defs/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/$defs/Transform"
+                        },
+                        {
+                            "$ref": "#/$defs/HashPRNG"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Default"
+                }
+            },
+            "required": [
+                "nodetype",
+                "input",
                 "content"
             ],
-            "additionalProperties": false
+            "title": "Category",
+            "type": "object"
         },
         "CategoryItem": {
-            "title": "CategoryItem",
+            "additionalProperties": false,
             "description": "A key-value pair\n\nThe key type must match the type of the Category input variable",
-            "type": "object",
             "properties": {
                 "key": {
-                    "title": "Key",
                     "anyOf": [
                         {
                             "type": "integer"
@@ -316,469 +182,102 @@
                         {
                             "type": "string"
                         }
-                    ]
+                    ],
+                    "title": "Key"
                 },
                 "value": {
-                    "title": "Value",
                     "anyOf": [
                         {
-                            "$ref": "#/definitions/Binning"
+                            "$ref": "#/$defs/Binning"
                         },
                         {
-                            "$ref": "#/definitions/MultiBinning"
+                            "$ref": "#/$defs/MultiBinning"
                         },
                         {
-                            "$ref": "#/definitions/Category"
+                            "$ref": "#/$defs/Category"
                         },
                         {
-                            "$ref": "#/definitions/Formula"
+                            "$ref": "#/$defs/Formula"
                         },
                         {
-                            "$ref": "#/definitions/FormulaRef"
+                            "$ref": "#/$defs/FormulaRef"
                         },
                         {
-                            "$ref": "#/definitions/Transform"
+                            "$ref": "#/$defs/Transform"
                         },
                         {
-                            "$ref": "#/definitions/HashPRNG"
+                            "$ref": "#/$defs/HashPRNG"
                         },
                         {
                             "type": "number"
                         }
-                    ]
+                    ],
+                    "title": "Value"
                 }
             },
             "required": [
                 "key",
                 "value"
             ],
-            "additionalProperties": false
-        },
-        "Category": {
-            "title": "Category",
-            "description": "A categorical lookup",
-            "type": "object",
-            "properties": {
-                "nodetype": {
-                    "title": "Nodetype",
-                    "enum": [
-                        "category"
-                    ],
-                    "type": "string"
-                },
-                "input": {
-                    "title": "Input",
-                    "description": "The name of the correction input variable this category node applies to",
-                    "type": "string"
-                },
-                "content": {
-                    "title": "Content",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/CategoryItem"
-                    }
-                },
-                "default": {
-                    "title": "Default",
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/Binning"
-                        },
-                        {
-                            "$ref": "#/definitions/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/definitions/Category"
-                        },
-                        {
-                            "$ref": "#/definitions/Formula"
-                        },
-                        {
-                            "$ref": "#/definitions/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/definitions/Transform"
-                        },
-                        {
-                            "$ref": "#/definitions/HashPRNG"
-                        },
-                        {
-                            "type": "number"
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "nodetype",
-                "input",
-                "content"
-            ],
-            "additionalProperties": false
-        },
-        "MultiBinning": {
-            "title": "MultiBinning",
-            "description": "N-dimensional rectangular binning",
-            "type": "object",
-            "properties": {
-                "nodetype": {
-                    "title": "Nodetype",
-                    "enum": [
-                        "multibinning"
-                    ],
-                    "type": "string"
-                },
-                "inputs": {
-                    "title": "Inputs",
-                    "description": "The names of the correction input variables this binning applies to",
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "edges": {
-                    "title": "Edges",
-                    "description": "Bin edges for each input",
-                    "type": "array",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "type": "array",
-                                "items": {
-                                    "type": "number"
-                                }
-                            },
-                            {
-                                "$ref": "#/definitions/UniformBinning"
-                            }
-                        ]
-                    }
-                },
-                "content": {
-                    "title": "Content",
-                    "description": "Bin contents as a flattened array\n        This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds\n        to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.\n    ",
-                    "type": "array",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/Binning"
-                            },
-                            {
-                                "$ref": "#/definitions/MultiBinning"
-                            },
-                            {
-                                "$ref": "#/definitions/Category"
-                            },
-                            {
-                                "$ref": "#/definitions/Formula"
-                            },
-                            {
-                                "$ref": "#/definitions/FormulaRef"
-                            },
-                            {
-                                "$ref": "#/definitions/Transform"
-                            },
-                            {
-                                "$ref": "#/definitions/HashPRNG"
-                            },
-                            {
-                                "type": "number"
-                            }
-                        ]
-                    }
-                },
-                "flow": {
-                    "title": "Flow",
-                    "description": "Overflow behavior for out-of-bounds values",
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/Binning"
-                        },
-                        {
-                            "$ref": "#/definitions/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/definitions/Category"
-                        },
-                        {
-                            "$ref": "#/definitions/Formula"
-                        },
-                        {
-                            "$ref": "#/definitions/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/definitions/Transform"
-                        },
-                        {
-                            "$ref": "#/definitions/HashPRNG"
-                        },
-                        {
-                            "type": "number"
-                        },
-                        {
-                            "enum": [
-                                "clamp",
-                                "error"
-                            ],
-                            "type": "string"
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "nodetype",
-                "inputs",
-                "edges",
-                "content",
-                "flow"
-            ],
-            "additionalProperties": false
-        },
-        "Binning": {
-            "title": "Binning",
-            "description": "1-dimensional binning in an input variable",
-            "type": "object",
-            "properties": {
-                "nodetype": {
-                    "title": "Nodetype",
-                    "enum": [
-                        "binning"
-                    ],
-                    "type": "string"
-                },
-                "input": {
-                    "title": "Input",
-                    "description": "The name of the correction input variable this binning applies to",
-                    "type": "string"
-                },
-                "edges": {
-                    "title": "Edges",
-                    "description": "Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)",
-                    "anyOf": [
-                        {
-                            "type": "array",
-                            "items": {
-                                "type": "number"
-                            }
-                        },
-                        {
-                            "$ref": "#/definitions/UniformBinning"
-                        }
-                    ]
-                },
-                "content": {
-                    "title": "Content",
-                    "type": "array",
-                    "items": {
-                        "anyOf": [
-                            {
-                                "$ref": "#/definitions/Binning"
-                            },
-                            {
-                                "$ref": "#/definitions/MultiBinning"
-                            },
-                            {
-                                "$ref": "#/definitions/Category"
-                            },
-                            {
-                                "$ref": "#/definitions/Formula"
-                            },
-                            {
-                                "$ref": "#/definitions/FormulaRef"
-                            },
-                            {
-                                "$ref": "#/definitions/Transform"
-                            },
-                            {
-                                "$ref": "#/definitions/HashPRNG"
-                            },
-                            {
-                                "type": "number"
-                            }
-                        ]
-                    }
-                },
-                "flow": {
-                    "title": "Flow",
-                    "description": "Overflow behavior for out-of-bounds values",
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/Binning"
-                        },
-                        {
-                            "$ref": "#/definitions/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/definitions/Category"
-                        },
-                        {
-                            "$ref": "#/definitions/Formula"
-                        },
-                        {
-                            "$ref": "#/definitions/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/definitions/Transform"
-                        },
-                        {
-                            "$ref": "#/definitions/HashPRNG"
-                        },
-                        {
-                            "type": "number"
-                        },
-                        {
-                            "enum": [
-                                "clamp",
-                                "error"
-                            ],
-                            "type": "string"
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "nodetype",
-                "input",
-                "edges",
-                "content",
-                "flow"
-            ],
-            "additionalProperties": false
-        },
-        "Correction": {
-            "title": "Correction",
-            "type": "object",
-            "properties": {
-                "name": {
-                    "title": "Name",
-                    "type": "string"
-                },
-                "description": {
-                    "title": "Description",
-                    "description": "Detailed description of the correction",
-                    "type": "string"
-                },
-                "version": {
-                    "title": "Version",
-                    "description": "Some value that may increase over time due to bugfixes",
-                    "type": "integer"
-                },
-                "inputs": {
-                    "title": "Inputs",
-                    "description": "The function signature of the correction",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Variable"
-                    }
-                },
-                "output": {
-                    "title": "Output",
-                    "description": "Output type for this correction",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/Variable"
-                        }
-                    ]
-                },
-                "generic_formulas": {
-                    "title": "Generic Formulas",
-                    "description": "A list of common formulas that may be used\n\n        For corrections with many parameterized formulas that follow a regular pattern,\n        the expression and inputs can be declared once with a generic formula, deferring the parameter\n        declaration to the more lightweight FormulaRef nodes. This can speed up both loading and evaluation\n        of the correction object\n        ",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/Formula"
-                    }
-                },
-                "data": {
-                    "title": "Data",
-                    "description": "The root content node",
-                    "anyOf": [
-                        {
-                            "$ref": "#/definitions/Binning"
-                        },
-                        {
-                            "$ref": "#/definitions/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/definitions/Category"
-                        },
-                        {
-                            "$ref": "#/definitions/Formula"
-                        },
-                        {
-                            "$ref": "#/definitions/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/definitions/Transform"
-                        },
-                        {
-                            "$ref": "#/definitions/HashPRNG"
-                        },
-                        {
-                            "type": "number"
-                        }
-                    ]
-                }
-            },
-            "required": [
-                "name",
-                "version",
-                "inputs",
-                "output",
-                "data"
-            ],
-            "additionalProperties": false
+            "title": "CategoryItem",
+            "type": "object"
         },
         "CompoundCorrection": {
-            "title": "CompoundCorrection",
+            "additionalProperties": false,
             "description": "A compound correction\n\nThis references other Correction objects in a CorrectionSet and can\nprovide a canned recipe for serial application of dependent corrections.\nFor example, given corrections corr1(x, y) and corr2(x', z), where\nx' = corr1(x, y) * x, the compound correction\ncorr(x, y, z) = corr2(x * corr1(x, y), z)\ncan be expressed with reference to its component corrections.",
-            "type": "object",
             "properties": {
                 "name": {
                     "title": "Name",
                     "type": "string"
                 },
                 "description": {
-                    "title": "Description",
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
                     "description": "Detailed description of the correction stack",
-                    "type": "string"
+                    "title": "Description"
                 },
                 "inputs": {
-                    "title": "Inputs",
                     "description": "The function signature of the correction",
-                    "type": "array",
                     "items": {
-                        "$ref": "#/definitions/Variable"
-                    }
+                        "$ref": "#/$defs/Variable"
+                    },
+                    "title": "Inputs",
+                    "type": "array"
                 },
                 "output": {
-                    "title": "Output",
-                    "description": "Output type for this correction",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/Variable"
+                            "$ref": "#/$defs/Variable"
                         }
-                    ]
+                    ],
+                    "description": "Output type for this correction"
                 },
                 "inputs_update": {
-                    "title": "Inputs Update",
                     "description": "Names of the input variables to update with the output of the previous correction",
-                    "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "title": "Inputs Update",
+                    "type": "array"
                 },
                 "input_op": {
-                    "title": "Input Op",
                     "description": "How to accumulate changes in the input variables",
                     "enum": [
                         "+",
                         "*",
                         "/"
                     ],
+                    "title": "Input Op",
                     "type": "string"
                 },
                 "output_op": {
-                    "title": "Output Op",
                     "description": "How to accumulate changes in the output variable",
                     "enum": [
                         "+",
@@ -786,15 +285,16 @@
                         "/",
                         "last"
                     ],
+                    "title": "Output Op",
                     "type": "string"
                 },
                 "stack": {
-                    "title": "Stack",
                     "description": "Names of the component corrections. Each component should have a subset of the inputs listed in this object.",
-                    "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "title": "Stack",
+                    "type": "array"
                 }
             },
             "required": [
@@ -806,7 +306,538 @@
                 "output_op",
                 "stack"
             ],
-            "additionalProperties": false
+            "title": "CompoundCorrection",
+            "type": "object"
+        },
+        "Correction": {
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "description": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Detailed description of the correction",
+                    "title": "Description"
+                },
+                "version": {
+                    "description": "Some value that may increase over time due to bugfixes",
+                    "title": "Version",
+                    "type": "integer"
+                },
+                "inputs": {
+                    "description": "The function signature of the correction",
+                    "items": {
+                        "$ref": "#/$defs/Variable"
+                    },
+                    "title": "Inputs",
+                    "type": "array"
+                },
+                "output": {
+                    "allOf": [
+                        {
+                            "$ref": "#/$defs/Variable"
+                        }
+                    ],
+                    "description": "Output type for this correction"
+                },
+                "generic_formulas": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "$ref": "#/$defs/Formula"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "A list of common formulas that may be used\n\n        For corrections with many parameterized formulas that follow a regular pattern,\n        the expression and inputs can be declared once with a generic formula, deferring the parameter\n        declaration to the more lightweight FormulaRef nodes. This can speed up both loading and evaluation\n        of the correction object\n        ",
+                    "title": "Generic Formulas"
+                },
+                "data": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Binning"
+                        },
+                        {
+                            "$ref": "#/$defs/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/$defs/Category"
+                        },
+                        {
+                            "$ref": "#/$defs/Formula"
+                        },
+                        {
+                            "$ref": "#/$defs/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/$defs/Transform"
+                        },
+                        {
+                            "$ref": "#/$defs/HashPRNG"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ],
+                    "description": "The root content node",
+                    "title": "Data"
+                }
+            },
+            "required": [
+                "name",
+                "version",
+                "inputs",
+                "output",
+                "data"
+            ],
+            "title": "Correction",
+            "type": "object"
+        },
+        "Formula": {
+            "additionalProperties": false,
+            "description": "A general formula type",
+            "properties": {
+                "nodetype": {
+                    "const": "formula",
+                    "title": "Nodetype"
+                },
+                "expression": {
+                    "title": "Expression",
+                    "type": "string"
+                },
+                "parser": {
+                    "const": "TFormula",
+                    "title": "Parser"
+                },
+                "variables": {
+                    "description": "The names of the correction input variables this formula applies to",
+                    "items": {
+                        "type": "string"
+                    },
+                    "title": "Variables",
+                    "type": "array"
+                },
+                "parameters": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "number"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Parameters, if the parser supports them (e.g. [0] for TFormula)",
+                    "title": "Parameters"
+                }
+            },
+            "required": [
+                "nodetype",
+                "expression",
+                "parser",
+                "variables"
+            ],
+            "title": "Formula",
+            "type": "object"
+        },
+        "FormulaRef": {
+            "additionalProperties": false,
+            "description": "A reference to one of the Correction generic_formula items, with specific parameters",
+            "properties": {
+                "nodetype": {
+                    "const": "formularef",
+                    "title": "Nodetype"
+                },
+                "index": {
+                    "description": "Index into the Correction.generic_formulas list",
+                    "minimum": 0,
+                    "title": "Index",
+                    "type": "integer"
+                },
+                "parameters": {
+                    "description": "Same interpretation as Formula.parameters",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "Parameters",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "nodetype",
+                "index",
+                "parameters"
+            ],
+            "title": "FormulaRef",
+            "type": "object"
+        },
+        "HashPRNG": {
+            "additionalProperties": false,
+            "description": "A node that generates a pseudorandom number deterministic in its inputs\n\nThe output distribution can be chosen from a set of fixed values,\ndownstream code could then shift and scale it as necessary.",
+            "properties": {
+                "nodetype": {
+                    "const": "hashprng",
+                    "title": "Nodetype"
+                },
+                "inputs": {
+                    "description": "The names of the input variables to use as entropy sources",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1,
+                    "title": "Inputs",
+                    "type": "array"
+                },
+                "distribution": {
+                    "description": "The output distribution to draw from",
+                    "enum": [
+                        "stdflat",
+                        "stdnormal",
+                        "normal"
+                    ],
+                    "title": "Distribution",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "nodetype",
+                "inputs",
+                "distribution"
+            ],
+            "title": "HashPRNG",
+            "type": "object"
+        },
+        "MultiBinning": {
+            "additionalProperties": false,
+            "description": "N-dimensional rectangular binning",
+            "properties": {
+                "nodetype": {
+                    "const": "multibinning",
+                    "title": "Nodetype"
+                },
+                "inputs": {
+                    "description": "The names of the correction input variables this binning applies to",
+                    "items": {
+                        "type": "string"
+                    },
+                    "minItems": 1,
+                    "title": "Inputs",
+                    "type": "array"
+                },
+                "edges": {
+                    "description": "Bin edges for each input",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "type": "number"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "$ref": "#/$defs/UniformBinning"
+                            }
+                        ]
+                    },
+                    "title": "Edges",
+                    "type": "array"
+                },
+                "content": {
+                    "description": "Bin contents as a flattened array\n        This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds\n        to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.\n    ",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/Binning"
+                            },
+                            {
+                                "$ref": "#/$defs/MultiBinning"
+                            },
+                            {
+                                "$ref": "#/$defs/Category"
+                            },
+                            {
+                                "$ref": "#/$defs/Formula"
+                            },
+                            {
+                                "$ref": "#/$defs/FormulaRef"
+                            },
+                            {
+                                "$ref": "#/$defs/Transform"
+                            },
+                            {
+                                "$ref": "#/$defs/HashPRNG"
+                            },
+                            {
+                                "type": "number"
+                            }
+                        ]
+                    },
+                    "title": "Content",
+                    "type": "array"
+                },
+                "flow": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Binning"
+                        },
+                        {
+                            "$ref": "#/$defs/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/$defs/Category"
+                        },
+                        {
+                            "$ref": "#/$defs/Formula"
+                        },
+                        {
+                            "$ref": "#/$defs/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/$defs/Transform"
+                        },
+                        {
+                            "$ref": "#/$defs/HashPRNG"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "enum": [
+                                "clamp",
+                                "error"
+                            ],
+                            "type": "string"
+                        }
+                    ],
+                    "description": "Overflow behavior for out-of-bounds values",
+                    "title": "Flow"
+                }
+            },
+            "required": [
+                "nodetype",
+                "inputs",
+                "edges",
+                "content",
+                "flow"
+            ],
+            "title": "MultiBinning",
+            "type": "object"
+        },
+        "Transform": {
+            "additionalProperties": false,
+            "description": "A node that rewrites one real or integer input according to a rule as given by a content node\n\nAny downstream nodes will see a different value for the rewritten input\nIf the input is an integer type, the rule output will be cast from a\ndouble to integer type before using. These should be used sparingly and at\nhigh levels in the tree, since they require an allocation.",
+            "properties": {
+                "nodetype": {
+                    "const": "transform",
+                    "title": "Nodetype"
+                },
+                "input": {
+                    "description": "The name of the input to rewrite",
+                    "title": "Input",
+                    "type": "string"
+                },
+                "rule": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Binning"
+                        },
+                        {
+                            "$ref": "#/$defs/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/$defs/Category"
+                        },
+                        {
+                            "$ref": "#/$defs/Formula"
+                        },
+                        {
+                            "$ref": "#/$defs/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/$defs/Transform"
+                        },
+                        {
+                            "$ref": "#/$defs/HashPRNG"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ],
+                    "description": "A subtree that implements the rewrite rule",
+                    "title": "Rule"
+                },
+                "content": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Binning"
+                        },
+                        {
+                            "$ref": "#/$defs/MultiBinning"
+                        },
+                        {
+                            "$ref": "#/$defs/Category"
+                        },
+                        {
+                            "$ref": "#/$defs/Formula"
+                        },
+                        {
+                            "$ref": "#/$defs/FormulaRef"
+                        },
+                        {
+                            "$ref": "#/$defs/Transform"
+                        },
+                        {
+                            "$ref": "#/$defs/HashPRNG"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ],
+                    "description": "A subtree that will be evaluated with transformed values",
+                    "title": "Content"
+                }
+            },
+            "required": [
+                "nodetype",
+                "input",
+                "rule",
+                "content"
+            ],
+            "title": "Transform",
+            "type": "object"
+        },
+        "UniformBinning": {
+            "additionalProperties": false,
+            "description": "Uniform binning description, to be used as the `edges` attribute of Binning or MultiBinning.",
+            "properties": {
+                "n": {
+                    "description": "Number of bins",
+                    "title": "N",
+                    "type": "integer"
+                },
+                "low": {
+                    "description": "Lower edge of first bin",
+                    "title": "Low",
+                    "type": "number"
+                },
+                "high": {
+                    "description": "Higher edge of last bin",
+                    "title": "High",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "n",
+                "low",
+                "high"
+            ],
+            "title": "UniformBinning",
+            "type": "object"
+        },
+        "Variable": {
+            "additionalProperties": false,
+            "description": "An input or output variable",
+            "properties": {
+                "name": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "A string, a 64 bit integer, or a double-precision floating point value",
+                    "enum": [
+                        "string",
+                        "int",
+                        "real"
+                    ],
+                    "title": "Type",
+                    "type": "string"
+                },
+                "description": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "A nice description of what this variable means",
+                    "title": "Description"
+                }
+            },
+            "required": [
+                "name",
+                "type"
+            ],
+            "title": "Variable",
+            "type": "object"
         }
-    }
+    },
+    "additionalProperties": false,
+    "properties": {
+        "schema_version": {
+            "const": 2,
+            "description": "The overall schema version",
+            "title": "Schema Version"
+        },
+        "description": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null,
+            "description": "A nice description of what is in this CorrectionSet means",
+            "title": "Description"
+        },
+        "corrections": {
+            "items": {
+                "$ref": "#/$defs/Correction"
+            },
+            "title": "Corrections",
+            "type": "array"
+        },
+        "compound_corrections": {
+            "anyOf": [
+                {
+                    "items": {
+                        "$ref": "#/$defs/CompoundCorrection"
+                    },
+                    "type": "array"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null,
+            "title": "Compound Corrections"
+        }
+    },
+    "required": [
+        "schema_version",
+        "corrections"
+    ],
+    "title": "CorrectionSet",
+    "type": "object"
 }
