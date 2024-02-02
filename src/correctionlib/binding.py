@@ -1,25 +1,20 @@
 def register_pyroot_binding() -> None:
-    import os.path
     import sys
 
-    import pkg_resources
     from cppyy import gbl
+
+    from .util import this_module_path
+
+    base_path = this_module_path()
+    lib = base_path / "lib"
 
     # maybe not the most robust solution?
     if sys.platform.startswith("win32"):
-        lib = pkg_resources.resource_filename(
-            "correctionlib", os.path.join("lib", "correctionlib.dll")
-        )
+        lib = lib / "correctionlib.dll"
     elif sys.platform.startswith("darwin"):
-        lib = pkg_resources.resource_filename(
-            "correctionlib", os.path.join("lib", "libcorrectionlib.dylib")
-        )
+        lib = lib / "libcorrectionlib.dylib"
     else:
-        lib = pkg_resources.resource_filename(
-            "correctionlib", os.path.join("lib", "libcorrectionlib.so")
-        )
+        lib = lib / "libcorrectionlib.so"
     gbl.gSystem.Load(lib)
-    gbl.gInterpreter.AddIncludePath(
-        pkg_resources.resource_filename("correctionlib", "include")
-    )
+    gbl.gInterpreter.AddIncludePath(base_path / "include")
     gbl.gROOT.ProcessLine('#include "correction.h"')
