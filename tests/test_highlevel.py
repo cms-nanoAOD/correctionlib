@@ -96,8 +96,7 @@ def test_highlevel_dask(cset):
     x = awkward.unflatten(numpy.ones(6), [3, 2, 1])
     dx = dask_awkward.from_awkward(x, 3)
 
-    evaluate = dask_awkward.map_partitions(
-        sf.evaluate,
+    evaluate = sf.evaluate(
         dx,
         1.0,
     )
