@@ -1,7 +1,7 @@
 import sys
 from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 if sys.version_info >= (3, 8):
     from typing import Literal
@@ -13,15 +13,14 @@ VERSION = 1
 
 
 class Model(BaseModel):
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
 
 class Variable(Model):
     name: str
     type: Literal["string", "int", "real"]
     "Implicitly 64 bit integer and double-precision floating point?"
-    description: Optional[str]
+    description: Optional[str] = None
     # TODO: clamping behavior for out of range?
 
 
@@ -72,7 +71,7 @@ Category.update_forward_refs()
 class Correction(Model):
     name: str
     "A useful name"
-    description: Optional[str]
+    description: Optional[str] = None
     "Detailed description of the correction"
     version: int
     "Version"

@@ -6,7 +6,7 @@ import correctionlib.schemav2
 
 
 def test_compound():
-    cset = correctionlib.schemav2.CorrectionSet.parse_obj(
+    cset = correctionlib.schemav2.CorrectionSet.model_validate(
         {
             "schema_version": 2,
             "corrections": [
@@ -63,7 +63,7 @@ def test_compound():
             ],
         }
     )
-    cset = correctionlib.CorrectionSet.from_string(cset.json())
+    cset = correctionlib.CorrectionSet.from_string(cset.model_dump_json())
     corr = cset.compound["l1l2"]
     assert corr.evaluate(10.0, 1.2) == 1 + 0.1 * math.log10(10 * 1.1) + 0.1 * 1.2
     assert corr.evaluate(10.0, 0.0) == 1 + 0.1 * math.log10(10 * 1.1)

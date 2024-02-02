@@ -19,7 +19,8 @@ def test_access_formula_ast():
     )
 
     formula = core.Formula.from_string(
-        c.data.json(), [core.Variable.from_string(v.json()) for v in c.inputs]
+        c.data.model_dump_json(),
+        [core.Variable.from_string(v.model_dump_json()) for v in c.inputs],
     )
     ast = formula.ast
 

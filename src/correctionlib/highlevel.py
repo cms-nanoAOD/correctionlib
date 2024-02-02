@@ -11,7 +11,8 @@ from packaging import version
 import correctionlib._core
 import correctionlib.version
 
-_version_two = version.parse("2")
+_min_version_ak = version.parse("2.0.0")
+_min_version_dak = version.parse("2024.1.1")
 
 
 def open_auto(filename: str) -> str:
@@ -40,11 +41,11 @@ def model_auto(data: str) -> Any:
     if version == 1:
         import correctionlib.schemav1
 
-        return correctionlib.schemav1.CorrectionSet.parse_obj(data)
+        return correctionlib.schemav1.CorrectionSet.model_validate(data)
     elif version == 2:
         import correctionlib.schemav2
 
-        return correctionlib.schemav2.CorrectionSet.parse_obj(data)
+        return correctionlib.schemav2.CorrectionSet.model_validate(data)
     raise ValueError(f"Unknown CorrectionSet schema version ({version})")
 
 
@@ -58,9 +59,9 @@ def _call_as_numpy(
 ) -> Any:
     import awkward
 
-    if version.parse(awkward.__version__) < _version_two:
+    if version.parse(awkward.__version__) < _min_version_ak:
         raise RuntimeError(
-            f"""imported awkward is version {awkward.__version__} < 2.0.0
+            f"""imported awkward is version {awkward.__version__} < {str(_min_version_ak)}
             If you cannot upgrade, try doing: ak.flatten(arrays) -> result = correction(arrays) -> ak.unflatten(result, counts)
             """
         )
@@ -130,6 +131,49 @@ def _wrap_awkward(
     return awkward.transform(tocall, *array_args)
 
 
+def _call_dask_correction(
+    correction: Any,
+    *args: Union["numpy.ndarray[Any, Any]", str, int, float],
+):
+    return _wrap_awkward(correction._base.evalv, *args)
+
+
+def _wrap_dask_awkward(
+    correction: Any,
+    *args: Union["numpy.ndarray[Any, Any]", str, int, float],
+) -> Any:
+    import dask.delayed
+    import dask_awkward
+
+    if version.parse(dask_awkward.__version__) < _min_version_dak:
+        raise RuntimeError(
+            f"""imported dask_awkward is version {dask_awkward.__version__} < {str(_min_version_dak)}
+            This version of dask_awkward includes several useful bugfixes and functionality extensions.
+            Please upgrade dask_awkward.
+            """
+        )
+
+    if not hasattr(correction, "_delayed_correction"):
+        setattr(  # noqa: B010
+            correction,
+            "_delayed_correction",
+            dask.delayed(correction),
+        )
+
+    correction_meta = _wrap_awkward(
+        correction._base.evalv,
+        *(arg._meta if isinstance(arg, dask_awkward.Array) else arg for arg in args),
+    )
+
+    return dask_awkward.map_partitions(
+        _call_dask_correction,
+        correction._delayed_correction,
+        *args,
+        meta=correction_meta,
+        label=correction._name,
+    )
+
+
 class Correction:
     """High-level correction evaluator object
 
@@ -174,12 +218,22 @@ class Correction:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
+        if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
+            raise TypeError(
+                "Correctionlib does not yet handle dask.array collections. "
+                "If you require this functionality (i.e. you cannot or do "
+                "not want to use dask_awkward/awkward arrays) please open an "
+                "issue at https://github.com/cms-nanoAOD/correctionlib/issues."
+            )
         try:
             vargs = [
                 numpy.asarray(arg)
                 for arg in args
                 if not isinstance(arg, (str, int, float))
             ]
+        except NotImplementedError:
+            if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
+                return _wrap_dask_awkward(self, *args)  # type: ignore
         except (ValueError, TypeError):
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
@@ -242,9 +296,28 @@ class CompoundCorrection:
         self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
     ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
-        vargs = [
-            numpy.asarray(arg) for arg in args if not isinstance(arg, (str, int, float))
-        ]
+        if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
+            raise TypeError(
+                "Correctionlib does not yet handle dask.array collections. "
+                "if you require this functionality (i.e. you cannot or do "
+                "not want to use dask_awkward/awkward arrays) please open an "
+                "issue at https://github.com/cms-nanoAOD/correctionlib/issues."
+            )
+        try:
+            vargs = [
+                numpy.asarray(arg)
+                for arg in args
+                if not isinstance(arg, (str, int, float))
+            ]
+        except NotImplementedError:
+            if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
+                return _wrap_dask_awkward(self, *args)  # type: ignore
+        except (ValueError, TypeError):
+            if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
+                return _wrap_awkward(self._base.evalv, *args)  # type: ignore
+        except Exception as err:
+            raise err
+
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
             oshape = bargs[0].shape
@@ -292,7 +365,7 @@ class CorrectionSet(Mapping[str, Correction]):
         if isinstance(data, str):
             self._data = data
         else:
-            self._data = data.json(exclude_unset=True)
+            self._data = data.model_dump_json(exclude_unset=True)
         self._base = correctionlib._core.CorrectionSet.from_string(self._data)
 
     @classmethod
