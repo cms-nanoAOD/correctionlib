@@ -3,11 +3,9 @@ import sys
 if sys.platform.startswith("win32"):
     import ctypes
 
-    import importlib.resources
+    from .util import this_module_path
 
-    ctypes.CDLL(
-        str(importlib.resources.files("correctionlib") / "lib" / "correctionlib.dll")
-    )
+    ctypes.CDLL(str(this_module_path() / "lib" / "correctionlib.dll"))
 
 
 from .binding import register_pyroot_binding

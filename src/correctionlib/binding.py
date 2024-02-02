@@ -1,10 +1,11 @@
 def register_pyroot_binding() -> None:
     import sys
 
-    import importlib.resources
     from cppyy import gbl
 
-    base_path = importlib.resources.files("correctionlib")
+    from .util import this_module_path
+
+    base_path = this_module_path()
     lib = base_path / "lib"
 
     # maybe not the most robust solution?

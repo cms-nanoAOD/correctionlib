@@ -130,20 +130,20 @@ def setup_merge(subparsers: Any) -> None:
 
 
 def config(console: Console, args: argparse.Namespace) -> int:
-    import importlib.resources
+    from .util import this_module_path
 
-    base_dir = importlib.resources.files("correctionlib")
+    base_dir = this_module_path()
     incdir = base_dir / "include"
     libdir = base_dir / "lib"
     out = []
     if args.version:
         out.append(correctionlib.version.version)
     if args.incdir:
-        out.append(incdir)
+        out.append(str(incdir))
     if args.cflags:
         out.append(f"-std=c++17 -I{incdir}")
     if args.libdir:
-        out.append(libdir)
+        out.append(str(libdir))
     if args.ldflags:
         out.append(f"-L{libdir} -lcorrectionlib")
     if args.rpath:
