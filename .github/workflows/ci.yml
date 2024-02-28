@@ -37,7 +37,6 @@ jobs:
         - python-version: pypy-3.7
           runs-on: ubuntu-latest
 
-
     steps:
     - uses: actions/checkout@v4
       with:
@@ -52,3 +51,33 @@ jobs:
 
     - name: Test package
       run: python -m pytest -ra
+
+  checkroot:
+    name: Check ROOT bindings
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v2.2.0
+        with:
+          python-version: 3.11
+          miniforge-variant: Mambaforge
+          channels: conda-forge,defaults
+          channel-priority: true
+
+      - name: Install ROOT
+        shell: bash -l {0}
+        run: |
+          mamba install root
+
+      - name: Install package
+        shell: bash -l {0}
+        run: python -m pip install .[test]
+
+      - name: Test package
+        shell: bash -l {0}
+        run: python -m pytest -ra

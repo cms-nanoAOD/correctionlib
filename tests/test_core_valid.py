@@ -38,7 +38,7 @@ def test_evaluator_validation():
     ]
 
     for json in bad_json:
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValidationError):  # noqa: B908
             schema.CorrectionSet.model_validate_json(json)
             pytest.fail(f"{json} did not fail validation")
         with pytest.raises(RuntimeError):
