@@ -11,7 +11,7 @@ Adapted from:
 import gzip
 import json
 import math
-from typing import Any, List, Type
+from typing import Any, List, Type  # noqa: F401
 
 import pydantic
 
