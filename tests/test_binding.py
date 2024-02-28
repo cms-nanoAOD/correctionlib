@@ -33,4 +33,4 @@ def test_pyroot_binding():
         f'auto cset = correction::CorrectionSet::from_string("{csetstr}");'  # noqa: B907
     )
     ROOT.gInterpreter.Declare('auto corr = cset->at("ptweight");')
-    print(ROOT.corr.evaluate([1.2]))
+    assert ROOT.corr.evaluate([1.2]) == 1.1
