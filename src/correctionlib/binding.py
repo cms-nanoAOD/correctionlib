@@ -15,6 +15,6 @@ def register_pyroot_binding() -> None:
         lib = lib / "libcorrectionlib.dylib"
     else:
         lib = lib / "libcorrectionlib.so"
-    gbl.gSystem.Load(lib)
-    gbl.gInterpreter.AddIncludePath(base_path / "include")
+    gbl.gSystem.Load(str(lib))
+    gbl.gInterpreter.AddIncludePath(str(base_path / "include"))
     gbl.gROOT.ProcessLine('#include "correction.h"')
