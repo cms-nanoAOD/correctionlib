@@ -6,7 +6,11 @@
             "properties": {
                 "nodetype": {
                     "const": "binning",
-                    "title": "Nodetype"
+                    "enum": [
+                        "binning"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "input": {
                     "description": "The name of the correction input variable this binning applies to",
@@ -114,7 +118,11 @@
             "properties": {
                 "nodetype": {
                     "const": "category",
-                    "title": "Nodetype"
+                    "enum": [
+                        "category"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "input": {
                     "description": "The name of the correction input variable this category node applies to",
@@ -413,7 +421,11 @@
             "properties": {
                 "nodetype": {
                     "const": "formula",
-                    "title": "Nodetype"
+                    "enum": [
+                        "formula"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "expression": {
                     "title": "Expression",
@@ -421,7 +433,11 @@
                 },
                 "parser": {
                     "const": "TFormula",
-                    "title": "Parser"
+                    "enum": [
+                        "TFormula"
+                    ],
+                    "title": "Parser",
+                    "type": "string"
                 },
                 "variables": {
                     "description": "The names of the correction input variables this formula applies to",
@@ -463,7 +479,11 @@
             "properties": {
                 "nodetype": {
                     "const": "formularef",
-                    "title": "Nodetype"
+                    "enum": [
+                        "formularef"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "index": {
                     "description": "Index into the Correction.generic_formulas list",
@@ -494,7 +514,11 @@
             "properties": {
                 "nodetype": {
                     "const": "hashprng",
-                    "title": "Nodetype"
+                    "enum": [
+                        "hashprng"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "inputs": {
                     "description": "The names of the input variables to use as entropy sources",
@@ -530,7 +554,11 @@
             "properties": {
                 "nodetype": {
                     "const": "multibinning",
-                    "title": "Nodetype"
+                    "enum": [
+                        "multibinning"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "inputs": {
                     "description": "The names of the correction input variables this binning applies to",
@@ -646,7 +674,11 @@
             "properties": {
                 "nodetype": {
                     "const": "transform",
-                    "title": "Nodetype"
+                    "enum": [
+                        "transform"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "input": {
                     "description": "The name of the input to rewrite",
@@ -796,7 +828,11 @@
         "schema_version": {
             "const": 2,
             "description": "The overall schema version",
-            "title": "Schema Version"
+            "enum": [
+                2
+            ],
+            "title": "Schema Version",
+            "type": "integer"
         },
         "description": {
             "anyOf": [

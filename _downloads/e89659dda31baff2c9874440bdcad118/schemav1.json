@@ -5,7 +5,11 @@
             "properties": {
                 "nodetype": {
                     "const": "binning",
-                    "title": "Nodetype"
+                    "enum": [
+                        "binning"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "edges": {
                     "items": {
@@ -51,7 +55,11 @@
             "properties": {
                 "nodetype": {
                     "const": "category",
-                    "title": "Nodetype"
+                    "enum": [
+                        "category"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "keys": {
                     "items": {
@@ -200,7 +208,11 @@
             "properties": {
                 "nodetype": {
                     "const": "multibinning",
-                    "title": "Nodetype"
+                    "enum": [
+                        "multibinning"
+                    ],
+                    "title": "Nodetype",
+                    "type": "string"
                 },
                 "edges": {
                     "items": {
@@ -285,7 +297,11 @@
     "properties": {
         "schema_version": {
             "const": 1,
-            "title": "Schema Version"
+            "enum": [
+                1
+            ],
+            "title": "Schema Version",
+            "type": "integer"
         },
         "corrections": {
             "items": {
