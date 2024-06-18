@@ -201,7 +201,7 @@ namespace {
       return edge.GetDouble();
     } else if ( edge.IsString() ) {
       std::string_view str = edge.GetString();
-      if (str == "inf" or str == "+inf") return std::numeric_limits<double>::infinity();
+      if ((str == "inf") || (str == "+inf")) return std::numeric_limits<double>::infinity();
       else if (str == "-inf") return -std::numeric_limits<double>::infinity();
     }
     throw std::runtime_error("Invalid edge type");
