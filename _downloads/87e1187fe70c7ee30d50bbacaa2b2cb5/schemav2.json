@@ -21,7 +21,19 @@
                     "anyOf": [
                         {
                             "items": {
-                                "type": "number"
+                                "anyOf": [
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "enum": [
+                                            "inf",
+                                            "+inf",
+                                            "-inf"
+                                        ],
+                                        "type": "string"
+                                    }
+                                ]
                             },
                             "type": "array"
                         },
@@ -575,7 +587,19 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "type": "number"
+                                    "anyOf": [
+                                        {
+                                            "type": "number"
+                                        },
+                                        {
+                                            "enum": [
+                                                "inf",
+                                                "+inf",
+                                                "-inf"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    ]
                                 },
                                 "type": "array"
                             },
