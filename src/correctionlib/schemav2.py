@@ -1,7 +1,7 @@
 import math
 import sys
 from collections import defaultdict
-from typing import Annotated, Dict, List, Optional, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from pydantic import (
     AfterValidator,
@@ -20,10 +20,14 @@ from rich.tree import Tree
 
 import correctionlib.highlevel
 
-if sys.version_info >= (3, 8):
+if sys.version_info >= (3, 9):
+    from typing import Annotated, Literal
+elif sys.version_info >= (3, 8):
     from typing import Literal
+
+    from typing_extensions import Annotated
 else:
-    from typing_extensions import Literal
+    from typing_extensions import Annotated, Literal
 
 
 VERSION = 2
@@ -302,8 +306,8 @@ class MultiBinning(Model):
     ) -> None:
         nodecount["MultiBinning"] += 1
         for input, edges in zip(self.inputs, self.edges):
-            low = edges[0] if isinstance(edges, list) else edges.low
-            high = edges[-1] if isinstance(edges, list) else edges.high
+            low = float(edges[0]) if isinstance(edges, list) else edges.low
+            high = float(edges[-1]) if isinstance(edges, list) else edges.high
             inputstats[input].overflow &= self.flow != "error"
             inputstats[input].min = min(inputstats[input].min, low)
             inputstats[input].max = max(inputstats[input].max, high)
