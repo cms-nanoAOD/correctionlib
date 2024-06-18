@@ -357,6 +357,11 @@ class Category(Model):
         self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
     ) -> None:
         nodecount["Category"] += 1
+        if self.input not in inputstats:
+            raise RuntimeError(
+                f"The input variable {self.input} of a Category node is not defined "
+                "in the inputs of the Correction object"
+            )
         inputstats[self.input].values |= {item.key for item in self.content}
         inputstats[self.input].default |= self.default is not None
         for item in self.content:
