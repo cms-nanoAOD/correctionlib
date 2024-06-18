@@ -67,7 +67,7 @@ def test_evaluator():
                 {
                     "nodetype": "binning",
                     "input": "pt",
-                    "edges": [0., 20., 40., float("inf")],
+                    "edges": [0.0, 20.0, 40.0, float("inf")],
                     "flow": "error",
                     "content": [
                         schema.Category.model_validate(
