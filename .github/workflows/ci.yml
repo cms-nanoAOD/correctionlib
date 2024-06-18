@@ -34,9 +34,6 @@ jobs:
         runs-on: [ubuntu-latest, macos-13, windows-latest]
 
         include:
-        - python-version: pypy-3.8
-          runs-on: ubuntu-latest
-
         - python-version: "3.12"
           runs-on: macos-latest
     steps:
