@@ -832,12 +832,18 @@ CorrectionSet::CorrectionSet(const JSONObject& json) {
   for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("corrections")) {
     if ( ! item.IsObject() ) { throw std::runtime_error("Expected Correction object"); }
     auto corr = std::make_shared<Correction>(item.GetObject());
+    if ( corrections_.find(corr->name()) != corrections_.end() ) {
+      throw std::runtime_error("Duplicate Correction name: " + corr->name());
+    }
     corrections_[corr->name()] = corr;
   }
   if (auto items = json.getOptional<rapidjson::Value::ConstArray>("compound_corrections")) {
     for (const auto& item : *items) {
       if ( ! item.IsObject() ) { throw std::runtime_error("Expected CompoundCorrection object"); }
       auto corr = std::make_shared<CompoundCorrection>(item.GetObject(), *this);
+      if ( compoundcorrections_.find(corr->name()) != compoundcorrections_.end() ) {
+        throw std::runtime_error("Duplicate CompoundCorrection name: " + corr->name());
+      }
       compoundcorrections_[corr->name()] = corr;
     }
   }
