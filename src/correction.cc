@@ -195,6 +195,30 @@ namespace {
     }
     throw std::runtime_error("Error: could not find variable " + std::string(name) + " in inputs");
   }
+
+  double parse_edge(const rapidjson::Value& edge) {
+    if ( edge.IsDouble() ) {
+      return edge.GetDouble();
+    } else if ( edge.IsString() ) {
+      std::string_view str = edge.GetString();
+      if (str == "inf" or str == "+inf") return std::numeric_limits<double>::infinity();
+      else if (str == "-inf") return -std::numeric_limits<double>::infinity();
+    }
+    throw std::runtime_error("Invalid edge type");
+  }
+
+  std::vector<double> parse_bin_edges(const rapidjson::Value::ConstArray& edges) {
+    std::vector<double> result;
+    result.reserve(edges.Size());
+    for (const auto& edge : edges) {
+      double val = parse_edge(edge);
+      if ( result.size() > 0 && result.back() >= val ) {
+        throw std::runtime_error("binning edges are not monotone increasing");
+      }
+      result.push_back(val);
+    }
+    return result;
+  }
 } // end of anonymous namespace
 
 Variable::Variable(const JSONObject& json) :
@@ -235,7 +259,7 @@ void Variable::validate(const Type& t) const {
 
 Variable Variable::from_string(const char * data) {
   rapidjson::Document json;
-  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
+  rapidjson::ParseResult ok = json.Parse(data);
   if (!ok) {
     throw std::runtime_error(
         std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
@@ -283,7 +307,7 @@ Formula::Formula(const JSONObject& json, const std::vector<Variable>& inputs, bo
 
 Formula::Ref Formula::from_string(const char * data, std::vector<Variable>& inputs) {
   rapidjson::Document json;
-  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
+  rapidjson::ParseResult ok = json.Parse(data);
   if (!ok) {
     throw std::runtime_error(
         std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
@@ -403,14 +427,7 @@ Binning::Binning(const JSONObject& json, const Correction& context)
   // set bins_
   const auto &edgesObj = json.getRequiredValue("edges");
   if ( edgesObj.IsArray() ) { // non-uniform binning
-    std::vector<double> edges;
-    rapidjson::Value::ConstArray edgesArr = edgesObj.GetArray();
-    for (const auto& edge : edgesArr) {
-      if ( ! edge.IsDouble() ) { throw std::runtime_error("Invalid edges array type"); }
-      double val = edge.GetDouble();
-      if ( edges.size() > 0 && edges.back() >= val ) { throw std::runtime_error("binning edges are not monotone increasing"); }
-      edges.push_back(val);
-    }
+    std::vector<double> edges = parse_bin_edges(edgesObj.GetArray());
     if ( edges.size() != content.Size() + 1 ) {
       throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
     }
@@ -470,13 +487,7 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
   for (const auto& dimension : edges) {
     const auto& input = inputs[idx];
     if ( dimension.IsArray() ) { // non-uniform binning
-      std::vector<double> dim_edges;
-      dim_edges.reserve(dimension.GetArray().Size());
-      for (const auto& item : dimension.GetArray()) {
-        double val = item.GetDouble();
-        if ( dim_edges.size() > 0 && dim_edges.back() >= val ) { throw std::runtime_error("binning edges are not monotone increasing"); }
-        dim_edges.push_back(val);
-      }
+      std::vector<double> dim_edges = parse_bin_edges(dimension.GetArray());
       if ( ! input.IsString() ) { throw std::runtime_error("invalid multibinning input type"); }
       axes_.push_back({input_index(input.GetString(), context.inputs()), 0, _NonUniformBins(std::move(dim_edges))});
     } else if ( dimension.IsObject() ) { // UniformBinning
@@ -776,14 +787,14 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
 #ifdef WITH_ZLIB
     gzFile_s* fpz = gzopen(fn.c_str(), "r");
     rapidjson::GzFileReadStream is(fpz, readBuffer, sizeof(readBuffer));
-    ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
+    ok = json.ParseStream(is);
     gzclose(fpz);
 #else
     throw std::runtime_error("Gzip-compressed JSON files are only supported if ZLIB is found when the package is built");
 #endif
   } else {
     rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
+    ok = json.ParseStream(is);
     fclose(fp);
   }
   if (!ok) {
@@ -798,7 +809,7 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
 
 std::unique_ptr<CorrectionSet> CorrectionSet::from_string(const char * data) {
   rapidjson::Document json;
-  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
+  rapidjson::ParseResult ok = json.Parse(data);
   if (!ok) {
     throw std::runtime_error(
         std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())

@@ -1,8 +1,10 @@
+import math
 import sys
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Annotated, Dict, List, Optional, Set, Tuple, Union
 
 from pydantic import (
+    AfterValidator,
     BaseModel,
     ConfigDict,
     Field,
@@ -184,6 +186,29 @@ class UniformBinning(Model):
         return high
 
 
+Infinity = Literal["inf", "+inf", "-inf"]
+Edges = List[Union[float, Infinity]]
+
+
+def validate_nonuniform_edges(edges: Edges) -> Edges:
+    for edge in edges:
+        if edge in ("inf", "+inf", "-inf"):
+            continue
+        if isinstance(edge, float):
+            if not math.isfinite(edge):
+                raise ValueError(
+                    f"Edges array contains non-finite values: {edges}. Replace infinities with 'inf' or '-inf'. NaN is not allowed."
+                )
+    floatedges = [float(x) for x in edges]
+    for lo, hi in zip(floatedges[:-1], floatedges[1:]):
+        if lo >= hi:
+            raise ValueError(f"Binning edges not monotonically increasing: {edges}")
+    return edges
+
+
+NonUniformBinning = Annotated[Edges, AfterValidator(validate_nonuniform_edges)]
+
+
 class Binning(Model):
     """1-dimensional binning in an input variable"""
 
@@ -191,27 +216,13 @@ class Binning(Model):
     input: str = Field(
         description="The name of the correction input variable this binning applies to"
     )
-    edges: Union[List[float], UniformBinning] = Field(
+    edges: Union[NonUniformBinning, UniformBinning] = Field(
         description="Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
     )
     content: List[Content]
     flow: Union[Content, Literal["clamp", "error"]] = Field(
         description="Overflow behavior for out-of-bounds values"
     )
-
-    @field_validator("edges")
-    @classmethod
-    def validate_edges(
-        cls, edges: Union[List[float], UniformBinning]
-    ) -> Union[List[float], UniformBinning]:
-        if isinstance(edges, list):
-            for lo, hi in zip(edges[:-1], edges[1:]):
-                if hi <= lo:
-                    raise ValueError(
-                        f"Binning edges not monotonically increasing: {edges}"
-                    )
-
-        return edges
 
     @field_validator("content")
     @classmethod
@@ -234,8 +245,10 @@ class Binning(Model):
     ) -> None:
         nodecount["Binning"] += 1
         inputstats[self.input].overflow &= self.flow != "error"
-        low = self.edges[0] if isinstance(self.edges, list) else self.edges.low
-        high = self.edges[-1] if isinstance(self.edges, list) else self.edges.high
+        low = float(self.edges[0]) if isinstance(self.edges, list) else self.edges.low
+        high = (
+            float(self.edges[-1]) if isinstance(self.edges, list) else self.edges.high
+        )
         inputstats[self.input].min = min(inputstats[self.input].min, low)
         inputstats[self.input].max = max(inputstats[self.input].max, high)
         for item in self.content:
@@ -253,7 +266,7 @@ class MultiBinning(Model):
         description="The names of the correction input variables this binning applies to",
         min_length=1,
     )
-    edges: List[Union[List[float], UniformBinning]] = Field(
+    edges: List[Union[NonUniformBinning, UniformBinning]] = Field(
         description="Bin edges for each input"
     )
     content: List[Content] = Field(
@@ -265,20 +278,6 @@ class MultiBinning(Model):
     flow: Union[Content, Literal["clamp", "error"]] = Field(
         description="Overflow behavior for out-of-bounds values"
     )
-
-    @field_validator("edges")
-    @classmethod
-    def validate_edges(
-        cls, edges: List[Union[List[float], UniformBinning]]
-    ) -> List[Union[List[float], UniformBinning]]:
-        for i, dim in enumerate(edges):
-            if isinstance(dim, list):
-                for lo, hi in zip(dim[:-1], dim[1:]):
-                    if hi <= lo:
-                        raise ValueError(
-                            f"MultiBinning edges for axis {i} are not monotone increasing: {dim}"
-                        )
-        return edges
 
     @field_validator("content")
     @classmethod
