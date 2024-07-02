@@ -802,14 +802,14 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
 #ifdef WITH_ZLIB
     gzFile_s* fpz = gzopen(fn.c_str(), "r");
     rapidjson::GzFileReadStream is(fpz, readBuffer, sizeof(readBuffer));
-    ok = json.ParseStream(is);
+    ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
     gzclose(fpz);
 #else
     throw std::runtime_error("Gzip-compressed JSON files are only supported if ZLIB is found when the package is built");
 #endif
   } else {
     rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    ok = json.ParseStream(is);
+    ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
     fclose(fp);
   }
   if (!ok) {
@@ -824,7 +824,7 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
 
 std::unique_ptr<CorrectionSet> CorrectionSet::from_string(const char * data) {
   rapidjson::Document json;
-  rapidjson::ParseResult ok = json.Parse(data);
+  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
   if (!ok) {
     throw std::runtime_error(
         std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
