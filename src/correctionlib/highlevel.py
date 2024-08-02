@@ -231,16 +231,14 @@ class Correction:
                 for arg in args
                 if not isinstance(arg, (str, int, float))
             ]
-        except NotImplementedError as err:
+        except NotImplementedError:
             if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
                 return _wrap_dask_awkward(self, *args)  # type: ignore
-            raise err
-        except (ValueError, TypeError) as err:
+            raise
+        except (ValueError, TypeError):
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
-            raise err
-        except Exception as err:
-            raise err
+            raise
 
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
@@ -311,16 +309,14 @@ class CompoundCorrection:
                 for arg in args
                 if not isinstance(arg, (str, int, float))
             ]
-        except NotImplementedError as err:
+        except NotImplementedError:
             if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
                 return _wrap_dask_awkward(self, *args)  # type: ignore
-            raise err
+            raise
         except (ValueError, TypeError) as err:
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
-            raise err
-        except Exception as err:
-            raise err
+            raise
 
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
