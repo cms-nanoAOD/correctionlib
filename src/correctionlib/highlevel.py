@@ -313,7 +313,7 @@ class CompoundCorrection:
             if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
                 return _wrap_dask_awkward(self, *args)  # type: ignore
             raise
-        except (ValueError, TypeError) as err:
+        except (ValueError, TypeError):
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
             raise
