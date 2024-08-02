@@ -231,12 +231,14 @@ class Correction:
                 for arg in args
                 if not isinstance(arg, (str, int, float))
             ]
-        except NotImplementedError:
+        except NotImplementedError as err:
             if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
                 return _wrap_dask_awkward(self, *args)  # type: ignore
-        except (ValueError, TypeError):
+            raise err
+        except (ValueError, TypeError) as err:
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
+            raise err
         except Exception as err:
             raise err
 
@@ -309,12 +311,14 @@ class CompoundCorrection:
                 for arg in args
                 if not isinstance(arg, (str, int, float))
             ]
-        except NotImplementedError:
+        except NotImplementedError as err:
             if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
                 return _wrap_dask_awkward(self, *args)  # type: ignore
-        except (ValueError, TypeError):
+            raise err
+        except (ValueError, TypeError) as err:
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
+            raise err
         except Exception as err:
             raise err
 
