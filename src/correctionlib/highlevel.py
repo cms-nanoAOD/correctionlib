@@ -234,11 +234,11 @@ class Correction:
         except NotImplementedError:
             if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
                 return _wrap_dask_awkward(self, *args)  # type: ignore
+            raise
         except (ValueError, TypeError):
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
-        except Exception as err:
-            raise err
+            raise
 
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
@@ -312,11 +312,11 @@ class CompoundCorrection:
         except NotImplementedError:
             if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
                 return _wrap_dask_awkward(self, *args)  # type: ignore
+            raise
         except (ValueError, TypeError):
             if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
-        except Exception as err:
-            raise err
+            raise
 
         if vargs:
             bargs = numpy.broadcast_arrays(*vargs)
