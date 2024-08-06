@@ -32,6 +32,9 @@ else:
 
 VERSION = 2
 
+# See https://github.com/cms-nanoAOD/correctionlib/issues/255
+IGNORE_FLOAT_INF = False
+
 
 class Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -199,7 +202,7 @@ def validate_nonuniform_edges(edges: Edges) -> Edges:
         if edge in ("inf", "+inf", "-inf"):
             continue
         if isinstance(edge, float):
-            if not math.isfinite(edge):
+            if not IGNORE_FLOAT_INF and not math.isfinite(edge):
                 raise ValueError(
                     f"Edges array contains non-finite values: {edges}. Replace infinities with 'inf' or '-inf'. NaN is not allowed."
                 )
