@@ -9,11 +9,14 @@ import pydantic
 from rich.console import Console
 
 import correctionlib.version
+from correctionlib import schemav2
 from correctionlib.highlevel import model_auto, open_auto
 
 
 def validate(console: Console, args: argparse.Namespace) -> int:
     """Check if all files are valid"""
+    if args.ignore_float_inf:
+        schemav2.IGNORE_FLOAT_INF = True
     retcode = 0
     for file in args.files:
         try:
@@ -64,6 +67,11 @@ def setup_validate(subparsers: Any) -> None:
         type=int,
         default=None,
         help="Validate against specific schema version",
+    )
+    parser.add_argument(
+        "--ignore-float-inf",
+        action="store_true",
+        help="Disable errors for use of float infinities in bin edges (as required in v2.6 and later)",
     )
     parser.add_argument("files", nargs="+", metavar="FILE")
 
