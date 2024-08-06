@@ -5,6 +5,7 @@ import argparse
 import sys
 from typing import Any
 
+import pydantic
 from rich.console import Console
 
 import correctionlib.version
@@ -23,10 +24,17 @@ def validate(console: Console, args: argparse.Namespace) -> int:
                 raise ValueError(
                     f"Schema version {cset.schema_version} does not match the required version {args.version}"
                 )
-        except Exception as ex:
+        except pydantic.ValidationError as ex:
             if not args.quiet:
-                console.print(str(ex))
+                console.print("[red]Validation error, full information below")
+                print(str(ex))  # noqa: T201
             retcode = 1
+            if args.failfast:
+                break
+        except BaseException:
+            if not args.quiet:
+                raise
+            retcode = 2
             if args.failfast:
                 break
         else:
