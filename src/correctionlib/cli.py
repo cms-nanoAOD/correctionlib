@@ -219,7 +219,7 @@ def main() -> int:
         return retcode
 
     help = parser.format_help() + "\n"
-    help += "Subcommand usage:\n"
+    help += "Subcommand usage (specify -h for more detail):\n"
     for command in all_commands:
         help += command.format_usage()
     console.out(help, highlight=False)
