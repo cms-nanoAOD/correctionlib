@@ -1,9 +1,8 @@
-"""Command-line interface to correctionlib
+"""Command-line interface to correctionlib.
 
 """
 import argparse
 import sys
-from typing import Any
 
 import pydantic
 from rich.console import Console
@@ -46,7 +45,7 @@ def validate(console: Console, args: argparse.Namespace) -> int:
     return retcode
 
 
-def setup_validate(subparsers: Any) -> None:
+def setup_validate(subparsers):
     parser = subparsers.add_parser("validate", help=validate.__doc__)
     parser.set_defaults(command=validate)
     parser.add_argument(
@@ -74,6 +73,7 @@ def setup_validate(subparsers: Any) -> None:
         help="Disable errors for use of float infinities in bin edges (as required in v2.6 and later)",
     )
     parser.add_argument("files", nargs="+", metavar="FILE")
+    return parser
 
 
 def summary(console: Console, args: argparse.Namespace) -> int:
@@ -84,12 +84,13 @@ def summary(console: Console, args: argparse.Namespace) -> int:
     return 0
 
 
-def setup_summary(subparsers: Any) -> None:
+def setup_summary(subparsers):
     parser = subparsers.add_parser(
         "summary", help="Print a summmary of the corrections"
     )
     parser.set_defaults(command=summary)
     parser.add_argument("files", nargs="+", metavar="FILE")
+    return parser
 
 
 def merge(console: Console, args: argparse.Namespace) -> int:
@@ -129,7 +130,7 @@ def merge(console: Console, args: argparse.Namespace) -> int:
     return 0
 
 
-def setup_merge(subparsers: Any) -> None:
+def setup_merge(subparsers):
     parser = subparsers.add_parser(
         "merge", help="Merge one or more correction files and print to stdout"
     )
@@ -143,6 +144,7 @@ def setup_merge(subparsers: Any) -> None:
         default="compact",
     )
     parser.add_argument("files", nargs="+", metavar="FILE")
+    return parser
 
 
 def config(console: Console, args: argparse.Namespace) -> int:
@@ -170,12 +172,17 @@ def config(console: Console, args: argparse.Namespace) -> int:
     return 0
 
 
-def setup_config(subparsers: Any) -> None:
+def setup_config(subparsers):
     parser = subparsers.add_parser(
         "config", help="Configuration and linking information"
     )
     parser.set_defaults(command=config)
-    parser.add_argument("-v", "--version", action="store_true")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="store_true",
+        help="Return correctionlib current version",
+    )
     parser.add_argument("--incdir", action="store_true")
     parser.add_argument("--cflags", action="store_true")
     parser.add_argument("--libdir", action="store_true")
@@ -184,6 +191,7 @@ def setup_config(subparsers: Any) -> None:
         "--rpath", action="store_true", help="Include library path hint in linker"
     )
     parser.add_argument("--cmake", action="store_true", help="CMake dependency flags")
+    return parser
 
 
 def main() -> int:
@@ -196,21 +204,25 @@ def main() -> int:
     )
     parser.add_argument("--html", type=str, help="Save terminal output to an HTML file")
     subparsers = parser.add_subparsers()
-    setup_validate(subparsers)
-    setup_summary(subparsers)
-    setup_merge(subparsers)
-    setup_config(subparsers)
+    all_commands = []
+    all_commands.append(setup_validate(subparsers))
+    all_commands.append(setup_summary(subparsers))
+    all_commands.append(setup_merge(subparsers))
+    all_commands.append(setup_config(subparsers))
     args = parser.parse_args()
 
     console = Console(width=args.width, record=bool(args.html))
-    # py3.7: subparsers has required=True option
     if hasattr(args, "command"):
         retcode: int = args.command(console, args)
         if args.html:
             console.save_html(args.html)
         return retcode
 
-    parser.parse_args(["-h"])
+    help = parser.format_help() + "\n"
+    help += "Subcommand usage:\n"
+    for command in all_commands:
+        help += command.format_usage()
+    console.out(help, highlight=False)
     return 0
 
 
