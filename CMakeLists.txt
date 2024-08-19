@@ -49,10 +49,10 @@ target_include_directories(correctionlib
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
 if(ZLIB_FOUND)
-  target_link_libraries(correctionlib ZLIB::ZLIB)
+  target_link_libraries(correctionlib PRIVATE ZLIB::ZLIB)
 endif()
 if(Threads_FOUND AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  target_link_libraries(correctionlib Threads::Threads)
+  target_link_libraries(correctionlib PRIVATE Threads::Threads)
 endif()
 install(TARGETS correctionlib
   EXPORT correctionlib-targets
