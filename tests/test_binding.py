@@ -82,6 +82,10 @@ def test_cmake_static_compilation(csetstr: str):
         if ret.returncode != 0:
             print(ret.stdout.decode())
             print(ret.stderr.decode())
-            raise RuntimeError(f"cmake failed (args: {ret.args})")
-        subprocess.run(["make"], check=True, capture_output=True, cwd=tmpdir)
-        subprocess.run(["./test"], check=True, cwd=tmpdir)
+            raise RuntimeError(f"cmake configuration failed (args: {ret.args})")
+        ret = subprocess.run(["cmake", "--build", "."], capture_output=True, cwd=tmpdir)
+        if ret.returncode != 0:
+            print(ret.stdout.decode())
+            print(ret.stderr.decode())
+            raise RuntimeError(f"cmake build failed (args: {ret.args})")
+        subprocess.run([os.path.join(tmpdir, "test")], check=True)
