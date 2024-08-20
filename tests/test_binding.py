@@ -78,8 +78,10 @@ def test_cmake_static_compilation(csetstr: str):
         with open(testprog, "w") as f:
             f.write(TESTPROG_SRC % csetstr)
         flags = subprocess.check_output(["correction", "config", "--cmake"]).split()
-        subprocess.run(
-            ["cmake", "."] + flags, check=True, capture_output=True, cwd=tmpdir
-        )
+        ret = subprocess.run(["cmake", "."] + flags, capture_output=True, cwd=tmpdir)
+        if ret.returncode != 0:
+            print(ret.stdout)
+            print(ret.stderr)
+            raise RuntimeError("cmake failed (args: {ret.args})")
         subprocess.run(["make"], check=True, capture_output=True, cwd=tmpdir)
         subprocess.run(["./test"], check=True, cwd=tmpdir)
