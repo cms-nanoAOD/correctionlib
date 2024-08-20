@@ -89,7 +89,7 @@ def test_cmake_static_compilation(csetstr: str):
             print(ret.stdout.decode())
             print(ret.stderr.decode())
             raise RuntimeError(f"cmake build failed (args: {ret.args})")
-        for f in glob.glob(os.path.join(tmpdir, "*")):
+        for f in glob.glob(os.path.join(tmpdir, r"Debug\*")):
             print(f)
-        prog = "test.exe" if os.name == "nt" else "test"
+        prog = r"Debug\test.exe" if os.name == "nt" else "test"
         subprocess.run([os.path.join(tmpdir, prog)], check=True)
