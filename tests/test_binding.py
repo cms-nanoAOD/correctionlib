@@ -1,4 +1,3 @@
-import glob
 import os
 import shutil
 import subprocess
@@ -50,7 +49,7 @@ cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 project(test)
 find_package(correctionlib)
 add_executable(test test.cc)
-target_link_libraries(test PRIVATE correctionlib)
+target_link_libraries(test correctionlib)
 """
 
 TESTPROG_SRC = """\
@@ -78,7 +77,11 @@ def test_cmake_static_compilation(csetstr: str):
         testprog = os.path.join(tmpdir, "test.cc")
         with open(testprog, "w") as f:
             f.write(TESTPROG_SRC % csetstr)
-        flags = subprocess.check_output(["correction", "config", "--cmake"]).split()
+        flags = (
+            subprocess.check_output(["correction", "config", "--cmake"])
+            .decode()
+            .split()
+        )
         ret = subprocess.run(["cmake", "."] + flags, capture_output=True, cwd=tmpdir)
         if ret.returncode != 0:
             print(ret.stdout.decode())
@@ -89,7 +92,5 @@ def test_cmake_static_compilation(csetstr: str):
             print(ret.stdout.decode())
             print(ret.stderr.decode())
             raise RuntimeError(f"cmake build failed (args: {ret.args})")
-        for f in glob.glob(os.path.join(tmpdir, r"Debug\*")):
-            print(f)
         prog = r"Debug\test.exe" if os.name == "nt" else "test"
         subprocess.run([os.path.join(tmpdir, prog)], check=True)
