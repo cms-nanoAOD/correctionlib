@@ -49,7 +49,7 @@ cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 project(test)
 find_package(correctionlib)
 add_executable(test test.cc)
-target_link_libraries(test correctionlib)
+target_link_libraries(test PRIVATE correctionlib)
 """
 
 TESTPROG_SRC = """\
@@ -80,8 +80,8 @@ def test_cmake_static_compilation(csetstr: str):
         flags = subprocess.check_output(["correction", "config", "--cmake"]).split()
         ret = subprocess.run(["cmake", "."] + flags, capture_output=True, cwd=tmpdir)
         if ret.returncode != 0:
-            print(ret.stdout)
-            print(ret.stderr)
+            print(ret.stdout.decode())
+            print(ret.stderr.decode())
             raise RuntimeError("cmake failed (args: {ret.args})")
         subprocess.run(["make"], check=True, capture_output=True, cwd=tmpdir)
         subprocess.run(["./test"], check=True, cwd=tmpdir)
