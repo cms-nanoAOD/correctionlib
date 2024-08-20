@@ -45,11 +45,16 @@ def test_pyroot_binding(csetstr: str):
 
 
 CMAKELIST_SRC = """\
-cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 project(test)
 find_package(correctionlib)
 add_executable(test test.cc)
-target_link_libraries(test correctionlib)
+target_link_libraries(test PRIVATE correctionlib)
+# Because windows has no RPATH, we need to copy the DLLs to the executable directory
+add_custom_command(TARGET test POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:test> $<TARGET_RUNTIME_DLLS:test>
+  COMMAND_EXPAND_LISTS
+)
 """
 
 TESTPROG_SRC = """\
