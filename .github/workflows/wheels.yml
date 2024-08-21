@@ -25,6 +25,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
+        name: artifact-sdist
         path: dist/*.tar.gz
 
   build_wheels:
@@ -49,6 +50,7 @@ jobs:
     - name: Upload wheels
       uses: actions/upload-artifact@v4
       with:
+        name: artifact-wheel-${{ matrix.os }}
         path: wheelhouse/*.whl
 
   pypi-publish:
@@ -61,8 +63,9 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: artifact
         path: dist
+        pattern: artifact-*
+        merge-multiple: true
 
     - name: Publish package distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
