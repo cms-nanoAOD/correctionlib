@@ -36,7 +36,11 @@ jobs:
 
         include:
         - python-version: "3.7"
-          runs-on: [ubuntu-latest, macos-13, windows-latest]
+          runs-on: ubuntu-latest
+        - python-version: "3.7"
+          runs-on: macos-13
+        - python-version: "3.7"
+          runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
       with:
