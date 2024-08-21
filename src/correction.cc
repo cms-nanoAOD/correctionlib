@@ -791,9 +791,11 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
   if ( fp == nullptr ) {
     throw std::runtime_error("Failed to open file: " + fn);
   }
-  constexpr unsigned char magicref[4] = {0x1f, 0x8b};
+  constexpr unsigned char magicref[2] = {0x1f, 0x8b};
   unsigned char magic[2];
-  fread(magic, sizeof *magic, 2, fp);
+  if (fread(magic, sizeof *magic, 2, fp) != 2) {
+    throw std::runtime_error("Failed to read file magic: " + fn);
+  }
   rewind(fp);
   char readBuffer[65536];
   rapidjson::ParseResult ok;

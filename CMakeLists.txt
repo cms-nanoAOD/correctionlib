@@ -42,7 +42,7 @@ target_include_directories(correctionlib
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
 if(MSVC)
-  target_compile_options(correctionlib PRIVATE /W4 /WX)
+  target_compile_options(correctionlib PRIVATE /W3 /WX /Zc:__cplusplus /utf-8)
 else()
   target_compile_options(correctionlib PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
