@@ -23,7 +23,7 @@ namespace {
         AstPtr peg_ast;
         int pos;
         std::string msg;
-        parser_.log = [&](size_t ln, size_t col, const std::string &themsg) {
+        parser_.log = [&](size_t, size_t col, const std::string &themsg) {
           pos = col;
           msg = themsg;
         };

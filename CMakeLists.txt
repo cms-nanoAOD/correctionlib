@@ -22,16 +22,6 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 find_package(ZLIB)
 
-include(CheckCXXCompilerFlag)
-
-check_cxx_compiler_flag(-Wall has_wall)
-if(has_wall)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-endif()
-if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /utf-8")
-endif()
-
 
 configure_file(include/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h DESTINATION ${PKG_INSTALL}/include)
@@ -51,6 +41,11 @@ target_include_directories(correctionlib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pcg-cpp/include>
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
+if(MSVC)
+  target_compile_options(correctionlib PRIVATE /W4 /WX)
+else()
+  target_compile_options(correctionlib PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
 if(ZLIB_FOUND)
   target_link_libraries(correctionlib PRIVATE ZLIB::ZLIB)
 endif()
@@ -67,6 +62,11 @@ install(TARGETS correctionlib
 
 
 pybind11_add_module(_core MODULE src/python.cc)
+if(MSVC)
+  target_compile_options(_core PRIVATE /W4 /WX)
+else()
+  target_compile_options(_core PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
 target_link_libraries(_core PRIVATE correctionlib)
 set_target_properties(_core PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
 if (APPLE)
