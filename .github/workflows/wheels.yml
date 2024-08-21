@@ -23,7 +23,7 @@ jobs:
     - name: Build SDist
       run: pipx run build --sdist
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         path: dist/*.tar.gz
 
@@ -47,22 +47,22 @@ jobs:
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
     - name: Upload wheels
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         path: wheelhouse/*.whl
 
-  upload_all:
+  pypi-publish:
     needs: [build_wheels, make_sdist]
+    name: Upload release to PyPI
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
-
+    permissions:
+      id-token: write
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v4
       with:
         name: artifact
         path: dist
 
-    - uses: pypa/gh-action-pypi-publish@v1.9.0
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_token }}
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
