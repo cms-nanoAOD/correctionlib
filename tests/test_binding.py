@@ -109,5 +109,10 @@ def test_cmake_static_compilation(csetstr: str):
                 check=True,
             )
             print(ret.stdout.decode())
+            subprocess.run(
+                ["devenv", "/debugexe", os.path.join(tmpdir, r"Debug\test.exe")],
+                check=True,
+                cwd=tmpdir,
+            )
         prog = r"Debug\test.exe" if os.name == "nt" else "test"
         subprocess.run([os.path.join(tmpdir, prog)], check=True, cwd=tmpdir)
