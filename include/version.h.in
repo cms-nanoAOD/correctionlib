@@ -7,6 +7,6 @@ namespace correction {
   constexpr std::string_view correctionlib_version{"@CORRECTIONLIB_VERSION@"};
   constexpr int correctionlib_major_version{@correctionlib_VERSION_MAJOR@};
   constexpr int correctionlib_minor_version{@correctionlib_VERSION_MINOR@};
-};
+}
 
 #endif // CORRECTIONLIB_VERSION_H
