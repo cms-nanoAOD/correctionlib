@@ -23,7 +23,7 @@ namespace {
         AstPtr peg_ast;
         int pos;
         std::string msg;
-        parser_.log = [&](size_t ln, size_t col, const std::string &themsg) {
+        parser_.log = [&](size_t, size_t col, const std::string &themsg) {
           pos = col;
           msg = themsg;
         };
@@ -241,11 +241,12 @@ double FormulaAst::evaluate(const std::vector<Variable::Type>& values, const std
         case UnaryOp::Acosh: return std::acosh(arg);
         case UnaryOp::Asinh: return std::asinh(arg);
         case UnaryOp::Atanh: return std::atanh(arg);
-      }
+        default: std::abort();
+      };
     }
     case NodeType::Binary: {
-      auto left = children_[0].evaluate(values, params);
-      auto right = children_[1].evaluate(values, params);
+      const auto left = children_[0].evaluate(values, params);
+      const auto right = children_[1].evaluate(values, params);
       switch (std::get<BinaryOp>(data_)) {
         case BinaryOp::Equal: return (left == right) ? 1. : 0.;
         case BinaryOp::NotEqual: return (left != right) ? 1. : 0.;
@@ -261,9 +262,9 @@ double FormulaAst::evaluate(const std::vector<Variable::Type>& values, const std
         case BinaryOp::Atan2: return std::atan2(left, right);
         case BinaryOp::Max: return std::max(left, right);
         case BinaryOp::Min: return std::min(left, right);
+        default: std::abort();
       };
     }
-    default:
-      std::abort(); // never reached if the switch/case is exhaustive
+    default: std::abort(); // never reached if the switch/case is exhaustive
   }
 }

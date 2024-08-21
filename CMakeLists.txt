@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.11)
 
+if(NOT CORRECTIONLIB_VERSION)
+  set(CORRECTIONLIB_VERSION "0.0.0")  # overriden by setup.py
+endif()
 string(REPLACE "." ";" VERSION_SPLIT ${CORRECTIONLIB_VERSION})
 list(GET VERSION_SPLIT 0 SPLIT_VERSION_MAJOR)
 list(GET VERSION_SPLIT 1 SPLIT_VERSION_MINOR)
@@ -18,16 +21,6 @@ FetchContent_MakeAvailable(pybind11)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 find_package(ZLIB)
-
-include(CheckCXXCompilerFlag)
-
-check_cxx_compiler_flag(-Wall has_wall)
-if(has_wall)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-endif()
-if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus /utf-8")
-endif()
 
 
 configure_file(include/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h)
@@ -48,21 +41,32 @@ target_include_directories(correctionlib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pcg-cpp/include>
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
+if(MSVC)
+  target_compile_options(correctionlib PRIVATE /Zc:__cplusplus /utf-8)
+else()
+  target_compile_options(correctionlib PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
 if(ZLIB_FOUND)
-  target_link_libraries(correctionlib ZLIB::ZLIB)
+  target_link_libraries(correctionlib PRIVATE ZLIB::ZLIB)
 endif()
 if(Threads_FOUND AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  target_link_libraries(correctionlib Threads::Threads)
+  target_link_libraries(correctionlib PRIVATE Threads::Threads)
 endif()
 install(TARGETS correctionlib
   EXPORT correctionlib-targets
   LIBRARY DESTINATION ${PKG_INSTALL}/lib
+  ARCHIVE DESTINATION ${PKG_INSTALL}/lib
   RUNTIME DESTINATION ${PKG_INSTALL}/lib
   PUBLIC_HEADER DESTINATION ${PKG_INSTALL}/include
   )
 
 
 pybind11_add_module(_core MODULE src/python.cc)
+if(MSVC)
+  target_compile_options(_core PRIVATE /W4 /WX)
+else()
+  target_compile_options(_core PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
 target_link_libraries(_core PRIVATE correctionlib)
 set_target_properties(_core PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
 if (APPLE)
