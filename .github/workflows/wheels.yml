@@ -43,7 +43,7 @@ jobs:
         fetch-tags: true
         fetch-depth: 0
 
-    - uses: pypa/cibuildwheel@v2.19.2
+    - uses: pypa/cibuildwheel@v2.21.2
       env:
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
