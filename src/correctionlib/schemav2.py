@@ -1,6 +1,6 @@
 import math
 import sys
-from collections import defaultdict
+from collections import Counter
 from typing import Dict, List, Optional, Set, Tuple, Union
 
 from pydantic import (
@@ -416,7 +416,7 @@ class Correction(Model):
         return output
 
     def summary(self) -> Tuple[Dict[str, int], Dict[str, _SummaryInfo]]:
-        nodecount: Dict[str, int] = defaultdict(int)
+        nodecount: Dict[str, int] = Counter()
         inputstats = {var.name: _SummaryInfo() for var in self.inputs}
         if not isinstance(self.data, float):
             self.data.summarize(nodecount, inputstats)
