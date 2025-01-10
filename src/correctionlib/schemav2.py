@@ -416,7 +416,7 @@ class Correction(Model):
         return output
 
     def summary(self) -> Tuple[Dict[str, int], Dict[str, _SummaryInfo]]:
-        nodecount: Dict[str, int] = defaultdict(int)
+        nodecount: Dict[str, int] = defaultdict(int)  # noqa: B910
         inputstats = {var.name: _SummaryInfo() for var in self.inputs}
         if not isinstance(self.data, float):
             self.data.summarize(nodecount, inputstats)
