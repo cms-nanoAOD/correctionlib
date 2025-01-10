@@ -50,8 +50,10 @@ jobs:
         fetch-depth: 0
 
     - uses: docker/setup-qemu-action@v3
+      if: matrix.os == 'ubuntu-latest'
 
     - uses: pypa/cibuildwheel@v2.22
+      CIBW_ARCHS: ${{ matrix.arch }}
       env:
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
