@@ -53,8 +53,8 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
 
     - uses: pypa/cibuildwheel@v2.22
-      CIBW_ARCHS: ${{ matrix.arch }}
       env:
+        CIBW_ARCHS: ${{ matrix.arch }}
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
     - name: Upload wheels
