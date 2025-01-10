@@ -34,11 +34,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         arch: [auto64]
         include:
           - os: macos-latest
-            arch: auto64,universal2
+            arch: universal2
 
     steps:
     - uses: actions/checkout@v4
@@ -55,7 +55,7 @@ jobs:
     - name: Upload wheels
       uses: actions/upload-artifact@v4
       with:
-        name: artifact-wheel-${{ matrix.os }}
+        name: artifact-wheel-${{ matrix.os }}-${{ matrix.arch }}
         path: wheelhouse/*.whl
 
   build_alt_wheels:
