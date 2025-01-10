@@ -67,7 +67,7 @@ jobs:
         os: [ubuntu-latest]
         libc: [manylinux, musllinux]
         arch: [aarch64]
-        python: [37, 38, 39, 310, 311, 312, 313]
+        python: [38, 39, 310, 311, 312, 313]
 
     steps:
     - uses: actions/checkout@v4
