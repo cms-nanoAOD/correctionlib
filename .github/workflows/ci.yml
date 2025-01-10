@@ -20,7 +20,7 @@ jobs:
         submodules: recursive
     - uses: actions/setup-python@v3
       with:
-        python-version: 3.11.3
+        python-version: 3.12
     - uses: pre-commit/action@v3.0.0
       with:
         extra_args: --hook-stage manual --all-files
@@ -31,15 +31,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12", "3.13"]
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
 
         include:
-        - python-version: "3.7"
+        - python-version: "3.8"
           runs-on: ubuntu-latest
-        - python-version: "3.7"
+        - python-version: "3.8"
           runs-on: macos-13
-        - python-version: "3.7"
+        - python-version: "3.8"
           runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v3.0.4
         with:
-          python-version: 3.11
+          python-version: 3.12
           miniforge-variant: Mambaforge
           channels: conda-forge,defaults
           channel-priority: true
