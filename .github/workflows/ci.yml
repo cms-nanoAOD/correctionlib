@@ -66,12 +66,10 @@ jobs:
           submodules: recursive
 
       - name: Set up Conda
-        uses: conda-incubator/setup-miniconda@v3.0.4
+        uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: 3.12
-          miniforge-variant: Mambaforge
-          channels: conda-forge,defaults
-          channel-priority: true
+          miniforge-version: latest
 
       - name: Install ROOT
         shell: bash -l {0}
