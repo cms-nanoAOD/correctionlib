@@ -6,9 +6,6 @@
             "properties": {
                 "nodetype": {
                     "const": "binning",
-                    "enum": [
-                        "binning"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -130,9 +127,6 @@
             "properties": {
                 "nodetype": {
                     "const": "category",
-                    "enum": [
-                        "category"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -272,11 +266,7 @@
                     "type": "array"
                 },
                 "output": {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/Variable"
-                        }
-                    ],
+                    "$ref": "#/$defs/Variable",
                     "description": "Output type for this correction"
                 },
                 "inputs_update": {
@@ -363,11 +353,7 @@
                     "type": "array"
                 },
                 "output": {
-                    "allOf": [
-                        {
-                            "$ref": "#/$defs/Variable"
-                        }
-                    ],
+                    "$ref": "#/$defs/Variable",
                     "description": "Output type for this correction"
                 },
                 "generic_formulas": {
@@ -433,9 +419,6 @@
             "properties": {
                 "nodetype": {
                     "const": "formula",
-                    "enum": [
-                        "formula"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -445,9 +428,6 @@
                 },
                 "parser": {
                     "const": "TFormula",
-                    "enum": [
-                        "TFormula"
-                    ],
                     "title": "Parser",
                     "type": "string"
                 },
@@ -491,9 +471,6 @@
             "properties": {
                 "nodetype": {
                     "const": "formularef",
-                    "enum": [
-                        "formularef"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -526,9 +503,6 @@
             "properties": {
                 "nodetype": {
                     "const": "hashprng",
-                    "enum": [
-                        "hashprng"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -566,9 +540,6 @@
             "properties": {
                 "nodetype": {
                     "const": "multibinning",
-                    "enum": [
-                        "multibinning"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -698,9 +669,6 @@
             "properties": {
                 "nodetype": {
                     "const": "transform",
-                    "enum": [
-                        "transform"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -852,9 +820,6 @@
         "schema_version": {
             "const": 2,
             "description": "The overall schema version",
-            "enum": [
-                2
-            ],
             "title": "Schema Version",
             "type": "integer"
         },

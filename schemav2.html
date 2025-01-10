@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -5,20 +7,16 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Schema v2 &mdash; correctionlib  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -111,7 +109,7 @@
 </tr>
 <tr class="row-even"><td colspan="4"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="5"><ul class="simple">
+<tr class="row-odd"><td rowspan="4"><ul class="simple">
 <li><p><strong>schema_version</strong></p></li>
 </ul>
 </td>
@@ -122,62 +120,59 @@
 <tr class="row-odd"><td><p>type</p></td>
 <td colspan="2"><p><em>integer</em></p></td>
 </tr>
-<tr class="row-even"><td><p>enum</p></td>
+<tr class="row-even"><td><p>const</p></td>
 <td colspan="2"><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p>const</p></td>
-<td colspan="2"><p>2</p></td>
-</tr>
-<tr class="row-even"><td rowspan="5"><ul class="simple">
+<tr class="row-odd"><td rowspan="5"><ul class="simple">
 <li><p>description</p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Description</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p>A nice description of what is in this CorrectionSet means</p></td>
+<tr class="row-even"><td colspan="3"><p>A nice description of what is in this CorrectionSet means</p></td>
 </tr>
-<tr class="row-even"><td><p>default</p></td>
+<tr class="row-odd"><td><p>default</p></td>
 <td colspan="2"><p>null</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="2"><p>anyOf</p></td>
+<tr class="row-even"><td rowspan="2"><p>anyOf</p></td>
 <td><p>type</p></td>
 <td><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>null</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<tr class="row-even"><td rowspan="3"><ul class="simple">
 <li><p><strong>corrections</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Corrections</em></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="2"><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>items</p></td>
+<tr class="row-even"><td><p>items</p></td>
 <td colspan="2"><p><a class="reference internal" href="#correction">Correction</a></p></td>
 </tr>
-<tr class="row-even"><td rowspan="5"><ul class="simple">
+<tr class="row-odd"><td rowspan="5"><ul class="simple">
 <li><p>compound_corrections</p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Compound Corrections</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>default</p></td>
+<tr class="row-even"><td><p>default</p></td>
 <td colspan="2"><p>null</p></td>
 </tr>
-<tr class="row-even"><td rowspan="3"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="3"><p>anyOf</p></td>
 <td><p>type</p></td>
 <td><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>items</p></td>
+<tr class="row-even"><td><p>items</p></td>
 <td><p><a class="reference internal" href="#compoundcorrection">CompoundCorrection</a></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>null</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -192,7 +187,7 @@
 </tr>
 <tr class="row-even"><td colspan="6"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>nodetype</strong></p></li>
 </ul>
 </td>
@@ -201,109 +196,106 @@
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="4"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>const</p></td>
 <td colspan="4"><p>binning</p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="4"><p>binning</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<tr class="row-even"><td rowspan="3"><ul class="simple">
 <li><p><strong>input</strong></p></li>
 </ul>
 </td>
 <td colspan="5"><p><em>Input</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="5"><p>The name of the correction input variable this binning applies to</p></td>
+<tr class="row-odd"><td colspan="5"><p>The name of the correction input variable this binning applies to</p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="4"><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="7"><ul class="simple">
+<tr class="row-odd"><td rowspan="7"><ul class="simple">
 <li><p><strong>edges</strong></p></li>
 </ul>
 </td>
 <td colspan="5"><p><em>Edges</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="5"><p>Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] &lt;= x &lt; edges[i+1] =&gt; f(x, …) = content[i](…)</p></td>
+<tr class="row-even"><td colspan="5"><p>Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] &lt;= x &lt; edges[i+1] =&gt; f(x, …) = content[i](…)</p></td>
 </tr>
-<tr class="row-even"><td rowspan="5"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="5"><p>anyOf</p></td>
 <td><p>type</p></td>
 <td colspan="3"><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="3"><p>items</p></td>
+<tr class="row-even"><td rowspan="3"><p>items</p></td>
 <td rowspan="3"><p>anyOf</p></td>
 <td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-even"><td><p>enum</p></td>
 <td><p>inf, +inf, -inf</p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#uniformbinning">UniformBinning</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#uniformbinning">UniformBinning</a></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="10"><ul class="simple">
+<tr class="row-even"><td rowspan="10"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
 <td colspan="5"><p><em>Content</em></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="4"><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="8"><p>items</p></td>
+<tr class="row-even"><td rowspan="8"><p>items</p></td>
 <td rowspan="8"><p>anyOf</p></td>
 <td colspan="3"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="2"><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="12"><ul class="simple">
+<tr class="row-even"><td rowspan="12"><ul class="simple">
 <li><p><strong>flow</strong></p></li>
 </ul>
 </td>
 <td colspan="5"><p><em>Flow</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="5"><p>Overflow behavior for out-of-bounds values</p></td>
+<tr class="row-odd"><td colspan="5"><p>Overflow behavior for out-of-bounds values</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="10"><p>anyOf</p></td>
+<tr class="row-even"><td rowspan="10"><p>anyOf</p></td>
 <td colspan="4"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td colspan="3"><p><em>number</em></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>type</p></td>
+<td colspan="3"><p><em>number</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="3"><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>enum</p></td>
 <td colspan="3"><p>clamp, error</p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="5"><p>False</p></td>
 </tr>
 </tbody>
@@ -319,7 +311,7 @@
 </tr>
 <tr class="row-even"><td colspan="4"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>nodetype</strong></p></li>
 </ul>
 </td>
@@ -328,66 +320,63 @@
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>const</p></td>
 <td colspan="2"><p>category</p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="2"><p>category</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<tr class="row-even"><td rowspan="3"><ul class="simple">
 <li><p><strong>input</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Input</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p>The name of the correction input variable this category node applies to</p></td>
+<tr class="row-odd"><td colspan="3"><p>The name of the correction input variable this category node applies to</p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="3"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Content</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>array</em></p></td>
 </tr>
-<tr class="row-even"><td><p>items</p></td>
+<tr class="row-odd"><td><p>items</p></td>
 <td colspan="2"><p><a class="reference internal" href="#categoryitem">CategoryItem</a></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="11"><ul class="simple">
+<tr class="row-even"><td rowspan="11"><ul class="simple">
 <li><p>default</p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Default</em></p></td>
 </tr>
-<tr class="row-even"><td><p>default</p></td>
+<tr class="row-odd"><td><p>default</p></td>
 <td colspan="2"><p>null</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="9"><p>anyOf</p></td>
+<tr class="row-even"><td rowspan="9"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td><p><em>number</em></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>type</p></td>
+<td><p><em>number</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>null</em></p></td>
 </tr>
-<tr class="row-even"><td><p>additionalProperties</p></td>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -510,8 +499,7 @@ can be expressed with reference to its component corrections.</p>
 </td>
 <td colspan="3"><p>Output type for this correction</p></td>
 </tr>
-<tr class="row-odd"><td><p>allOf</p></td>
-<td colspan="2"><p><a class="reference internal" href="#variable">Variable</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#variable">Variable</a></p></td>
 </tr>
 <tr class="row-even"><td rowspan="4"><ul class="simple">
 <li><p><strong>inputs_update</strong></p></li>
@@ -644,8 +632,7 @@ can be expressed with reference to its component corrections.</p>
 </td>
 <td colspan="3"><p>Output type for this correction</p></td>
 </tr>
-<tr class="row-even"><td><p>allOf</p></td>
-<td colspan="2"><p><a class="reference internal" href="#variable">Variable</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#variable">Variable</a></p></td>
 </tr>
 <tr class="row-odd"><td rowspan="6"><ul class="simple">
 <li><p>generic_formulas</p></li>
@@ -717,7 +704,7 @@ of the correction object</p>
 </tr>
 <tr class="row-even"><td colspan="5"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>nodetype</strong></p></li>
 </ul>
 </td>
@@ -726,32 +713,26 @@ of the correction object</p>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="3"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>const</p></td>
 <td colspan="3"><p>formula</p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="3"><p>formula</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="2"><ul class="simple">
+<tr class="row-even"><td rowspan="2"><ul class="simple">
 <li><p><strong>expression</strong></p></li>
 </ul>
 </td>
 <td colspan="4"><p><em>Expression</em></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="3"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-even"><td rowspan="3"><ul class="simple">
 <li><p><strong>parser</strong></p></li>
 </ul>
 </td>
 <td colspan="4"><p><em>Parser</em></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="3"><p><em>string</em></p></td>
-</tr>
-<tr class="row-odd"><td><p>enum</p></td>
-<td colspan="3"><p>TFormula</p></td>
 </tr>
 <tr class="row-even"><td><p>const</p></td>
 <td colspan="3"><p>TFormula</p></td>
@@ -809,7 +790,7 @@ of the correction object</p>
 </tr>
 <tr class="row-even"><td colspan="4"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>nodetype</strong></p></li>
 </ul>
 </td>
@@ -818,42 +799,39 @@ of the correction object</p>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>const</p></td>
 <td colspan="2"><p>formularef</p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="2"><p>formularef</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-even"><td rowspan="4"><ul class="simple">
 <li><p><strong>index</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Index</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p>Index into the Correction.generic_formulas list</p></td>
+<tr class="row-odd"><td colspan="3"><p>Index into the Correction.generic_formulas list</p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>integer</em></p></td>
 </tr>
-<tr class="row-even"><td><p>minimum</p></td>
+<tr class="row-odd"><td><p>minimum</p></td>
 <td colspan="2"><p>0</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-even"><td rowspan="4"><ul class="simple">
 <li><p><strong>parameters</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Parameters</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p>Same interpretation as Formula.parameters</p></td>
+<tr class="row-odd"><td colspan="3"><p>Same interpretation as Formula.parameters</p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>array</em></p></td>
 </tr>
-<tr class="row-even"><td><p>items</p></td>
+<tr class="row-odd"><td><p>items</p></td>
 <td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -871,7 +849,7 @@ downstream code could then shift and scale it as necessary.</p>
 </tr>
 <tr class="row-even"><td colspan="4"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>nodetype</strong></p></li>
 </ul>
 </td>
@@ -880,45 +858,42 @@ downstream code could then shift and scale it as necessary.</p>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>const</p></td>
 <td colspan="2"><p>hashprng</p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="2"><p>hashprng</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="5"><ul class="simple">
+<tr class="row-even"><td rowspan="5"><ul class="simple">
 <li><p><strong>inputs</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Inputs</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p>The names of the input variables to use as entropy sources</p></td>
+<tr class="row-odd"><td colspan="3"><p>The names of the input variables to use as entropy sources</p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>array</em></p></td>
 </tr>
-<tr class="row-even"><td><p>items</p></td>
+<tr class="row-odd"><td><p>items</p></td>
 <td><p>type</p></td>
 <td><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>minItems</p></td>
+<tr class="row-even"><td><p>minItems</p></td>
 <td colspan="2"><p>1</p></td>
 </tr>
-<tr class="row-even"><td rowspan="4"><ul class="simple">
+<tr class="row-odd"><td rowspan="4"><ul class="simple">
 <li><p><strong>distribution</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Distribution</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p>The output distribution to draw from</p></td>
+<tr class="row-even"><td colspan="3"><p>The output distribution to draw from</p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-even"><td><p>enum</p></td>
 <td colspan="2"><p>stdflat, stdnormal, normal</p></td>
 </tr>
-<tr class="row-even"><td><p>additionalProperties</p></td>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -934,7 +909,7 @@ downstream code could then shift and scale it as necessary.</p>
 </tr>
 <tr class="row-even"><td colspan="7"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>nodetype</strong></p></li>
 </ul>
 </td>
@@ -943,127 +918,124 @@ downstream code could then shift and scale it as necessary.</p>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="5"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>const</p></td>
 <td colspan="5"><p>multibinning</p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="5"><p>multibinning</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="5"><ul class="simple">
+<tr class="row-even"><td rowspan="5"><ul class="simple">
 <li><p><strong>inputs</strong></p></li>
 </ul>
 </td>
 <td colspan="6"><p><em>Inputs</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="6"><p>The names of the correction input variables this binning applies to</p></td>
+<tr class="row-odd"><td colspan="6"><p>The names of the correction input variables this binning applies to</p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="5"><p><em>array</em></p></td>
 </tr>
-<tr class="row-even"><td><p>items</p></td>
+<tr class="row-odd"><td><p>items</p></td>
 <td><p>type</p></td>
 <td colspan="4"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>minItems</p></td>
+<tr class="row-even"><td><p>minItems</p></td>
 <td colspan="5"><p>1</p></td>
 </tr>
-<tr class="row-even"><td rowspan="8"><ul class="simple">
+<tr class="row-odd"><td rowspan="8"><ul class="simple">
 <li><p><strong>edges</strong></p></li>
 </ul>
 </td>
 <td colspan="6"><p><em>Edges</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="6"><p>Bin edges for each input</p></td>
+<tr class="row-even"><td colspan="6"><p>Bin edges for each input</p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="5"><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="5"><p>items</p></td>
+<tr class="row-even"><td rowspan="5"><p>items</p></td>
 <td rowspan="5"><p>anyOf</p></td>
 <td><p>type</p></td>
 <td colspan="3"><p><em>array</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="3"><p>items</p></td>
+<tr class="row-odd"><td rowspan="3"><p>items</p></td>
 <td rowspan="3"><p>anyOf</p></td>
 <td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>enum</p></td>
 <td><p>inf, +inf, -inf</p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#uniformbinning">UniformBinning</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#uniformbinning">UniformBinning</a></p></td>
 </tr>
-<tr class="row-even"><td rowspan="11"><ul class="simple">
+<tr class="row-odd"><td rowspan="11"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
 <td colspan="6"><p><em>Content</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="6"><dl class="simple">
+<tr class="row-even"><td colspan="6"><dl class="simple">
 <dt>Bin contents as a flattened array</dt><dd><p>This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
 to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.</p>
 </dd>
 </dl>
 </td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="5"><p><em>array</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="8"><p>items</p></td>
+<tr class="row-even"><td rowspan="8"><p>items</p></td>
 <td rowspan="8"><p>anyOf</p></td>
 <td colspan="4"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-odd"><td><p>type</p></td>
 <td colspan="3"><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="12"><ul class="simple">
+<tr class="row-even"><td rowspan="12"><ul class="simple">
 <li><p><strong>flow</strong></p></li>
 </ul>
 </td>
 <td colspan="6"><p><em>Flow</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="6"><p>Overflow behavior for out-of-bounds values</p></td>
+<tr class="row-odd"><td colspan="6"><p>Overflow behavior for out-of-bounds values</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="10"><p>anyOf</p></td>
+<tr class="row-even"><td rowspan="10"><p>anyOf</p></td>
 <td colspan="5"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="5"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-odd"><td colspan="5"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="5"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-even"><td colspan="5"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="5"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-odd"><td colspan="5"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="5"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-even"><td colspan="5"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="5"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-odd"><td colspan="5"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="5"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
-</tr>
-<tr class="row-even"><td><p>type</p></td>
-<td colspan="4"><p><em>number</em></p></td>
+<tr class="row-even"><td colspan="5"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>type</p></td>
+<td colspan="4"><p><em>number</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="4"><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>enum</p></td>
 <td colspan="4"><p>clamp, error</p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="6"><p>False</p></td>
 </tr>
 </tbody>
@@ -1083,7 +1055,7 @@ high levels in the tree, since they require an allocation.</p>
 </tr>
 <tr class="row-even"><td colspan="4"><p>properties</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
 <li><p><strong>nodetype</strong></p></li>
 </ul>
 </td>
@@ -1092,76 +1064,73 @@ high levels in the tree, since they require an allocation.</p>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>enum</p></td>
+<tr class="row-odd"><td><p>const</p></td>
 <td colspan="2"><p>transform</p></td>
 </tr>
-<tr class="row-even"><td><p>const</p></td>
-<td colspan="2"><p>transform</p></td>
-</tr>
-<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<tr class="row-even"><td rowspan="3"><ul class="simple">
 <li><p><strong>input</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Input</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p>The name of the input to rewrite</p></td>
+<tr class="row-odd"><td colspan="3"><p>The name of the input to rewrite</p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="10"><ul class="simple">
+<tr class="row-odd"><td rowspan="10"><ul class="simple">
 <li><p><strong>rule</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Rule</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p>A subtree that implements the rewrite rule</p></td>
+<tr class="row-even"><td colspan="3"><p>A subtree that implements the rewrite rule</p></td>
 </tr>
-<tr class="row-even"><td rowspan="8"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="10"><ul class="simple">
+<tr class="row-odd"><td rowspan="10"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Content</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p>A subtree that will be evaluated with transformed values</p></td>
+<tr class="row-even"><td colspan="3"><p>A subtree that will be evaluated with transformed values</p></td>
 </tr>
-<tr class="row-even"><td rowspan="8"><p>anyOf</p></td>
+<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td><p>additionalProperties</p></td>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>

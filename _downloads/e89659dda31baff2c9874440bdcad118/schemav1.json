@@ -5,9 +5,6 @@
             "properties": {
                 "nodetype": {
                     "const": "binning",
-                    "enum": [
-                        "binning"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -55,9 +52,6 @@
             "properties": {
                 "nodetype": {
                     "const": "category",
-                    "enum": [
-                        "category"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -208,9 +202,6 @@
             "properties": {
                 "nodetype": {
                     "const": "multibinning",
-                    "enum": [
-                        "multibinning"
-                    ],
                     "title": "Nodetype",
                     "type": "string"
                 },
@@ -297,9 +288,6 @@
     "properties": {
         "schema_version": {
             "const": 1,
-            "enum": [
-                1
-            ],
             "title": "Schema Version",
             "type": "integer"
         },
