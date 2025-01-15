@@ -45,25 +45,41 @@
                     "items": {
                         "anyOf": [
                             {
-                                "$ref": "#/$defs/Binning"
-                            },
-                            {
-                                "$ref": "#/$defs/MultiBinning"
-                            },
-                            {
-                                "$ref": "#/$defs/Category"
-                            },
-                            {
-                                "$ref": "#/$defs/Formula"
-                            },
-                            {
-                                "$ref": "#/$defs/FormulaRef"
-                            },
-                            {
-                                "$ref": "#/$defs/Transform"
-                            },
-                            {
-                                "$ref": "#/$defs/HashPRNG"
+                                "discriminator": {
+                                    "mapping": {
+                                        "binning": "#/$defs/Binning",
+                                        "category": "#/$defs/Category",
+                                        "formula": "#/$defs/Formula",
+                                        "formularef": "#/$defs/FormulaRef",
+                                        "hashprng": "#/$defs/HashPRNG",
+                                        "multibinning": "#/$defs/MultiBinning",
+                                        "transform": "#/$defs/Transform"
+                                    },
+                                    "propertyName": "nodetype"
+                                },
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/$defs/Binning"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/MultiBinning"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/Category"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/Formula"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/FormulaRef"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/Transform"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/HashPRNG"
+                                    }
+                                ]
                             },
                             {
                                 "type": "number"
@@ -76,25 +92,41 @@
                 "flow": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/Binning"
-                        },
-                        {
-                            "$ref": "#/$defs/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/$defs/Category"
-                        },
-                        {
-                            "$ref": "#/$defs/Formula"
-                        },
-                        {
-                            "$ref": "#/$defs/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/$defs/Transform"
-                        },
-                        {
-                            "$ref": "#/$defs/HashPRNG"
+                            "discriminator": {
+                                "mapping": {
+                                    "binning": "#/$defs/Binning",
+                                    "category": "#/$defs/Category",
+                                    "formula": "#/$defs/Formula",
+                                    "formularef": "#/$defs/FormulaRef",
+                                    "hashprng": "#/$defs/HashPRNG",
+                                    "multibinning": "#/$defs/MultiBinning",
+                                    "transform": "#/$defs/Transform"
+                                },
+                                "propertyName": "nodetype"
+                            },
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/Binning"
+                                },
+                                {
+                                    "$ref": "#/$defs/MultiBinning"
+                                },
+                                {
+                                    "$ref": "#/$defs/Category"
+                                },
+                                {
+                                    "$ref": "#/$defs/Formula"
+                                },
+                                {
+                                    "$ref": "#/$defs/FormulaRef"
+                                },
+                                {
+                                    "$ref": "#/$defs/Transform"
+                                },
+                                {
+                                    "$ref": "#/$defs/HashPRNG"
+                                }
+                            ]
                         },
                         {
                             "type": "number"
@@ -145,25 +177,41 @@
                 "default": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/Binning"
-                        },
-                        {
-                            "$ref": "#/$defs/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/$defs/Category"
-                        },
-                        {
-                            "$ref": "#/$defs/Formula"
-                        },
-                        {
-                            "$ref": "#/$defs/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/$defs/Transform"
-                        },
-                        {
-                            "$ref": "#/$defs/HashPRNG"
+                            "discriminator": {
+                                "mapping": {
+                                    "binning": "#/$defs/Binning",
+                                    "category": "#/$defs/Category",
+                                    "formula": "#/$defs/Formula",
+                                    "formularef": "#/$defs/FormulaRef",
+                                    "hashprng": "#/$defs/HashPRNG",
+                                    "multibinning": "#/$defs/MultiBinning",
+                                    "transform": "#/$defs/Transform"
+                                },
+                                "propertyName": "nodetype"
+                            },
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/Binning"
+                                },
+                                {
+                                    "$ref": "#/$defs/MultiBinning"
+                                },
+                                {
+                                    "$ref": "#/$defs/Category"
+                                },
+                                {
+                                    "$ref": "#/$defs/Formula"
+                                },
+                                {
+                                    "$ref": "#/$defs/FormulaRef"
+                                },
+                                {
+                                    "$ref": "#/$defs/Transform"
+                                },
+                                {
+                                    "$ref": "#/$defs/HashPRNG"
+                                }
+                            ]
                         },
                         {
                             "type": "number"
@@ -202,25 +250,41 @@
                 "value": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/Binning"
-                        },
-                        {
-                            "$ref": "#/$defs/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/$defs/Category"
-                        },
-                        {
-                            "$ref": "#/$defs/Formula"
-                        },
-                        {
-                            "$ref": "#/$defs/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/$defs/Transform"
-                        },
-                        {
-                            "$ref": "#/$defs/HashPRNG"
+                            "discriminator": {
+                                "mapping": {
+                                    "binning": "#/$defs/Binning",
+                                    "category": "#/$defs/Category",
+                                    "formula": "#/$defs/Formula",
+                                    "formularef": "#/$defs/FormulaRef",
+                                    "hashprng": "#/$defs/HashPRNG",
+                                    "multibinning": "#/$defs/MultiBinning",
+                                    "transform": "#/$defs/Transform"
+                                },
+                                "propertyName": "nodetype"
+                            },
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/Binning"
+                                },
+                                {
+                                    "$ref": "#/$defs/MultiBinning"
+                                },
+                                {
+                                    "$ref": "#/$defs/Category"
+                                },
+                                {
+                                    "$ref": "#/$defs/Formula"
+                                },
+                                {
+                                    "$ref": "#/$defs/FormulaRef"
+                                },
+                                {
+                                    "$ref": "#/$defs/Transform"
+                                },
+                                {
+                                    "$ref": "#/$defs/HashPRNG"
+                                }
+                            ]
                         },
                         {
                             "type": "number"
@@ -375,25 +439,41 @@
                 "data": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/Binning"
-                        },
-                        {
-                            "$ref": "#/$defs/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/$defs/Category"
-                        },
-                        {
-                            "$ref": "#/$defs/Formula"
-                        },
-                        {
-                            "$ref": "#/$defs/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/$defs/Transform"
-                        },
-                        {
-                            "$ref": "#/$defs/HashPRNG"
+                            "discriminator": {
+                                "mapping": {
+                                    "binning": "#/$defs/Binning",
+                                    "category": "#/$defs/Category",
+                                    "formula": "#/$defs/Formula",
+                                    "formularef": "#/$defs/FormulaRef",
+                                    "hashprng": "#/$defs/HashPRNG",
+                                    "multibinning": "#/$defs/MultiBinning",
+                                    "transform": "#/$defs/Transform"
+                                },
+                                "propertyName": "nodetype"
+                            },
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/Binning"
+                                },
+                                {
+                                    "$ref": "#/$defs/MultiBinning"
+                                },
+                                {
+                                    "$ref": "#/$defs/Category"
+                                },
+                                {
+                                    "$ref": "#/$defs/Formula"
+                                },
+                                {
+                                    "$ref": "#/$defs/FormulaRef"
+                                },
+                                {
+                                    "$ref": "#/$defs/Transform"
+                                },
+                                {
+                                    "$ref": "#/$defs/HashPRNG"
+                                }
+                            ]
                         },
                         {
                             "type": "number"
@@ -587,25 +667,41 @@
                     "items": {
                         "anyOf": [
                             {
-                                "$ref": "#/$defs/Binning"
-                            },
-                            {
-                                "$ref": "#/$defs/MultiBinning"
-                            },
-                            {
-                                "$ref": "#/$defs/Category"
-                            },
-                            {
-                                "$ref": "#/$defs/Formula"
-                            },
-                            {
-                                "$ref": "#/$defs/FormulaRef"
-                            },
-                            {
-                                "$ref": "#/$defs/Transform"
-                            },
-                            {
-                                "$ref": "#/$defs/HashPRNG"
+                                "discriminator": {
+                                    "mapping": {
+                                        "binning": "#/$defs/Binning",
+                                        "category": "#/$defs/Category",
+                                        "formula": "#/$defs/Formula",
+                                        "formularef": "#/$defs/FormulaRef",
+                                        "hashprng": "#/$defs/HashPRNG",
+                                        "multibinning": "#/$defs/MultiBinning",
+                                        "transform": "#/$defs/Transform"
+                                    },
+                                    "propertyName": "nodetype"
+                                },
+                                "oneOf": [
+                                    {
+                                        "$ref": "#/$defs/Binning"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/MultiBinning"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/Category"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/Formula"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/FormulaRef"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/Transform"
+                                    },
+                                    {
+                                        "$ref": "#/$defs/HashPRNG"
+                                    }
+                                ]
                             },
                             {
                                 "type": "number"
@@ -618,25 +714,41 @@
                 "flow": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/Binning"
-                        },
-                        {
-                            "$ref": "#/$defs/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/$defs/Category"
-                        },
-                        {
-                            "$ref": "#/$defs/Formula"
-                        },
-                        {
-                            "$ref": "#/$defs/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/$defs/Transform"
-                        },
-                        {
-                            "$ref": "#/$defs/HashPRNG"
+                            "discriminator": {
+                                "mapping": {
+                                    "binning": "#/$defs/Binning",
+                                    "category": "#/$defs/Category",
+                                    "formula": "#/$defs/Formula",
+                                    "formularef": "#/$defs/FormulaRef",
+                                    "hashprng": "#/$defs/HashPRNG",
+                                    "multibinning": "#/$defs/MultiBinning",
+                                    "transform": "#/$defs/Transform"
+                                },
+                                "propertyName": "nodetype"
+                            },
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/Binning"
+                                },
+                                {
+                                    "$ref": "#/$defs/MultiBinning"
+                                },
+                                {
+                                    "$ref": "#/$defs/Category"
+                                },
+                                {
+                                    "$ref": "#/$defs/Formula"
+                                },
+                                {
+                                    "$ref": "#/$defs/FormulaRef"
+                                },
+                                {
+                                    "$ref": "#/$defs/Transform"
+                                },
+                                {
+                                    "$ref": "#/$defs/HashPRNG"
+                                }
+                            ]
                         },
                         {
                             "type": "number"
@@ -680,25 +792,41 @@
                 "rule": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/Binning"
-                        },
-                        {
-                            "$ref": "#/$defs/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/$defs/Category"
-                        },
-                        {
-                            "$ref": "#/$defs/Formula"
-                        },
-                        {
-                            "$ref": "#/$defs/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/$defs/Transform"
-                        },
-                        {
-                            "$ref": "#/$defs/HashPRNG"
+                            "discriminator": {
+                                "mapping": {
+                                    "binning": "#/$defs/Binning",
+                                    "category": "#/$defs/Category",
+                                    "formula": "#/$defs/Formula",
+                                    "formularef": "#/$defs/FormulaRef",
+                                    "hashprng": "#/$defs/HashPRNG",
+                                    "multibinning": "#/$defs/MultiBinning",
+                                    "transform": "#/$defs/Transform"
+                                },
+                                "propertyName": "nodetype"
+                            },
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/Binning"
+                                },
+                                {
+                                    "$ref": "#/$defs/MultiBinning"
+                                },
+                                {
+                                    "$ref": "#/$defs/Category"
+                                },
+                                {
+                                    "$ref": "#/$defs/Formula"
+                                },
+                                {
+                                    "$ref": "#/$defs/FormulaRef"
+                                },
+                                {
+                                    "$ref": "#/$defs/Transform"
+                                },
+                                {
+                                    "$ref": "#/$defs/HashPRNG"
+                                }
+                            ]
                         },
                         {
                             "type": "number"
@@ -710,25 +838,41 @@
                 "content": {
                     "anyOf": [
                         {
-                            "$ref": "#/$defs/Binning"
-                        },
-                        {
-                            "$ref": "#/$defs/MultiBinning"
-                        },
-                        {
-                            "$ref": "#/$defs/Category"
-                        },
-                        {
-                            "$ref": "#/$defs/Formula"
-                        },
-                        {
-                            "$ref": "#/$defs/FormulaRef"
-                        },
-                        {
-                            "$ref": "#/$defs/Transform"
-                        },
-                        {
-                            "$ref": "#/$defs/HashPRNG"
+                            "discriminator": {
+                                "mapping": {
+                                    "binning": "#/$defs/Binning",
+                                    "category": "#/$defs/Category",
+                                    "formula": "#/$defs/Formula",
+                                    "formularef": "#/$defs/FormulaRef",
+                                    "hashprng": "#/$defs/HashPRNG",
+                                    "multibinning": "#/$defs/MultiBinning",
+                                    "transform": "#/$defs/Transform"
+                                },
+                                "propertyName": "nodetype"
+                            },
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/Binning"
+                                },
+                                {
+                                    "$ref": "#/$defs/MultiBinning"
+                                },
+                                {
+                                    "$ref": "#/$defs/Category"
+                                },
+                                {
+                                    "$ref": "#/$defs/Formula"
+                                },
+                                {
+                                    "$ref": "#/$defs/FormulaRef"
+                                },
+                                {
+                                    "$ref": "#/$defs/Transform"
+                                },
+                                {
+                                    "$ref": "#/$defs/HashPRNG"
+                                }
+                            ]
                         },
                         {
                             "type": "number"
