@@ -70,13 +70,18 @@ class Variable(Model):
 
 # py3.7+: ForwardRef can be used instead of strings
 Content = Union[
-    "Binning",
-    "MultiBinning",
-    "Category",
-    "Formula",
-    "FormulaRef",
-    "Transform",
-    "HashPRNG",
+    Annotated[
+        Union[
+            "Binning",
+            "MultiBinning",
+            "Category",
+            "Formula",
+            "FormulaRef",
+            "Transform",
+            "HashPRNG",
+        ],
+        Field(discriminator="nodetype"),
+    ],
     float,
 ]
 
