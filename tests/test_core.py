@@ -751,6 +751,17 @@ def test_binning():
         assert corr.evaluate(2.9) == 2.0
         assert corr.evaluate(3.0) == 42.0
 
+        corr = binning(flow="wrap", uniform=use_uniform_binning)
+        assert corr.evaluate(-3.0) == 1.0
+        assert corr.evaluate(-2.9) == 1.0
+        assert corr.evaluate(-1.0) == 2.0
+        assert corr.evaluate(0.0) == 1.0
+        assert corr.evaluate(1.0) == 1.0 if use_uniform_binning else 2.0
+        assert corr.evaluate(2.9) == 2.0
+        assert corr.evaluate(3.0) == 1.0
+        assert corr.evaluate(4.6) == 2.0
+        assert corr.evaluate(6.1) == 1.0
+
     def multibinning(flow, uniform=True):
         if uniform:
             edges_x = schema.UniformBinning(n=2, low=0.0, high=3.0)
