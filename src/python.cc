@@ -66,7 +66,7 @@ namespace {
   }
 }
 
-PYBIND11_MODULE(_core, m) {
+PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
     m.doc() = "python binding for corrections evaluator";
 
     py::class_<Variable>(m, "Variable")
