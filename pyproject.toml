@@ -82,6 +82,9 @@ metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 cmake.version = ">=3.11.0"
 sdist.include = ["src/correctionlib/version.py"]
 
+[tool.scikit-build.cmake.define]
+BUILD_DEMO = "OFF"
+
 [tool.setuptools_scm]
 write_to = "src/correctionlib/version.py"
 

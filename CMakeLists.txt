@@ -9,6 +9,8 @@ list(GET VERSION_SPLIT 1 SPLIT_VERSION_MINOR)
 
 project(correctionlib VERSION ${SPLIT_VERSION_MAJOR}.${SPLIT_VERSION_MINOR} LANGUAGES CXX)
 
+option(BUILD_DEMO "Build demo program" ON)
+
 set(PKG_INSTALL "correctionlib") ## python package name
 
 include(FetchContent)
@@ -80,6 +82,9 @@ install(TARGETS _core LIBRARY DESTINATION ${PKG_INSTALL})
 
 add_executable(demo src/demo.cc)
 target_link_libraries(demo PRIVATE correctionlib)
+if(NOT BUILD_DEMO)
+  set_target_properties(demo PROPERTIES EXCLUDE_FROM_ALL ON)
+endif()
 
 
 install(EXPORT correctionlib-targets FILE correctionlib-targets.cmake DESTINATION ${PKG_INSTALL}/cmake)
