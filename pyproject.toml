@@ -1,12 +1,86 @@
 [build-system]
 requires = [
-    "setuptools>=42",
+    "setuptools>=61",
     "setuptools_scm[toml]>=3.4",
     "pybind11>=2.6.1",
     "scikit-build>=0.12",
     "cmake>=3.11.0"
 ]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "correctionlib"
+dynamic = ["version"]
+authors = [
+    {name = "Nick Smith", email = "nick.smith@cern.ch"},
+]
+maintainers = [
+    {name = "Nick Smith", email = "nick.smith@cern.ch"},
+]
+description = "A generic correction library"
+readme = "README.md"
+license = {text = "BSD-3-Clause"}
+# keywords = []
+classifiers = [
+  "Topic :: Scientific/Engineering",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Development Status :: 5 - Production/Stable",
+]
+requires-python = ">=3.8"
+dependencies = [
+  "numpy >=1.13.3",
+  "typing-extensions;python_version<'3.8'",
+  "dataclasses;python_version<'3.7'",
+  "pydantic >=2",
+  "rich",
+  "packaging",
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest >=4.6",
+  "scipy",
+  "awkward >=2.2.2;python_version>'3.7'",
+  "awkward <2;python_version<='3.7'",
+  "dask-awkward >=2024.1.1;python_version>'3.7'",
+]
+dev = [
+  "pytest >=4.6",
+  "pre-commit",
+  "mypy",
+  "uhi",
+  "awkward >=2",
+  "dask-awkward;python_version>'3.7'",
+]
+docs = [
+  "recommonmark >=0.5.0",
+  "Sphinx >=3.0.0",
+  "sphinx_copybutton",
+  "sphinx_rtd_theme >=0.5.0",
+  "sphinx-jsonschema",
+  "myst-parser",
+  "nbsphinx",
+]
+convert = [
+  "pandas",
+  "uproot >=4.0.4",
+  "requests",
+  "scipy",
+]
+
+[project.scripts]
+correction = "correctionlib.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/cms-nanoAOD/correctionlib"
+
+[tool.setuptools]
+platforms = ["Any"]
 
 [tool.setuptools_scm]
 write_to = "src/correctionlib/version.py"
