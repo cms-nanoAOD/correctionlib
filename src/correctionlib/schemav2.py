@@ -232,7 +232,7 @@ class Binning(Model):
         description="Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
     )
     content: List[Content]
-    flow: Union[Content, Literal["clamp", "error"]] = Field(
+    flow: Union[Content, Literal["clamp", "error", "wrap"]] = Field(
         description="Overflow behavior for out-of-bounds values"
     )
 
@@ -287,7 +287,7 @@ class MultiBinning(Model):
         to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.
     """
     )
-    flow: Union[Content, Literal["clamp", "error"]] = Field(
+    flow: Union[Content, Literal["clamp", "error", "wrap"]] = Field(
         description="Overflow behavior for out-of-bounds values"
     )
 
