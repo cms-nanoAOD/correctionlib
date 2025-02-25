@@ -91,9 +91,6 @@ def test_cmake_static_compilation(csetstr: str):
         testprog = os.path.join(tmpdir, "test.cc")
         # SKBUILD_PROJECT_VERSION only includes major.minor.patch
         versionstr = ".".join(correctionlib.__version__.split(".")[:3])
-        if versionstr.startswith("0.1.dev1+"):
-            # band-aid for https://github.com/actions/checkout/issues/249 in CI
-            versionstr = "0.1"
         with open(testprog, "w") as f:
             f.write(TESTPROG_SRC % (versionstr, csetstr))
         flags = (
