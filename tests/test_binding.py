@@ -58,11 +58,19 @@ add_custom_command(TARGET test POST_BUILD
 """
 
 TESTPROG_SRC = """\
+#include <iostream>
 #include "correction.h"
 
 using correction::CorrectionSet;
 
 int main(int argc, char** argv) {
+  constexpr std::string_view expected_version = "%s";
+  if (correction::correctionlib_version != expected_version) {
+    std::cerr << "correctionlib version mismatch: expected "
+        << expected_version << ", got " <<
+        correction::correctionlib_version << std::endl;
+    return 1;
+  }
   auto cset = CorrectionSet::from_string("%s");
   auto corr = cset->at("ptweight");
   if (corr->evaluate({1.2}) != 1.1) {
@@ -81,8 +89,10 @@ def test_cmake_static_compilation(csetstr: str):
         with open(cmake, "w") as f:
             f.write(CMAKELIST_SRC)
         testprog = os.path.join(tmpdir, "test.cc")
+        # SKBUILD_PROJECT_VERSION only includes major.minor.patch
+        versionstr = ".".join(correctionlib.__version__.split(".")[:3])
         with open(testprog, "w") as f:
-            f.write(TESTPROG_SRC % csetstr)
+            f.write(TESTPROG_SRC % (versionstr, csetstr))
         flags = (
             subprocess.check_output(["correction", "config", "--cmake"])
             .decode()
@@ -99,4 +109,6 @@ def test_cmake_static_compilation(csetstr: str):
             print(ret.stderr.decode())
             raise RuntimeError(f"cmake build failed (args: {ret.args})")
         prog = r"Debug\test.exe" if os.name == "nt" else "test"
-        subprocess.run([os.path.join(tmpdir, prog)], check=True, cwd=tmpdir)
+        subprocess.run(
+            [os.path.join(tmpdir, prog)], capture_output=True, check=True, cwd=tmpdir
+        )
