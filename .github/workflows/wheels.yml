@@ -47,7 +47,7 @@ jobs:
         fetch-tags: true
         fetch-depth: 0
 
-    - uses: pypa/cibuildwheel@v2.22
+    - uses: pypa/cibuildwheel@v2.23
       env:
         CIBW_ARCHS: ${{ matrix.arch }}
         MACOSX_DEPLOYMENT_TARGET: 10.14
@@ -79,7 +79,7 @@ jobs:
     - uses: docker/setup-qemu-action@v3
       if: matrix.os == 'ubuntu-latest'
 
-    - uses: pypa/cibuildwheel@v2.22
+    - uses: pypa/cibuildwheel@v2.23
       env:
         CIBW_ARCHS: ${{ matrix.arch }}
         CIBW_BUILD: cp${{ matrix.python }}*${{ matrix.libc }}*
