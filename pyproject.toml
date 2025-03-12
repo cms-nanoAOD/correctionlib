@@ -35,7 +35,7 @@ dependencies = [
   "typing-extensions;python_version<'3.8'",
   "dataclasses;python_version<'3.7'",
   "pydantic >=2.11.0b1;python_version>'3.12'",
-  "pydantic >=2;python_version<'3.13'",  
+  "pydantic >=2;python_version<'3.13'",
   "rich",
   "packaging",
 ]
