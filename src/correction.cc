@@ -149,6 +149,8 @@ namespace {
             return bins->n; // the default value is stored at the end of the content array, after the last bin
           case _FlowBehavior::clamp:
             return value < bins->low ? 0 : bins->n - 1; // assuming we always have at least 1 bin
+          case _FlowBehavior::wrap:
+            break;
           case _FlowBehavior::error:
             const std::string belowOrAbove = value < bins->low ? "below" : "above";
             auto msg = "Index " + belowOrAbove + " bounds in " + name + " for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value);
@@ -156,13 +158,24 @@ namespace {
         }
       }
 
-      std::size_t binIdx = bins->n * ((value - bins->low) / (bins->high - bins->low));
+      double norm_value = ((value - bins->low) / (bins->high - bins->low));
+      if (flow == _FlowBehavior::wrap) {
+        norm_value -= std::floor(norm_value);
+      }
+      std::size_t binIdx = bins->n * norm_value;
       return binIdx;
     }
 
     // otherwise we have non-uniform binning
     using namespace std::string_literals;
     const auto bins = std::get<_NonUniformBins>(bins_);
+    if ( flow == _FlowBehavior::wrap ) {
+      double low = bins[0];
+      double high = bins[bins.size() - 1];
+      double norm_value = (value - low) / (high - low);
+      norm_value -= std::floor(norm_value);
+      value = low + norm_value * (high - low);
+    }
 
     auto it = std::upper_bound(std::begin(bins), std::end(bins), value);
     if ( it == std::begin(bins) ) { // underflow
@@ -171,6 +184,9 @@ namespace {
       }
       else if ( flow == _FlowBehavior::error ) {
         throw std::runtime_error("Index below bounds in "s + name + " for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value));
+      }
+      else if ( flow == _FlowBehavior::wrap ) {
+        throw std::logic_error("I should not have ever seen an underflow");
       }
       else { // clamp
         it++;
@@ -182,6 +198,9 @@ namespace {
       }
       else if ( flow == _FlowBehavior::error ) {
         throw std::runtime_error("Index above bounds in "s + name + " for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value));
+      }
+      else if ( flow == _FlowBehavior::wrap ) {
+        throw std::logic_error("I should not have ever seen an overflow");
       }
       else { // clamp
         it--;
@@ -467,6 +486,9 @@ Binning::Binning(const JSONObject& json, const Correction& context)
   else if ( flowbehavior == "error" ) {
     flow_ = _FlowBehavior::error;
   }
+  else if ( flowbehavior == "wrap" ) {
+    flow_ = _FlowBehavior::wrap;
+  }
   else {
     flow_ = _FlowBehavior::value;
     default_value = resolve_content(flowbehavior, context);
@@ -545,6 +567,9 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
   }
   else if ( flowbehavior == "error" ) {
     flow_ = _FlowBehavior::error;
+  }
+  else if ( flowbehavior == "wrap" ) {
+    flow_ = _FlowBehavior::wrap;
   }
   else {
     flow_ = _FlowBehavior::value;
