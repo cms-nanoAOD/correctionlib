@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.12", "3.13", "3.13t"]
         runs-on: [ubuntu-latest, macos-latest, windows-latest]
 
         include:
@@ -50,7 +50,7 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - uses: actions/setup-python@v3
+    - uses: Quansight-Labs/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
