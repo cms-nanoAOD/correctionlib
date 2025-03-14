@@ -25,6 +25,22 @@
 
 using namespace correction;
 
+//! helper function for parsing flow behavior from string
+_FlowBehavior parse_flowbehavior(const std::string& flowbehavior) {
+  if ( flowbehavior == "clamp" ) {
+    return _FlowBehavior::clamp;
+  }
+  else if ( flowbehavior == "error" ) {
+    return _FlowBehavior::error;
+  }
+  else if ( flowbehavior == "wrap" ) {
+    return _FlowBehavior::wrap;
+  }
+  else {
+    return _FlowBehavior::value;
+  }
+}
+
 class correction::JSONObject {
   public:
     JSONObject(rapidjson::Value::ConstObject&& json) : json_(json) { }
@@ -480,18 +496,9 @@ Binning::Binning(const JSONObject& json, const Correction& context)
   }
   Content default_value{0.};
   const auto& flowbehavior = json.getRequiredValue("flow");
-  if ( flowbehavior == "clamp" ) {
-    flow_ = _FlowBehavior::clamp;
-  }
-  else if ( flowbehavior == "error" ) {
-    flow_ = _FlowBehavior::error;
-  }
-  else if ( flowbehavior == "wrap" ) {
-    flow_ = _FlowBehavior::wrap;
-  }
-  else {
-    flow_ = _FlowBehavior::value;
-    default_value = resolve_content(flowbehavior, context);
+  flow_ = parse_flowbehavior(flowbehavior);
+  if (flow_ == _FlowBehavior::value) {
+      default_value = resolve_content(flowbehavior, context);
   }
 
   // set bin contents
@@ -562,19 +569,9 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
   }
 
   const auto& flowbehavior = json.getRequiredValue("flow");
-  if ( flowbehavior == "clamp" ) {
-    flow_ = _FlowBehavior::clamp;
-  }
-  else if ( flowbehavior == "error" ) {
-    flow_ = _FlowBehavior::error;
-  }
-  else if ( flowbehavior == "wrap" ) {
-    flow_ = _FlowBehavior::wrap;
-  }
-  else {
-    flow_ = _FlowBehavior::value;
-    // store default value at end of content array
-    content_.push_back(resolve_content(flowbehavior, context));
+  flow_ = parse_flowbehavior(flowbehavior);
+  if (flow_ == _FlowBehavior::value) {
+      content_.push_back(resolve_content(flowbehavior, context));
   }
 }
 
