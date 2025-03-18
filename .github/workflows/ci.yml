@@ -62,7 +62,7 @@ jobs:
 
     - name: Test package (parallel)
       if: matrix.python_version == '"3.13t"'
-      run: python -m pytest -ra --workers auto
+      run: python -Xgil=0 -m pytest -ra --workers auto
 
   checkroot:
     name: Check ROOT bindings
