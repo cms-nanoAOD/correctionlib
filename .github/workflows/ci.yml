@@ -57,11 +57,11 @@ jobs:
       run: python -m pip install .[test]
 
     - name: Test package
-      if: matrix.python_version != "3.13t"
+      if: matrix.python_version != '3.13t'
       run: python -m pytest -ra
 
     - name: Test package (parallel)
-      if: matrix.python_version == "3.13t"
+      if: matrix.python_version == '3.13t'
       run: python -m pytest -ra --workers auto
 
   checkroot:
