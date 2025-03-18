@@ -44,6 +44,7 @@ dependencies = [
 test = [
   "pytest >=4.6",
   "pytest-parallel",
+  "py",
   "scipy",
   "awkward >=2.2.2;python_version>'3.7'",
   "awkward <2;python_version<='3.7'",
