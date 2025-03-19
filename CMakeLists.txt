@@ -12,6 +12,7 @@ project(correctionlib VERSION ${SPLIT_VERSION_MAJOR}.${SPLIT_VERSION_MINOR} LANG
 option(BUILD_DEMO "Build demo program" ON)
 
 set(PKG_INSTALL "correctionlib") ## python package name
+set(PYBIND11_FINDPYTHON ON) ## use modern FindPython
 
 include(FetchContent)
 FetchContent_Declare(pybind11

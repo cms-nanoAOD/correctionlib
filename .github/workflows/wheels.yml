@@ -50,6 +50,7 @@ jobs:
     - uses: pypa/cibuildwheel@v2.23
       env:
         CIBW_ARCHS: ${{ matrix.arch }}
+        CIBW_ENABLE: cpython-freethreading
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
     - name: Upload wheels
@@ -67,7 +68,7 @@ jobs:
         os: [ubuntu-latest]
         libc: [manylinux, musllinux]
         arch: [aarch64]
-        python: [38, 39, 310, 311, 312, 313]
+        python: [38, 39, 310, 311, 312, 313, 313t]
 
     steps:
     - uses: actions/checkout@v4
@@ -83,6 +84,7 @@ jobs:
       env:
         CIBW_ARCHS: ${{ matrix.arch }}
         CIBW_BUILD: cp${{ matrix.python }}*${{ matrix.libc }}*
+        CIBW_ENABLE: cpython-freethreading
 
     - name: Upload wheels
       uses: actions/upload-artifact@v4
