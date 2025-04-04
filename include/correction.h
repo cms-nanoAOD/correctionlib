@@ -175,7 +175,7 @@ class HashPRNG {
 };
 
 // common internal for Binning and MultiBinning
-enum class _FlowBehavior {value, clamp, error};
+enum class _FlowBehavior {value, clamp, error, wrap};
 
 using _NonUniformBins = std::vector<double>;
 
