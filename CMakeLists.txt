@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.11)
 
-if(NOT CORRECTIONLIB_VERSION)
-  set(CORRECTIONLIB_VERSION "0.0.0")  # overriden by setup.py
+if(NOT SKBUILD_PROJECT_VERSION)
+  set(SKBUILD_PROJECT_VERSION "0.0.0")  # provided by scikit-build-core
 endif()
-string(REPLACE "." ";" VERSION_SPLIT ${CORRECTIONLIB_VERSION})
+string(REPLACE "." ";" VERSION_SPLIT ${SKBUILD_PROJECT_VERSION})
 list(GET VERSION_SPLIT 0 SPLIT_VERSION_MAJOR)
 list(GET VERSION_SPLIT 1 SPLIT_VERSION_MINOR)
 
 project(correctionlib VERSION ${SPLIT_VERSION_MAJOR}.${SPLIT_VERSION_MINOR} LANGUAGES CXX)
+
+option(BUILD_DEMO "Build demo program" ON)
 
 set(PKG_INSTALL "correctionlib") ## python package name
 
@@ -80,6 +82,9 @@ install(TARGETS _core LIBRARY DESTINATION ${PKG_INSTALL})
 
 add_executable(demo src/demo.cc)
 target_link_libraries(demo PRIVATE correctionlib)
+if(NOT BUILD_DEMO)
+  set_target_properties(demo PROPERTIES EXCLUDE_FROM_ALL ON)
+endif()
 
 
 install(EXPORT correctionlib-targets FILE correctionlib-targets.cmake DESTINATION ${PKG_INSTALL}/cmake)

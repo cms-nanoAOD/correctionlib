@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
         arch: [auto64]
         include:
           - os: macos-latest
@@ -47,7 +47,7 @@ jobs:
         fetch-tags: true
         fetch-depth: 0
 
-    - uses: pypa/cibuildwheel@v2.22
+    - uses: pypa/cibuildwheel@v2.23
       env:
         CIBW_ARCHS: ${{ matrix.arch }}
         MACOSX_DEPLOYMENT_TARGET: 10.14
@@ -58,41 +58,8 @@ jobs:
         name: artifact-wheel-${{ matrix.os }}-${{ matrix.arch }}
         path: wheelhouse/*.whl
 
-  build_alt_wheels:
-    name: Wheel on ${{ matrix.os }} (cp${{ matrix.python }}/${{ matrix.libc }}/${{ matrix.arch }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        libc: [manylinux, musllinux]
-        arch: [aarch64]
-        python: [38, 39, 310, 311, 312, 313]
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-tags: true
-        fetch-depth: 0
-
-    - uses: docker/setup-qemu-action@v3
-      if: matrix.os == 'ubuntu-latest'
-
-    - uses: pypa/cibuildwheel@v2.22
-      env:
-        CIBW_ARCHS: ${{ matrix.arch }}
-        CIBW_BUILD: cp${{ matrix.python }}*${{ matrix.libc }}*
-
-    - name: Upload wheels
-      uses: actions/upload-artifact@v4
-      with:
-        name: artifact-wheel-${{ matrix.os }}-cp${{ matrix.python }}-${{ matrix.libc }}-${{ matrix.arch }}
-        path: wheelhouse/*.whl
-
-
   pypi-publish:
-    needs: [build_wheels, build_alt_wheels, make_sdist]
+    needs: [build_wheels, make_sdist]
     name: Upload release to PyPI
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
