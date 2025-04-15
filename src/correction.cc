@@ -26,7 +26,7 @@
 using namespace correction;
 
 //! helper function for parsing flow behavior from string
-_FlowBehavior parse_flowbehavior(const std::string& flowbehavior) {
+_FlowBehavior parse_flowbehavior(const rapidjson::Value& flowbehavior) {
   if ( flowbehavior == "clamp" ) {
     return _FlowBehavior::clamp;
   }
