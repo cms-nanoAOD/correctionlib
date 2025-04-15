@@ -134,7 +134,8 @@
                         {
                             "enum": [
                                 "clamp",
-                                "error"
+                                "error",
+                                "wrap"
                             ],
                             "type": "string"
                         }
@@ -756,7 +757,8 @@
                         {
                             "enum": [
                                 "clamp",
-                                "error"
+                                "error",
+                                "wrap"
                             ],
                             "type": "string"
                         }
