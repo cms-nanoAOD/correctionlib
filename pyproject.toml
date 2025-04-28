@@ -46,6 +46,7 @@ test = [
   "awkward >=2.2.2;python_version>'3.7'",
   "awkward <2;python_version<='3.7'",
   "dask-awkward >=2024.1.1;python_version>'3.7'",
+  "dask <2025.4.0;python_version>'3.7'",
 ]
 dev = [
   "pytest >=4.6",

@@ -1,6 +1,5 @@
-"""Command-line interface to correctionlib.
+"""Command-line interface to correctionlib."""
 
-"""
 import argparse
 import sys
 
@@ -77,6 +76,9 @@ def setup_validate(subparsers):
 
 
 def summary(console: Console, args: argparse.Namespace) -> int:
+    if args.ignore_float_inf:
+        schemav2.IGNORE_FLOAT_INF = True
+
     for file in args.files:
         console.rule(f"[blue]Corrections in file {file}")
         cset = model_auto(open_auto(file))
@@ -89,6 +91,11 @@ def setup_summary(subparsers):
         "summary", help="Print a summmary of the corrections"
     )
     parser.set_defaults(command=summary)
+    parser.add_argument(
+        "--ignore-float-inf",
+        action="store_true",
+        help="Disable errors for use of float infinities in bin edges (as required in v2.6 and later)",
+    )
     parser.add_argument("files", nargs="+", metavar="FILE")
     return parser
 
