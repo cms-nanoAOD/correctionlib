@@ -50,6 +50,7 @@ jobs:
     - uses: pypa/cibuildwheel@v2.23
       env:
         CIBW_ARCHS: ${{ matrix.arch }}
+        CIBW_ENABLE: cpython-freethreading
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
     - name: Upload wheels
