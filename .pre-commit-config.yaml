@@ -41,4 +41,4 @@ repos:
   hooks:
   - id: mypy
     files: src
-    additional_dependencies: [uhi, pydantic, numpy, types-setuptools]
+    additional_dependencies: [types-setuptools, uhi, pydantic, numpy]
