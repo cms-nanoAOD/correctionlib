@@ -32,11 +32,10 @@ classifiers = [
 requires-python = ">=3.8"
 dependencies = [
   "numpy >=1.13.3",
-  "typing-extensions;python_version<'3.8'",
-  "dataclasses;python_version<'3.7'",
   "pydantic >=2",
   "rich",
   "packaging",
+  "setuptools;python_version<'3.9'"
 ]
 
 [project.optional-dependencies]
@@ -93,13 +92,11 @@ BUILD_DEMO = "OFF"
 write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
-skip = ["pp*-*"]
+skip = ["pp*-*", "cp314*"]
 test-extras = "test"
 test-command = "python -m pytest {package}/tests"
 # When cpython 3.7 is dropped we can ignore i686 (numpy not built)
-test-skip = ["pp*-*", "*-musllinux_*", "cp3{10,11,12}-win32", "cp3{8,9,10,11,12}-manylinux_i686"]
-manylinux-x86_64-image = "manylinux2014"
-manylinux-i686-image = "manylinux2014"
+test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32", "cp3{8,9,10,11,12}-manylinux_i686"]
 
 [tool.cibuildwheel.environment]
 # this makes sure that we build only on platforms that have a corresponding numpy wheel
