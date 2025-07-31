@@ -22,12 +22,10 @@ import correctionlib.highlevel
 
 if sys.version_info >= (3, 9):
     from typing import Annotated, Literal
-elif sys.version_info >= (3, 8):
+else:
     from typing import Literal
 
     from typing_extensions import Annotated
-else:
-    from typing_extensions import Annotated, Literal
 
 
 VERSION = 2

@@ -72,6 +72,9 @@ convert = [
   "scipy",
 ]
 
+[tool.mypy]
+python_version = "3.9"
+
 [project.scripts]
 correction = "correctionlib.cli:main"
 

@@ -1,3 +1,4 @@
+import importlib.resources
 import pathlib
 import sys
 
@@ -10,6 +11,7 @@ def this_module_path() -> pathlib.Path:
         import pkg_resources
 
         return pathlib.Path(pkg_resources.resource_filename("correctionlib", ""))
-    import importlib.resources
+    import pkg_resources
 
-    return importlib.resources.files("correctionlib")
+    with importlib.resources.path("correctionlib", "") as fspath:
+        return fspath
