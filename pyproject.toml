@@ -92,7 +92,7 @@ BUILD_DEMO = "OFF"
 write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
-skip = ["pp*-*"]
+skip = ["pp*-*", "cp314*"]
 test-extras = "test"
 test-command = "python -m pytest {package}/tests"
 # When cpython 3.7 is dropped we can ignore i686 (numpy not built)
