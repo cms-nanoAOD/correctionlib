@@ -12,10 +12,5 @@ def this_module_path() -> pathlib.Path:
 
         return pathlib.Path(pkg_resources.resource_filename("correctionlib", ""))
 
-    # get a real path out of the traversable
-    paths = [
-        p
-        for p in importlib.resources.files("correctionlib").iterdir()
-        if isinstance(p, pathlib.Path)
-    ]
-    return pathlib.Path(paths[0].parent)
+    with importlib.resources.path("correctionlib", "") as fspath:
+        return fspath
