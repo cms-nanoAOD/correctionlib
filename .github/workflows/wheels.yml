@@ -59,43 +59,6 @@ jobs:
         name: artifact-wheel-${{ matrix.os }}-${{ matrix.arch }}
         path: wheelhouse/*.whl
 
-<<<<<<< HEAD
-=======
-  build_alt_wheels:
-    name: Wheel on ${{ matrix.os }} (cp${{ matrix.python }}/${{ matrix.libc }}/${{ matrix.arch }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        libc: [manylinux, musllinux]
-        arch: [aarch64]
-        python: [38, 39, 310, 311, 312, 313, 313t]
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-tags: true
-        fetch-depth: 0
-
-    - uses: docker/setup-qemu-action@v3
-      if: matrix.os == 'ubuntu-latest'
-
-    - uses: pypa/cibuildwheel@v2.23
-      env:
-        CIBW_ARCHS: ${{ matrix.arch }}
-        CIBW_BUILD: cp${{ matrix.python }}*${{ matrix.libc }}*
-        CIBW_ENABLE: cpython-freethreading
-
-    - name: Upload wheels
-      uses: actions/upload-artifact@v4
-      with:
-        name: artifact-wheel-${{ matrix.os }}-cp${{ matrix.python }}-${{ matrix.libc }}-${{ matrix.arch }}
-        path: wheelhouse/*.whl
-
-
->>>>>>> c3ee907 (add freethreaded wheels)
   pypi-publish:
     needs: [build_wheels, make_sdist]
     name: Upload release to PyPI
