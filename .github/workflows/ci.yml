@@ -62,7 +62,7 @@ jobs:
 
     - name: Test package (parallel)
       if: matrix.python-version == '3.13t' && matrix.runs-on != 'windows-latest'
-      run: python -Xgil=0 -m pytest -ra --tests-per-worker auto
+      run: python -Xgil=0 -m pytest -ra --tests-per-worker 16
 
   checkroot:
     name: Check ROOT bindings
