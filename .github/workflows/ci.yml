@@ -82,3 +82,10 @@ jobs:
       - name: Test package
         shell: bash -l {0}
         run: python -m pytest -ra
+
+  pass:
+    name: All tests passed
+    needs: [checks, checkroot]
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "All jobs passed"
