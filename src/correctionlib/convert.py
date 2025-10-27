@@ -2,17 +2,7 @@
 
 """
 from numbers import Real
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, Union, cast
 
 import numpy
 
@@ -40,7 +30,7 @@ else:
 
 def from_uproot_THx(
     path: str,
-    axis_names: Optional[List[str]] = None,
+    axis_names: Optional[list[str]] = None,
     flow: Literal["clamp", "error"] = "error",
 ) -> Correction:
     """Convert a ROOT histogram
@@ -62,7 +52,7 @@ def from_uproot_THx(
 
 def from_histogram(
     hist: "PlottableHistogram",
-    axis_names: Optional[List[str]] = None,
+    axis_names: Optional[list[str]] = None,
     flow: Optional[Union[Content, Literal["clamp", "error"]]] = "error",
 ) -> Correction:
     """Read any object with PlottableHistogram interface protocol
@@ -93,14 +83,14 @@ def from_histogram(
     variables = [read_axis(ax, i) for i, ax in enumerate(hist.axes)]
     # Here we could try to optimize the ordering
 
-    def edges(axis: "PlottableAxis") -> List[float]:
+    def edges(axis: "PlottableAxis") -> list[float]:
         out = []
         for i, b in enumerate(axis):
             if isinstance(b, (str, int)):
                 raise ValueError(
                     "cannot auto-convert string or integer category axes (yet)"
                 )
-            b = cast(Tuple[float, float], b)
+            b = cast(tuple[float, float], b)
             out.append(b[0])
             if i == len(axis) - 1:
                 out.append(b[1])
@@ -116,7 +106,7 @@ def from_histogram(
     def build_data(
         values: "ndarray[Any, Any]",
         axes: Sequence["PlottableAxis"],
-        variables: List[Variable],
+        variables: list[Variable],
     ) -> Content:
         vartype = variables[0].type
         if vartype in {"string", "int"}:
@@ -183,12 +173,12 @@ def from_histogram(
 
 
 def ndpolyfit(
-    points: List["ndarray[Any, Any]"],
+    points: list["ndarray[Any, Any]"],
     values: "ndarray[Any, Any]",
     weights: "ndarray[Any, Any]",
-    varnames: List[str],
-    degree: Tuple[int],
-) -> Tuple[Correction, Any]:
+    varnames: list[str],
+    degree: tuple[int],
+) -> tuple[Correction, Any]:
     """Fit an n-dimensional polynomial to data points with weight
 
     Example::

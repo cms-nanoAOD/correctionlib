@@ -1,7 +1,6 @@
 import math
-import sys
 from collections import Counter
-from typing import Dict, List, Optional, Set, Tuple, Union
+from typing import Annotated, Literal, Optional, Union
 
 from pydantic import (
     AfterValidator,
@@ -20,14 +19,6 @@ from rich.tree import Tree
 
 import correctionlib.highlevel
 
-if sys.version_info >= (3, 9):
-    from typing import Annotated, Literal
-else:
-    from typing import Literal
-
-    from typing_extensions import Annotated
-
-
 VERSION = 2
 
 # See https://github.com/cms-nanoAOD/correctionlib/issues/255
@@ -40,7 +31,7 @@ class Model(BaseModel):
 
 class _SummaryInfo:
     def __init__(self) -> None:
-        self.values: Set[Union[str, int]] = set()
+        self.values: set[Union[str, int]] = set()
         self.default: bool = False
         self.overflow: bool = True
         self.transform: bool = False
@@ -90,16 +81,16 @@ class Formula(Model):
     nodetype: Literal["formula"]
     expression: str
     parser: Literal["TFormula"]
-    variables: List[str] = Field(
+    variables: list[str] = Field(
         description="The names of the correction input variables this formula applies to"
     )
-    parameters: Optional[List[float]] = Field(
+    parameters: Optional[list[float]] = Field(
         description="Parameters, if the parser supports them (e.g. [0] for TFormula)",
         default=None,
     )
 
     def summarize(
-        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
     ) -> None:
         nodecount["Formula"] += 1
         for input in self.variables:
@@ -114,12 +105,12 @@ class FormulaRef(Model):
     index: int = Field(
         description="Index into the Correction.generic_formulas list", ge=0
     )
-    parameters: List[float] = Field(
+    parameters: list[float] = Field(
         description="Same interpretation as Formula.parameters"
     )
 
     def summarize(
-        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
     ) -> None:
         nodecount["FormulaRef"] += 1
 
@@ -141,7 +132,7 @@ class Transform(Model):
     )
 
     def summarize(
-        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
     ) -> None:
         nodecount["Transform"] += 1
         inputstats[self.input].transform = True
@@ -157,7 +148,7 @@ class HashPRNG(Model):
     """
 
     nodetype: Literal["hashprng"]
-    inputs: List[str] = Field(
+    inputs: list[str] = Field(
         description="The names of the input variables to use as entropy sources",
         min_length=1,
     )
@@ -166,7 +157,7 @@ class HashPRNG(Model):
     )
 
     def summarize(
-        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
     ) -> None:
         nodecount["HashPRNG"] += 1
 
@@ -197,7 +188,7 @@ class UniformBinning(Model):
 
 
 Infinity = Literal["inf", "+inf", "-inf"]
-Edges = List[Union[float, Infinity]]
+Edges = list[Union[float, Infinity]]
 
 
 def validate_nonuniform_edges(edges: Edges) -> Edges:
@@ -229,7 +220,7 @@ class Binning(Model):
     edges: Union[NonUniformBinning, UniformBinning] = Field(
         description="Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
     )
-    content: List[Content]
+    content: list[Content]
     flow: Union[Content, Literal["clamp", "error", "wrap"]] = Field(
         description="Overflow behavior for out-of-bounds values"
     )
@@ -237,8 +228,8 @@ class Binning(Model):
     @field_validator("content")
     @classmethod
     def validate_content(
-        cls, content: List[Content], info: ValidationInfo
-    ) -> List[Content]:
+        cls, content: list[Content], info: ValidationInfo
+    ) -> list[Content]:
         assert "edges" in info.data
         if isinstance(info.data["edges"], list):
             nbins = len(info.data["edges"]) - 1
@@ -251,7 +242,7 @@ class Binning(Model):
         return content
 
     def summarize(
-        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
     ) -> None:
         nodecount["Binning"] += 1
         inputstats[self.input].overflow &= self.flow != "error"
@@ -272,14 +263,14 @@ class MultiBinning(Model):
     """N-dimensional rectangular binning"""
 
     nodetype: Literal["multibinning"]
-    inputs: List[str] = Field(
+    inputs: list[str] = Field(
         description="The names of the correction input variables this binning applies to",
         min_length=1,
     )
-    edges: List[Union[NonUniformBinning, UniformBinning]] = Field(
+    edges: list[Union[NonUniformBinning, UniformBinning]] = Field(
         description="Bin edges for each input"
     )
-    content: List[Content] = Field(
+    content: list[Content] = Field(
         description="""Bin contents as a flattened array
         This is a C-ordered array, i.e. content[d1*d2*d3*i0 + d2*d3*i1 + d3*i2 + i3] corresponds
         to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.
@@ -292,8 +283,8 @@ class MultiBinning(Model):
     @field_validator("content")
     @classmethod
     def validate_content(
-        cls, content: List[Content], info: ValidationInfo
-    ) -> List[Content]:
+        cls, content: list[Content], info: ValidationInfo
+    ) -> list[Content]:
         assert "edges" in info.data
         nbins = 1
         for dim in info.data["edges"]:
@@ -308,7 +299,7 @@ class MultiBinning(Model):
         return content
 
     def summarize(
-        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
     ) -> None:
         nodecount["MultiBinning"] += 1
         for input, edges in zip(self.inputs, self.edges):
@@ -341,12 +332,12 @@ class Category(Model):
     input: str = Field(
         description="The name of the correction input variable this category node applies to"
     )
-    content: List[CategoryItem]
+    content: list[CategoryItem]
     default: Optional[Content] = None
 
     @field_validator("content")
     @classmethod
-    def validate_content(cls, content: List[CategoryItem]) -> List[CategoryItem]:
+    def validate_content(cls, content: list[CategoryItem]) -> list[CategoryItem]:
         if len(content):
             keytype = type(content[0].key)
             if not all(isinstance(item.key, keytype) for item in content):
@@ -360,7 +351,7 @@ class Category(Model):
         return content
 
     def summarize(
-        self, nodecount: Dict[str, int], inputstats: Dict[str, _SummaryInfo]
+        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
     ) -> None:
         nodecount["Category"] += 1
         if self.input not in inputstats:
@@ -393,11 +384,11 @@ class Correction(Model):
     version: int = Field(
         description="Some value that may increase over time due to bugfixes"
     )
-    inputs: List[Variable] = Field(
+    inputs: list[Variable] = Field(
         description="The function signature of the correction"
     )
     output: Variable = Field(description="Output type for this correction")
-    generic_formulas: Optional[List[Formula]] = Field(
+    generic_formulas: Optional[list[Formula]] = Field(
         description="""A list of common formulas that may be used
 
         For corrections with many parameterized formulas that follow a regular pattern,
@@ -418,8 +409,8 @@ class Correction(Model):
             )
         return output
 
-    def summary(self) -> Tuple[Dict[str, int], Dict[str, _SummaryInfo]]:
-        nodecount: Dict[str, int] = Counter()
+    def summary(self) -> tuple[dict[str, int], dict[str, _SummaryInfo]]:
+        nodecount: dict[str, int] = Counter()
         inputstats = {var.name: _SummaryInfo() for var in self.inputs}
         if not isinstance(self.data, float):
             self.data.summarize(nodecount, inputstats)
@@ -491,11 +482,11 @@ class CompoundCorrection(Model):
         description="Detailed description of the correction stack",
         default=None,
     )
-    inputs: List[Variable] = Field(
+    inputs: list[Variable] = Field(
         description="The function signature of the correction"
     )
     output: Variable = Field(description="Output type for this correction")
-    inputs_update: List[str] = Field(
+    inputs_update: list[str] = Field(
         description="Names of the input variables to update with the output of the previous correction"
     )
     input_op: Literal["+", "*", "/"] = Field(
@@ -504,7 +495,7 @@ class CompoundCorrection(Model):
     output_op: Literal["+", "*", "/", "last"] = Field(
         description="How to accumulate changes in the output variable"
     )
-    stack: List[str] = Field(
+    stack: list[str] = Field(
         description="Names of the component corrections. Each component should have a subset of the inputs listed in this object."
     )
 
@@ -542,12 +533,12 @@ class CorrectionSet(Model):
         description="A nice description of what is in this CorrectionSet means",
         default=None,
     )
-    corrections: List[Correction]
-    compound_corrections: Optional[List[CompoundCorrection]] = None
+    corrections: list[Correction]
+    compound_corrections: Optional[list[CompoundCorrection]] = None
 
     @field_validator("corrections")
     @classmethod
-    def validate_corrections(cls, items: List[Correction]) -> List[Correction]:
+    def validate_corrections(cls, items: list[Correction]) -> list[Correction]:
         seen = set()
         dupe = set()
         for item in items:
@@ -563,8 +554,8 @@ class CorrectionSet(Model):
     @field_validator("compound_corrections")
     @classmethod
     def validate_compound(
-        cls, items: Optional[List[CompoundCorrection]]
-    ) -> Optional[List[CompoundCorrection]]:
+        cls, items: Optional[list[CompoundCorrection]]
+    ) -> Optional[list[CompoundCorrection]]:
         if items is None:
             return items
         seen = set()
