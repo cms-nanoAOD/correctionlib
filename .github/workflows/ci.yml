@@ -51,7 +51,7 @@ jobs:
       run: python -m pip install .[test]
 
     - name: Test package
-      if: not endsWith(matrix.python-version, 't') || matrix.runs-on == 'windows-latest'
+      if: ! endsWith(matrix.python-version, 't') || matrix.runs-on == 'windows-latest'
       run: python -m pytest -ra
 
     - name: Test package (parallel)
