@@ -3,7 +3,7 @@
 """
 import json
 from numbers import Integral
-from typing import Any, Callable, Dict, Iterator, List, Mapping, Union
+from typing import Any, Callable, Iterator, Mapping, Union
 
 import numpy
 from packaging import version
@@ -186,10 +186,10 @@ class Correction:
         self._name = base.name
         self._context = context
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         return {"_context": self._context, "_name": self._name}
 
-    def __setstate__(self, state: Dict[str, Any]) -> None:
+    def __setstate__(self, state: dict[str, Any]) -> None:
         self._context = state["_context"]
         self._name = state["_name"]
         self._base = self._context[self._name]._base
@@ -207,7 +207,7 @@ class Correction:
         return self._base.version
 
     @property
-    def inputs(self) -> List[correctionlib._core.Variable]:
+    def inputs(self) -> list[correctionlib._core.Variable]:
         return self._base.inputs
 
     @property
@@ -268,10 +268,10 @@ class CompoundCorrection:
         self._name = base.name
         self._context = context
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         return {"_context": self._context, "_name": self._name}
 
-    def __setstate__(self, state: Dict[str, Any]) -> None:
+    def __setstate__(self, state: dict[str, Any]) -> None:
         self._context = state["_context"]
         self._name = state["_name"]
         self._base = self._context.compound[self._name]._base
@@ -285,7 +285,7 @@ class CompoundCorrection:
         return self._base.description
 
     @property
-    def inputs(self) -> List[correctionlib._core.Variable]:
+    def inputs(self) -> list[correctionlib._core.Variable]:
         return self._base.inputs
 
     @property
@@ -376,14 +376,14 @@ class CorrectionSet(Mapping[str, Correction]):
     def from_string(cls, data: str) -> "CorrectionSet":
         return cls(data)
 
-    def __getstate__(self) -> Dict[str, Any]:
+    def __getstate__(self) -> dict[str, Any]:
         return {"_data": self._data}
 
-    def __setstate__(self, state: Dict[str, Any]) -> None:
+    def __setstate__(self, state: dict[str, Any]) -> None:
         self._data = state["_data"]
         self._base = correctionlib._core.CorrectionSet.from_string(self._data)
 
-    def _ipython_key_completions_(self) -> List[str]:
+    def _ipython_key_completions_(self) -> list[str]:
         return list(self.keys())
 
     @property
