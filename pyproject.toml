@@ -46,7 +46,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
   "pytest >=4.6",
-  "pytest-parallel",
+  "pytest-run-parallel",
   "py",
   "scipy",
   "awkward >=2.2.2",
