@@ -20,10 +20,10 @@ jobs:
         submodules: recursive
         fetch-depth: 0
         fetch-tags: true
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v5
       with:
         python-version: 3.14
-    - uses: pre-commit/action@v3.0.0
+    - uses: pre-commit/action@v3.0.1
       with:
         extra_args: --hook-stage manual --all-files
 
