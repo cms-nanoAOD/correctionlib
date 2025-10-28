@@ -45,8 +45,8 @@ def test_evaluator():
         )
     )
     print(cset)
-    print(set(cset))
-    assert set(cset) == {"test corr"}
+    print(frozenset(cset))
+    assert frozenset(cset) == {"test corr"}
     sf = cset["test corr"]
     assert sf.version == 2
     assert sf.description == ""
