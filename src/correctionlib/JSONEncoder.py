@@ -8,6 +8,7 @@ Instructions: Print or write JSON dictionary 'data' as
 Adapted from:
   https://stackoverflow.com/questions/16264515/json-dumps-custom-formatting
 """
+
 import gzip
 import json
 import math

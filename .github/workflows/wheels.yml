@@ -48,9 +48,10 @@ jobs:
         fetch-tags: true
         fetch-depth: 0
 
-    - uses: pypa/cibuildwheel@v3.1
+    - uses: pypa/cibuildwheel@v3.2.1
       env:
         CIBW_ARCHS: ${{ matrix.arch }}
+        CIBW_ENABLE: cpython-freethreading
         MACOSX_DEPLOYMENT_TARGET: 11.0
 
     - name: Upload wheels

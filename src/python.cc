@@ -66,7 +66,7 @@ namespace {
   }
 }
 
-PYBIND11_MODULE(_core, m) {
+PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
     m.doc() = "python binding for corrections evaluator";
 
     py::class_<Variable>(m, "Variable")
@@ -105,7 +105,7 @@ PYBIND11_MODULE(_core, m) {
         .def("__len__", &CorrectionSet::size)
         .def("__iter__", [](const CorrectionSet &v) {
           return py::make_key_iterator(v.begin(), v.end());
-        }, py::keep_alive<0, 1>())
+        }) // , py::keep_alive<1, 0>())
         .def_property_readonly("compound", &CorrectionSet::compound);
 
     py::class_<Formula, std::shared_ptr<Formula>>(m, "Formula")
