@@ -1,8 +1,8 @@
-"""Tools to convert other formats to correctionlib
+"""Tools to convert other formats to correctionlib"""
 
-"""
+from collections.abc import Iterable, Sequence
 from numbers import Real
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Sequence, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 import numpy
 
@@ -117,9 +117,11 @@ def from_histogram(
                     "content": [
                         {
                             "key": axes[0][i],
-                            "value": value
-                            if isinstance(value, Real)
-                            else build_data(value, axes[1:], variables[1:]),
+                            "value": (
+                                value
+                                if isinstance(value, Real)
+                                else build_data(value, axes[1:], variables[1:])
+                            ),
                         }
                         for i, value in enumerate(values)
                     ],
@@ -138,9 +140,11 @@ def from_histogram(
                     "edges": [edges(ax) for ax in axes[:i]],
                     "inputs": [var.name for var in variables[:i]],
                     "content": [
-                        value
-                        if isinstance(value, Real)
-                        else build_data(value, axes[i:], variables[i:])
+                        (
+                            value
+                            if isinstance(value, Real)
+                            else build_data(value, axes[i:], variables[i:])
+                        )
                         for value in flatten_to(values, i - 1)
                     ],
                     "flow": flow,
@@ -152,9 +156,11 @@ def from_histogram(
                 "input": variables[0].name,
                 "edges": edges(axes[0]),
                 "content": [
-                    value
-                    if isinstance(value, Real)
-                    else build_data(value, axes[1:], variables[1:])
+                    (
+                        value
+                        if isinstance(value, Real)
+                        else build_data(value, axes[1:], variables[1:])
+                    )
                     for value in values
                 ],
                 "flow": flow,
