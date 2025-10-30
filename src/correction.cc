@@ -697,7 +697,7 @@ double Correction::evaluate(const std::vector<Variable::Type>& values) const {
     throw std::logic_error("Not initialized");
   }
   if ( values.size() != inputs_.size() ) {
-    throw std::runtime_error("Incorrect number of inputs (got " + std::to_string(values.size())
+    throw std::invalid_argument("Incorrect number of inputs (got " + std::to_string(values.size())
           + ", expected " + std::to_string(inputs_.size()) + ")");
   }
   for (size_t i=0; i < inputs_.size(); ++i) {
@@ -766,7 +766,7 @@ size_t CompoundCorrection::input_index(const std::string_view name) const {
 
 double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) const {
   if ( values.size() != inputs_.size() ) {
-    throw std::runtime_error("Incorrect number of inputs (got " + std::to_string(values.size())
+    throw std::invalid_argument("Incorrect number of inputs (got " + std::to_string(values.size())
           + ", expected " + std::to_string(inputs_.size()) + ")");
   }
   for (size_t i=0; i < inputs_.size(); ++i) {

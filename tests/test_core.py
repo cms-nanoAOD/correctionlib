@@ -49,7 +49,7 @@ def test_evaluator():
     assert sf.version == 2
     assert sf.description == ""
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         sf.evaluate(0, 1.2, 35.0, 0.01)
 
     assert sf.evaluate() == 1.234
@@ -110,21 +110,21 @@ def test_evaluator():
     assert sf.version == 2
     assert sf.description == ""
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         # too many inputs
         sf.evaluate(0, 1.2, 35.0, 0.01)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         # not enough inputs
         sf.evaluate(1.2)
 
     with pytest.raises(RuntimeError):
         # wrong type
-        sf.evaluate(5)
+        sf.evaluate(5, "blah")
 
     with pytest.raises(RuntimeError):
         # wrong type
-        sf.evaluate("asdf")
+        sf.evaluate("asdf", "blah")
 
     assert sf.evaluate(12.0, "blah") == 1.1
     # Do we need pytest.approx? Maybe not

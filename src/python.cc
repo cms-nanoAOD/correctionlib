@@ -10,9 +10,8 @@ namespace {
   template<typename T> // Correction or CompoundCorrection
   void check_length(const T& c, py::args args) {
     // Error message should be the same as in Correction::evaluate
-    // TODO: this probably should be std::invalid_argument
     if ( py::len(args) != c.inputs().size() ) {
-      throw std::runtime_error("Incorrect number of inputs (got " + std::to_string(py::len(args))
+      throw std::invalid_argument("Incorrect number of inputs (got " + std::to_string(py::len(args))
           + ", expected " + std::to_string(c.inputs().size()) + ")");
     }
   }
