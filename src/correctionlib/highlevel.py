@@ -1,9 +1,9 @@
-"""High-level correctionlib objects
+"""High-level correctionlib objects"""
 
-"""
 import json
+from collections.abc import Iterator, Mapping
 from numbers import Integral
-from typing import Any, Callable, Iterator, Mapping, Union
+from typing import Any, Callable, Union
 
 import numpy
 from packaging import version

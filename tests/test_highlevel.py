@@ -35,7 +35,7 @@ def test_highlevel(cset):
     assert sf.version == 2
     assert sf.description == ""
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ValueError):
         sf.evaluate(0, 1.2, 35.0, 0.01)
 
     assert sf.evaluate(1.0, 1.0) == 1.234

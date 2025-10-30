@@ -69,6 +69,7 @@ class FormulaAst:
     class BinaryOp:
         name: str
         value: int
+
     @property
     def nodetype(self) -> NodeType: ...
     @property
