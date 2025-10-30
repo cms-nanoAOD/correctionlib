@@ -7,20 +7,40 @@ namespace py = pybind11;
 using namespace correction;
 
 namespace {
-
-  template<typename T>
-  py::array_t<double> evalv(T& c, py::args args) {
-    std::vector<Variable::Type> inputs;
-    inputs.reserve(py::len(args));
-    std::vector<std::pair<size_t, py::buffer_info>> vargs;
+  template<typename T> // Correction or CompoundCorrection
+  void check_length(const T& c, py::args args) {
+    // Error message should be the same as in Correction::evaluate
     if ( py::len(args) != c.inputs().size() ) {
       throw std::invalid_argument("Incorrect number of inputs (got " + std::to_string(py::len(args))
           + ", expected " + std::to_string(c.inputs().size()) + ")");
     }
+  }
+
+  template<typename T> // Correction or CompoundCorrection
+  std::vector<Variable::Type> validate_pyargs(const T& c, py::args args) {
+    // Ensure length before checking integer overflow
+    check_length(c, args);
+
+    // Check for integer overflow (py::cast converts to the double alternative)
+    for (size_t i=0; i < c.inputs().size(); ++i) {
+      if ( c.inputs()[i].type() == Variable::VarType::integer and py::isinstance<py::int_>(args[i]) ) {
+        py::cast<int64_t>(args[i]); // throws if out of range
+      }
+    }
+
+    return py::cast<std::vector<Variable::Type>>(args);
+  }
+
+  template<typename T> // Correction or CompoundCorrection
+  py::array_t<double> evalv(T& c, py::args args) {
+    std::vector<Variable::Type> inputs;
+    inputs.reserve(py::len(args));
+    std::vector<std::pair<size_t, py::buffer_info>> vargs;
+    check_length(c, args);
     for (size_t i=0; i < py::len(args); ++i) {
       if ( py::isinstance<py::array>(args[i]) ) {
         if ( c.inputs()[i].type() == Variable::VarType::integer ) {
-          vargs.emplace_back(i, py::cast<py::array_t<int, py::array::c_style | py::array::forcecast>>(args[i]).request());
+          vargs.emplace_back(i, py::cast<py::array_t<int64_t, py::array::c_style | py::array::forcecast>>(args[i]).request());
           inputs.emplace_back(0);
         }
         else if ( c.inputs()[i].type() == Variable::VarType::real ) {
@@ -52,8 +72,8 @@ namespace {
       py::gil_scoped_release release;
       for (long i=0; i < outbuffer.shape[0]; ++i) {
         for (const auto& varg : vargs) {
-          if ( std::holds_alternative<int>(inputs[varg.first]) ) {
-            inputs[varg.first] = static_cast<int*>(varg.second.ptr)[i];
+          if ( std::holds_alternative<int64_t>(inputs[varg.first]) ) {
+            inputs[varg.first] = static_cast<int64_t*>(varg.second.ptr)[i];
           }
           else if ( std::holds_alternative<double>(inputs[varg.first]) ) {
             inputs[varg.first] = static_cast<double*>(varg.second.ptr)[i];
@@ -65,7 +85,6 @@ namespace {
     return output;
   }
 }
-
 PYBIND11_MODULE(_core, m) {
     m.doc() = "python binding for corrections evaluator";
 
@@ -82,7 +101,7 @@ PYBIND11_MODULE(_core, m) {
         .def_property_readonly("inputs", &Correction::inputs)
         .def_property_readonly("output", &Correction::output)
         .def("evaluate", [](Correction& c, py::args args) {
-          return c.evaluate(py::cast<std::vector<Variable::Type>>(args));
+          return c.evaluate(validate_pyargs(c, args));
         })
         .def("evalv", evalv<Correction>);
 
@@ -92,7 +111,7 @@ PYBIND11_MODULE(_core, m) {
         .def_property_readonly("inputs", &CompoundCorrection::inputs)
         .def_property_readonly("output", &CompoundCorrection::output)
         .def("evaluate", [](CompoundCorrection& c, py::args args) {
-          return c.evaluate(py::cast<std::vector<Variable::Type>>(args));
+          return c.evaluate(validate_pyargs(c, args));
         })
         .def("evalv", evalv<CompoundCorrection>);
 

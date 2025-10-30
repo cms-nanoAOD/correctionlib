@@ -154,7 +154,7 @@ namespace {
   {
     double value = std::visit([](auto&& arg) -> double {
       using T = std::decay_t<decltype(arg)>;
-      if constexpr (std::is_same_v<T, int>) return static_cast<double>(arg);
+      if constexpr (std::is_same_v<T, int64_t>) return static_cast<double>(arg);
       else if constexpr (std::is_same_v<T, double>) return arg;
       else throw std::logic_error("I should not have ever seen a string");
       }, value_variant);
@@ -286,7 +286,7 @@ void Variable::validate(const Type& t) const {
       throw std::runtime_error("Input " + name() + " has wrong type: got string expected " + typeStr());
     }
   }
-  else if ( std::holds_alternative<int>(t) ) {
+  else if ( std::holds_alternative<int64_t>(t) ) {
     if ( type_ != VarType::integer ) {
       throw std::runtime_error("Input " + name() + " has wrong type: got int expected " + typeStr());
     }
@@ -398,8 +398,8 @@ double Transform::evaluate(const std::vector<Variable::Type>& values) const {
   if ( std::holds_alternative<double>(v) ) {
     v = vnew;
   }
-  else if ( std::holds_alternative<int>(v) ) {
-    v = (int) std::round(vnew);
+  else if ( std::holds_alternative<int64_t>(v) ) {
+    v = (int64_t) std::round(vnew);
   }
   else {
     throw std::logic_error("I should not have ever seen a string");
@@ -432,7 +432,7 @@ double HashPRNG::evaluate(const std::vector<Variable::Type>& values) const {
   size_t nbytes = sizeof(uint64_t)*variablesIdx_.size();
   uint64_t* seedData = (uint64_t*) alloca(nbytes);
   for(size_t i=0; i<variablesIdx_.size(); ++i) {
-    if ( auto v = std::get_if<int>(&values[variablesIdx_[i]]) ) {
+    if ( auto v = std::get_if<int64_t>(&values[variablesIdx_[i]]) ) {
       seedData[i] = static_cast<uint64_t>(*v);
     }
     else if ( auto v = std::get_if<double>(&values[variablesIdx_[i]]) ) {
@@ -652,7 +652,7 @@ double Category::evaluate(const std::vector<Variable::Type>& values) const {
       }
     }
   }
-  else if ( auto pval = std::get_if<int>(&values[variableIdx_]) ) {
+  else if ( auto pval = std::get_if<int64_t>(&values[variableIdx_]) ) {
     try {
       child = &std::get<IntMap>(map_).at(*pval);
     } catch (std::out_of_range& ex) {
@@ -696,11 +696,9 @@ double Correction::evaluate(const std::vector<Variable::Type>& values) const {
   if ( ! initialized_ ) {
     throw std::logic_error("Not initialized");
   }
-  if ( values.size() > inputs_.size() ) {
-    throw std::runtime_error("Too many inputs");
-  }
-  else if ( values.size() < inputs_.size() ) {
-    throw std::runtime_error("Insufficient inputs");
+  if ( values.size() != inputs_.size() ) {
+    throw std::runtime_error("Incorrect number of inputs (got " + std::to_string(values.size())
+          + ", expected " + std::to_string(inputs_.size()) + ")");
   }
   for (size_t i=0; i < inputs_.size(); ++i) {
     inputs_[i].validate(values[i]);
@@ -767,11 +765,9 @@ size_t CompoundCorrection::input_index(const std::string_view name) const {
 }
 
 double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) const {
-  if ( values.size() > inputs_.size() ) {
-    throw std::runtime_error("Too many inputs");
-  }
-  else if ( values.size() < inputs_.size() ) {
-    throw std::runtime_error("Insufficient inputs");
+  if ( values.size() != inputs_.size() ) {
+    throw std::runtime_error("Incorrect number of inputs (got " + std::to_string(values.size())
+          + ", expected " + std::to_string(inputs_.size()) + ")");
   }
   for (size_t i=0; i < inputs_.size(); ++i) {
     inputs_[i].validate(values[i]);
