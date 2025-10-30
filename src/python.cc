@@ -23,7 +23,7 @@ namespace {
 
     // Check for integer overflow (py::cast converts to the double alternative)
     for (size_t i=0; i < c.inputs().size(); ++i) {
-      if ( c.inputs()[i].type() == Variable::VarType::integer and py::isinstance<py::int_>(args[i]) ) {
+      if ( c.inputs()[i].type() == Variable::VarType::integer && py::isinstance<py::int_>(args[i]) ) {
         py::cast<int64_t>(args[i]); // throws if out of range
       }
     }
