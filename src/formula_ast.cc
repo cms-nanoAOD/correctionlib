@@ -52,13 +52,13 @@ namespace {
                     L ||
                     L &&
                     L == !=
-                    L >= <= > <
-                    L + -
-                    L * /
+                    L > < >= <=
+                    L - +
+                    L / *
                     R ^
                 }
   UNARYOP     <- < '-' >
-  BINARYOP    <- < '||' | '&&' | '==' | '!=' | '>=' | '<=' | '>' | '<' | '+' | '-' | '*' | '/' | '^' >
+  BINARYOP    <- < '||' | '&&' | '==' | '!=' | '>' | '<' | '>=' | '<=' | '-' | '+' | '/' | '*' | '^' >
   UNARYF      <- < 'log' | 'log10' | 'exp' | 'erf' | 'sqrt' | 'abs' | 'cos' | 'sin' | 'tan' | 'acos' | 'asin' | 'atan' | 'cosh' | 'sinh' | 'tanh' | 'acosh' | 'asinh' | 'atanh' >
   BINARYF     <- < 'atan2' | 'pow' | 'max' | 'min' >
   PARAMETER   <- '[' < [0-9]+ > ']'
@@ -183,14 +183,14 @@ namespace {
       else if ( opname == "&&" ) { op = FormulaAst::BinaryOp::LogicalAnd; }
       else if ( opname == "==" ) { op = FormulaAst::BinaryOp::Equal; }
       else if ( opname == "!=" ) { op = FormulaAst::BinaryOp::NotEqual; }
-      else if ( opname == ">=" ) { op = FormulaAst::BinaryOp::GreaterEq; }
-      else if ( opname == "<=" ) { op = FormulaAst::BinaryOp::LessEq; }
       else if ( opname == ">"  ) { op = FormulaAst::BinaryOp::Greater; }
       else if ( opname == "<"  ) { op = FormulaAst::BinaryOp::Less; }
-      else if ( opname == "+"  ) { op = FormulaAst::BinaryOp::Plus; }
+      else if ( opname == ">=" ) { op = FormulaAst::BinaryOp::GreaterEq; }
+      else if ( opname == "<=" ) { op = FormulaAst::BinaryOp::LessEq; }
       else if ( opname == "-"  ) { op = FormulaAst::BinaryOp::Minus; }
-      else if ( opname == "*"  ) { op = FormulaAst::BinaryOp::Times; }
+      else if ( opname == "+"  ) { op = FormulaAst::BinaryOp::Plus; }
       else if ( opname == "/"  ) { op = FormulaAst::BinaryOp::Div; }
+      else if ( opname == "*"  ) { op = FormulaAst::BinaryOp::Times; }
       else if ( opname == "^"  ) { op = FormulaAst::BinaryOp::Pow; }
       else { throw std::runtime_error("Unrecognized binary operation: " + std::string(opname)); }
       return {
