@@ -44,20 +44,22 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = [
-  "pytest >=4.6",
+convert = [
+  "pandas",
+  "uproot >=4.0.4",
+  "requests",
   "scipy",
+]
+
+[dependency-groups]
+test = [
+  "pandas",
+  "uproot >=4.0.4",
+  "requests",
+  "scipy",
+  "pytest >=4.6",
   "awkward >=2.2.2",
   "dask-awkward >=2024.1.1",
-  "dask <2025.4.0",
-]
-dev = [
-  "pytest >=4.6",
-  "pre-commit",
-  "mypy",
-  "uhi",
-  "awkward >=2",
-  "dask-awkward",
 ]
 docs = [
   "recommonmark >=0.5.0",
@@ -68,15 +70,25 @@ docs = [
   "myst-parser",
   "nbsphinx",
 ]
-convert = [
-  "pandas",
-  "uproot >=4.0.4",
-  "requests",
-  "scipy",
+dev = [
+  {include-group = "test"},
+  {include-group = "docs"},
+  "pre-commit",
+  "mypy",
+  "uhi",
 ]
 
 [tool.mypy]
 python_version = "3.9"
+files = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["awkward.*", "uproot.*"]
+follow_untyped_imports = true
+
+[[tool.mypy.overrides]]
+module = ["cppyy.*", "scipy.*"]
+ignore_missing_imports = true
 
 [project.scripts]
 correction = "correctionlib.cli:main"
@@ -97,7 +109,7 @@ write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
 skip = ["pp*-*", "cp313t-*", "cp314t-*"]
-test-extras = "test"
+test-groups = ["test"]
 test-command = "python -m pytest {package}/tests"
 test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32"]
 

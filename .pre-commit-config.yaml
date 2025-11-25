@@ -40,5 +40,5 @@ repos:
   rev: v1.17.1
   hooks:
   - id: mypy
-    files: src
-    additional_dependencies: [types-setuptools, uhi, pydantic, numpy]
+    pass_filenames: false # to allow mypy to respect pyproject.toml config
+    additional_dependencies: [uhi, pydantic, numpy]

@@ -19,13 +19,13 @@ jobs:
 
     - uses: actions/setup-python@v2
       with:
-        python-version: 3.9
+        python-version: 3.12
 
     - name: Install pandoc
       uses: r-lib/actions/setup-pandoc@v2
 
     - name: Install package
-      run: python -m pip install .[docs]
+      run: python -m pip install . --dependency-groups docs
 
     - name: Build documentation
       run: |

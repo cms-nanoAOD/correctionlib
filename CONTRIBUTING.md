@@ -13,7 +13,14 @@ You can set up a development environment by running:
 ```bash
 python3 -m venv .env
 source .env/bin/activate
-pip install -e .[dev,test]
+pip install -e . --dependency-groups dev
+```
+
+Alternatively, you can use `uv`:
+
+```bash
+uv sync
+source .venv/bin/activate
 ```
 
 # Post setup
