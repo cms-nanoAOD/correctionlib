@@ -3,13 +3,16 @@
 import json
 from collections.abc import Iterator, Mapping
 from numbers import Integral
-from typing import Any, Callable, Union
+from typing import TYPE_CHECKING, Any, Callable, Union
 
 import numpy
 from packaging import version
 
 import correctionlib._core
 import correctionlib.version
+
+if TYPE_CHECKING:
+    import awkward
 
 _min_version_ak = version.parse("2.0.0")
 _min_version_dak = version.parse("2024.1.1")
@@ -98,7 +101,7 @@ def _call_as_numpy(
 
 def _wrap_awkward(
     func: Callable[..., Any],
-    *args: Union["numpy.ndarray[Any, Any]", str, int, float],
+    *args: Union["awkward.Array", "numpy.ndarray[Any, Any]", str, int, float],
 ) -> Any:
     from functools import partial
 

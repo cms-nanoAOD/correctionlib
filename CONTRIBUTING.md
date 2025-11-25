@@ -13,8 +13,19 @@ You can set up a development environment by running:
 ```bash
 python3 -m venv .env
 source .env/bin/activate
-pip install -e .[dev,test]
+pip install -e . --group dev
 ```
+
+Alternatively, you can use `uv`:
+
+```bash
+uv sync --no-editable
+source .venv/bin/activate
+```
+
+The `--no-editable` flag is needed to avoid installing the package in editable mode,
+as the paths to the library and include files are not correctly set up for editable installs,
+preventing C++ compilation.
 
 # Post setup
 
