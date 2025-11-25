@@ -108,7 +108,7 @@ BUILD_DEMO = "OFF"
 write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
-skip = ["pp*-*", "cp313t-*", "cp314t-*"]
+skip = ["cp314t-*"]
 test-groups = ["test"]
 test-command = "python -m pytest {package}/tests"
 test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32"]
