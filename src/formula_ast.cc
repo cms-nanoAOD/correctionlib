@@ -1,6 +1,8 @@
 #include <mutex>
 #include <cmath>
 #include <cstdlib> // std::abort
+#include <charconv> // std::from_chars
+#include <iomanip> // std::quoted
 #include "peglib.h"
 #include "correction.h"
 
@@ -62,7 +64,9 @@ namespace {
   UNARYF      <- < 'log' | 'log10' | 'exp' | 'erf' | 'sqrt' | 'abs' | 'cos' | 'sin' | 'tan' | 'acos' | 'asin' | 'atan' | 'cosh' | 'sinh' | 'tanh' | 'acosh' | 'asinh' | 'atanh' >
   BINARYF     <- < 'atan2' | 'pow' | 'max' | 'min' >
   PARAMETER   <- '[' < [0-9]+ > ']'
-  VARIABLE    <- < [xyzt] >
+  VARIABLE    <- < VARNUM / VARNAME >
+  VARNAME     <- [xyzt]
+  VARNUM      <- 'x[' [0-9]+ ']'
   LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? ('e' '-'? [0-9]+)? >
   CALLU       <- UNARYF '(' EXPRESSION ')'
   CALLB       <- BINARYF '(' EXPRESSION ',' EXPRESSION ')'
@@ -92,6 +96,16 @@ namespace {
         else if ( ast->token == "y" ) idx = 1;
         else if ( ast->token == "z" ) idx = 2;
         else if ( ast->token == "t" ) idx = 3;
+        else if ( ast->token.substr(0,2) == "x[" ) {
+          auto [ptr, ec] = std::from_chars(
+            ast->token.data()+2,
+            ast->token.data() + ast->token.size() - 1,
+            idx
+          );
+          if ( ec != std::errc() ) {
+            throw std::runtime_error("Failed to parse variable '" + std::string(ptr) + "' in formula");
+          }
+        }
         else {
           throw std::runtime_error("Unrecognized variable name in formula");
         }
