@@ -39,4 +39,6 @@ def test_hashprng():
 
     with pytest.warns(DeprecationWarning):
         corr = _make_hashprng_cset("stdnormal")
-    assert corr.evaluate(1.2, 2.3, 5) == 0.5320038585132821
+
+    # we already see two implementations of stdnormal in the CI (the latter on ubuntu)
+    assert corr.evaluate(1.2, 2.3, 5) in (0.5320038585132821, 2.227655564267796)
