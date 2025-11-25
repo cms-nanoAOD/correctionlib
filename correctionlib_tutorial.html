@@ -214,7 +214,7 @@ Correction ptweight has 2 inputs
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-array([1.1 , 1.04, 1.08, 1.1 , 1.1 , 1.06, 1.1 , 1.1 , 1.1 , 1.1 ])
+array([1.1 , 1.1 , 1.1 , 1.1 , 1.1 , 1.1 , 1.06, 1.1 , 1.08, 1.06])
 </pre></div></div>
 </div>
 <p>Currently, only numpy-compatible awkward arrays are accepted, but a jagged array can be flattened and re-wrapped quite easily:</p>
@@ -524,7 +524,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x11bbb3050&gt;
+&lt;matplotlib.legend.Legend at 0x128b0f140&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -559,7 +559,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ColormeshArtists(pcolormesh=&lt;matplotlib.collections.QuadMesh object at 0x11bbb0770&gt;, cbar=&lt;matplotlib.colorbar.Colorbar object at 0x11bd10830&gt;, text=[])
+ColormeshArtists(pcolormesh=&lt;matplotlib.collections.QuadMesh object at 0x12940c140&gt;, cbar=&lt;matplotlib.colorbar.Colorbar object at 0x1294298e0&gt;, text=[])
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -632,7 +632,7 @@ Node counts: <span style="font-weight: bold">MultiBinning</span>: <span style="c
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x11bd10aa0&gt;
+&lt;matplotlib.legend.Legend at 0x129597140&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -671,7 +671,7 @@ Node counts: <span style="font-weight: bold">MultiBinning</span>: <span style="c
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">📈 <span style="font-weight: bold">gen2_to_gen1_poly</span> <span style="font-weight: bold">(</span>v1<span style="font-weight: bold">)</span>
 Fit to polynomial of order <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span>,<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span>
 Fit status: The unconstrained solution is optimal.
-chi2 = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.306256132294569</span>, <span style="color: #800080; text-decoration-color: #800080; font-weight: bold">P</span><span style="font-weight: bold">(</span><span style="color: #808000; text-decoration-color: #808000">dof</span>=<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">71</span><span style="font-weight: bold">)</span> = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.000</span>
+chi2 = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.079189048265459</span>, <span style="color: #800080; text-decoration-color: #800080; font-weight: bold">P</span><span style="font-weight: bold">(</span><span style="color: #808000; text-decoration-color: #808000">dof</span>=<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">71</span><span style="font-weight: bold">)</span> = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.000</span>
 Node counts: <span style="font-weight: bold">Formula</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>
 ╭──────────── ▶ input ────────────╮ ╭──────────── ▶ input ────────────╮
 │ <span style="font-weight: bold">pt</span> (real)                       │ │ <span style="font-weight: bold">eta</span> (real)                      │
@@ -709,7 +709,7 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x11bd902f0&gt;
+&lt;matplotlib.legend.Legend at 0x129615f70&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -737,8 +737,8 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-1.06 ms ± 26.7 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-2.65 ms ± 45.1 μs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+1.06 ms ± 15.6 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+2.81 ms ± 24 μs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 </pre></div></div>
 </div>
 <p>However, in an alternative situation, the same may not hold:</p>
@@ -756,8 +756,8 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-39.4 μs ± 150 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
-14.9 μs ± 63.8 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+42.9 μs ± 324 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+15.2 μs ± 167 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
 </pre></div></div>
 </div>
 </section>
@@ -783,7 +783,7 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
     <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">HashPRNG</span><span class="p">(</span>
         <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;hashprng&quot;</span><span class="p">,</span>
         <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="s2">&quot;eta&quot;</span><span class="p">,</span> <span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="s2">&quot;evt&quot;</span><span class="p">],</span>
-        <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;stdnormal&quot;</span><span class="p">,</span>
+        <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">)</span>
 
