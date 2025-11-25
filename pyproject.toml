@@ -69,6 +69,11 @@ docs = [
   "sphinx-jsonschema",
   "myst-parser",
   "nbsphinx",
+  # to match binder/requirements.txt
+  "awkward",
+  "hist[plot]",
+  "matplotlib",
+  "ipykernel",
 ]
 dev = [
   {include-group = "test"},
