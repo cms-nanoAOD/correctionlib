@@ -146,6 +146,8 @@ PYBIND11_MODULE(_core, m) {
       .value("BINARY", FormulaAst::NodeType::Binary);
 
     py::enum_<FormulaAst::BinaryOp>(formula_ast, "BinaryOp")
+      .value("LOGICALOR", FormulaAst::BinaryOp::LogicalOr)
+      .value("LOGICALAND", FormulaAst::BinaryOp::LogicalAnd)
       .value("EQUAL", FormulaAst::BinaryOp::Equal)
       .value("NOTEQUAL", FormulaAst::BinaryOp::NotEqual)
       .value("GREATER", FormulaAst::BinaryOp::Greater)

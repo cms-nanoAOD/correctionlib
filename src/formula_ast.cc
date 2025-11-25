@@ -15,7 +15,10 @@ namespace {
       typedef std::shared_ptr<peg::Ast> AstPtr;
 
       PEGParser(const char * grammar) {
-        parser_.load_grammar(grammar);
+        auto ok = parser_.load_grammar(grammar);
+        if ( ! ok ) {
+          throw std::runtime_error("Failed to load PEG grammar");
+        }
         parser_.enable_ast();
         parser_.enable_packrat_parsing();
       };
@@ -46,14 +49,16 @@ namespace {
   PEGParser tformula_parser(R"(
   EXPRESSION  <- ATOM (BINARYOP ATOM)* {
                   precedence
+                    L ||
+                    L &&
                     L == !=
-                    L > < >= <=
-                    L - +
-                    L / *
+                    L >= <= > <
+                    L + -
+                    L * /
                     R ^
                 }
   UNARYOP     <- < '-' >
-  BINARYOP    <- < '==' | '!=' | '>' | '<' | '>=' | '<=' | '-' | '+' | '/' | '*' | '^' >
+  BINARYOP    <- < '||' | '&&' | '==' | '!=' | '>=' | '<=' | '>' | '<' | '+' | '-' | '*' | '/' | '^' >
   UNARYF      <- < 'log' | 'log10' | 'exp' | 'erf' | 'sqrt' | 'abs' | 'cos' | 'sin' | 'tan' | 'acos' | 'asin' | 'atan' | 'cosh' | 'sinh' | 'tanh' | 'acosh' | 'asinh' | 'atanh' >
   BINARYF     <- < 'atan2' | 'pow' | 'max' | 'min' >
   PARAMETER   <- '[' < [0-9]+ > ']'
@@ -174,16 +179,18 @@ namespace {
       if ( ast->nodes.size() != 3 ) { throw std::runtime_error("EXPRESSION without 3 nodes?"); }
       auto opname = ast->nodes[1]->token;
       FormulaAst::BinaryOp op;
-      if      ( opname == "==" ) { op = FormulaAst::BinaryOp::Equal; }
+      if      ( opname == "||" ) { op = FormulaAst::BinaryOp::LogicalOr; }
+      else if ( opname == "&&" ) { op = FormulaAst::BinaryOp::LogicalAnd; }
+      else if ( opname == "==" ) { op = FormulaAst::BinaryOp::Equal; }
       else if ( opname == "!=" ) { op = FormulaAst::BinaryOp::NotEqual; }
-      else if ( opname == ">"  ) { op = FormulaAst::BinaryOp::Greater; }
-      else if ( opname == "<"  ) { op = FormulaAst::BinaryOp::Less; }
       else if ( opname == ">=" ) { op = FormulaAst::BinaryOp::GreaterEq; }
       else if ( opname == "<=" ) { op = FormulaAst::BinaryOp::LessEq; }
-      else if ( opname == "-"  ) { op = FormulaAst::BinaryOp::Minus; }
+      else if ( opname == ">"  ) { op = FormulaAst::BinaryOp::Greater; }
+      else if ( opname == "<"  ) { op = FormulaAst::BinaryOp::Less; }
       else if ( opname == "+"  ) { op = FormulaAst::BinaryOp::Plus; }
-      else if ( opname == "/"  ) { op = FormulaAst::BinaryOp::Div; }
+      else if ( opname == "-"  ) { op = FormulaAst::BinaryOp::Minus; }
       else if ( opname == "*"  ) { op = FormulaAst::BinaryOp::Times; }
+      else if ( opname == "/"  ) { op = FormulaAst::BinaryOp::Div; }
       else if ( opname == "^"  ) { op = FormulaAst::BinaryOp::Pow; }
       else { throw std::runtime_error("Unrecognized binary operation: " + std::string(opname)); }
       return {
@@ -248,6 +255,8 @@ double FormulaAst::evaluate(const std::vector<Variable::Type>& values, const std
       const auto left = children_[0].evaluate(values, params);
       const auto right = children_[1].evaluate(values, params);
       switch (std::get<BinaryOp>(data_)) {
+        case BinaryOp::LogicalOr: return ((left != 0.0) || (right != 0.0)) ? 1. : 0.;
+        case BinaryOp::LogicalAnd: return ((left != 0.0) && (right != 0.0)) ? 1. : 0.;
         case BinaryOp::Equal: return (left == right) ? 1. : 0.;
         case BinaryOp::NotEqual: return (left != right) ? 1. : 0.;
         case BinaryOp::Greater: return (left > right) ? 1. : 0.;
