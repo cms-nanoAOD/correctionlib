@@ -177,6 +177,14 @@ def _wrap_dask_awkward(
     )
 
 
+def _isinstance(arg: Any, clsprefix: str) -> bool:
+    """Return True if arg is an instance of a class with the given prefix
+
+    Avoids importing modules
+    """
+    return str(type(arg)).startswith(f"<class '{clsprefix}.")
+
+
 class Correction:
     """High-level correction evaluator object
 
@@ -218,10 +226,12 @@ class Correction:
         return self._base.output
 
     def evaluate(
-        self, *args: Union["numpy.ndarray[Any, Any]", str, int, float]
-    ) -> Union[float, "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"]:
+        self, *args: Union["awkward.Array", "numpy.ndarray[Any, Any]", str, int, float]
+    ) -> Union[
+        float, "awkward.Array", "numpy.ndarray[Any, numpy.dtype[numpy.float64]]"
+    ]:
         # TODO: create a ufunc with numpy.vectorize in constructor?
-        if any(str(type(arg)).startswith("<class 'dask.array.") for arg in args):
+        if any(_isinstance(arg, "dask.array") for arg in args):
             raise TypeError(
                 "Correctionlib does not yet handle dask.array collections. "
                 "If you require this functionality (i.e. you cannot or do "
@@ -235,11 +245,11 @@ class Correction:
                 if not isinstance(arg, (str, int, float))
             ]
         except NotImplementedError:
-            if any(str(type(arg)).startswith("<class 'dask_awkward.") for arg in args):
+            if any(_isinstance(arg, "dask_awkward") for arg in args):
                 return _wrap_dask_awkward(self, *args)  # type: ignore
             raise
         except (ValueError, TypeError):
-            if any(str(type(arg)).startswith("<class 'awkward.") for arg in args):
+            if any(_isinstance(arg, "awkward") for arg in args):
                 return _wrap_awkward(self._base.evalv, *args)  # type: ignore
             raise
 
@@ -253,7 +263,12 @@ class Correction:
                     for arg in args
                 )
             )
-            return out.reshape(oshape)
+            out = out.reshape(oshape)
+            if any(_isinstance(arg, "awkward") for arg in args):
+                import awkward
+
+                return awkward.Array(out)
+            return out
         return self._base.evaluate(*args)  # type: ignore
 
 
