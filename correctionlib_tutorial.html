@@ -15,7 +15,7 @@
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=5929fcd5"></script>
-      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
       <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -125,10 +125,10 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import correctionlib
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">correctionlib</span>
 
-ceval = correctionlib.CorrectionSet.from_file(&quot;mycorrections.json&quot;)
-list(ceval.keys())
+<span class="n">ceval</span> <span class="o">=</span> <span class="n">correctionlib</span><span class="o">.</span><span class="n">CorrectionSet</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;mycorrections.json&quot;</span><span class="p">)</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">ceval</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 </pre></div>
 </div>
 </div>
@@ -146,10 +146,10 @@ list(ceval.keys())
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>for corr in ceval.values():
-    print(f&quot;Correction {corr.name} has {len(corr.inputs)} inputs&quot;)
-    for ix in corr.inputs:
-        print(f&quot;   Input {ix.name} ({ix.type}): {ix.description}&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">corr</span> <span class="ow">in</span> <span class="n">ceval</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Correction </span><span class="si">{</span><span class="n">corr</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">corr</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span><span class="si">}</span><span class="s2"> inputs&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">corr</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;   Input </span><span class="si">{</span><span class="n">ix</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">ix</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">ix</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -174,7 +174,7 @@ Correction ptweight has 2 inputs
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ceval[&quot;phimod&quot;].evaluate(1.2, -1)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ceval</span><span class="p">[</span><span class="s2">&quot;phimod&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">1.2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -192,8 +192,8 @@ Correction ptweight has 2 inputs
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># will not work
-# ceval[&quot;phimod&quot;].evaluate(1.2, -1.0)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># will not work</span>
+<span class="c1"># ceval[&quot;phimod&quot;].evaluate(1.2, -1.0)</span>
 </pre></div>
 </div>
 </div>
@@ -201,10 +201,10 @@ Correction ptweight has 2 inputs
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import numpy as np
-ptvals = np.random.exponential(15.0, size=10)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">ptvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
-ceval[&quot;ptweight&quot;].evaluate(ptvals, &quot;nominal&quot;)
+<span class="n">ceval</span><span class="p">[</span><span class="s2">&quot;ptweight&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="s2">&quot;nominal&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -214,7 +214,7 @@ ceval[&quot;ptweight&quot;].evaluate(ptvals, &quot;nominal&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-array([1.1 , 1.02, 1.1 , 1.1 , 1.1 , 1.1 , 1.1 , 1.08, 1.1 , 1.02])
+array([1.1 , 1.04, 1.08, 1.1 , 1.1 , 1.06, 1.1 , 1.1 , 1.1 , 1.1 ])
 </pre></div></div>
 </div>
 <p>Currently, only numpy-compatible awkward arrays are accepted, but a jagged array can be flattened and re-wrapped quite easily:</p>
@@ -222,16 +222,16 @@ array([1.1 , 1.02, 1.1 , 1.1 , 1.1 , 1.1 , 1.1 , 1.08, 1.1 , 1.02])
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import awkward as ak
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">awkward</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ak</span>
 
-ptjagged = ak.Array([[10.1, 20.2, 30.3], [40.4, 50.5], [60.6]])
+<span class="n">ptjagged</span> <span class="o">=</span> <span class="n">ak</span><span class="o">.</span><span class="n">Array</span><span class="p">([[</span><span class="mf">10.1</span><span class="p">,</span> <span class="mf">20.2</span><span class="p">,</span> <span class="mf">30.3</span><span class="p">],</span> <span class="p">[</span><span class="mf">40.4</span><span class="p">,</span> <span class="mf">50.5</span><span class="p">],</span> <span class="p">[</span><span class="mf">60.6</span><span class="p">]])</span>
 
-ptflat, counts = ak.flatten(ptjagged), ak.num(ptjagged)
-weight = ak.unflatten(
-    ceval[&quot;ptweight&quot;].evaluate(ptflat, &quot;nominal&quot;),
-    counts=counts,
-)
-weight
+<span class="n">ptflat</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">ak</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">ptjagged</span><span class="p">),</span> <span class="n">ak</span><span class="o">.</span><span class="n">num</span><span class="p">(</span><span class="n">ptjagged</span><span class="p">)</span>
+<span class="n">weight</span> <span class="o">=</span> <span class="n">ak</span><span class="o">.</span><span class="n">unflatten</span><span class="p">(</span>
+    <span class="n">ceval</span><span class="p">[</span><span class="s2">&quot;ptweight&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptflat</span><span class="p">,</span> <span class="s2">&quot;nominal&quot;</span><span class="p">),</span>
+    <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">weight</span>
 </pre></div>
 </div>
 </div>
@@ -239,10 +239,14 @@ weight
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-&lt;Array [[1.1, 1.08, 1.06], ... 1.02], [1.02]] type=&#39;3 * var * float64&#39;&gt;
-</pre></div></div>
+<div class="output_area rendered_html docutils container">
+<pre>[[1.1, 1.08, 1.06],
+ [1.04, 1.02],
+ [1.02]]
+-------------------
+backend: cpu
+nbytes: 80 B
+type: 3 * var * float64</pre></div>
 </div>
 </section>
 <section id="Creating-new-corrections">
@@ -253,18 +257,18 @@ besides some metadata like a name and version, defines upfront the inputs and ou
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import correctionlib.schemav2 as cs
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">correctionlib.schemav2</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">cs</span>
 
-corr = cs.Correction(
-    name=&quot;ptweight&quot;,
-    version=1,
-    inputs=[
-        cs.Variable(name=&quot;pt&quot;, type=&quot;real&quot;, description=&quot;Muon transverse momentum&quot;),
-    ],
-    output=cs.Variable(name=&quot;weight&quot;, type=&quot;real&quot;, description=&quot;Multiplicative event weight&quot;),
-    data=1.1,
-)
-corr
+<span class="n">corr</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ptweight&quot;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Muon transverse momentum&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span><span class="p">),</span>
+    <span class="n">data</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">corr</span>
 </pre></div>
 </div>
 </div>
@@ -282,7 +286,7 @@ Correction(name=&#39;ptweight&#39;, description=None, version=1, inputs=[Variabl
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>corr.to_evaluator().evaluate(12.3)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corr</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">12.3</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -300,9 +304,9 @@ Correction(name=&#39;ptweight&#39;, description=None, version=1, inputs=[Variabl
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import rich
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">rich</span>
 
-rich.print(corr)
+<span class="n">rich</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">corr</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -340,21 +344,21 @@ Node counts:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ptweight = cs.Correction(
-    name=&quot;ptweight&quot;,
-    version=1,
-    inputs=[cs.Variable(name=&quot;pt&quot;, type=&quot;real&quot;, description=&quot;Muon transverse momentum&quot;)],
-    output=cs.Variable(name=&quot;weight&quot;, type=&quot;real&quot;, description=&quot;Multiplicative event weight&quot;),
-    data=cs.Binning(
-        nodetype=&quot;binning&quot;,
-        input=&quot;pt&quot;,
-        edges=[10, 20, 30, 40, 50, 80, 120],
-        content=[1.1, 1.08, 1.06, 1.04, 1.02, 1.0],
-        flow=&quot;clamp&quot;,
-    ),
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptweight</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ptweight&quot;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Muon transverse momentum&quot;</span><span class="p">)],</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span><span class="p">),</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Binning</span><span class="p">(</span>
+        <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;binning&quot;</span><span class="p">,</span>
+        <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+        <span class="n">edges</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">120</span><span class="p">],</span>
+        <span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.08</span><span class="p">,</span> <span class="mf">1.06</span><span class="p">,</span> <span class="mf">1.04</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="n">flow</span><span class="o">=</span><span class="s2">&quot;clamp&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
 
-rich.print(ptweight)
+<span class="n">rich</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">ptweight</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -380,7 +384,7 @@ Node counts: <span style="font-weight: bold">Binning</span>: <span style="color:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ptweight.to_evaluator().evaluate(230.0)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptweight</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">230.0</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -402,41 +406,41 @@ demonstrates nesting a content node inside another for the first time, with the 
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>phimod = cs.Correction(
-    name=&quot;phimod&quot;,
-    description=&quot;Phi-dependent tracking efficiency, or something?&quot;,
-    version=1,
-    inputs=[
-        cs.Variable(name=&quot;phi&quot;, type=&quot;real&quot;),
-        cs.Variable(name=&quot;q&quot;, type=&quot;int&quot;, description=&quot;Particle charge&quot;),
-    ],
-    output=cs.Variable(name=&quot;weight&quot;, type=&quot;real&quot;, description=&quot;Multiplicative event weight&quot;),
-    data=cs.Category(
-        nodetype=&quot;category&quot;,
-        input=&quot;q&quot;,
-        content=[
-            cs.CategoryItem(
-                key=1,
-                value=cs.Formula(
-                    nodetype=&quot;formula&quot;,
-                    variables=[&quot;phi&quot;],
-                    parser=&quot;TFormula&quot;,
-                    expression=&quot;(1+0.1*sin(x+0.3))/(1+0.07*sin(x+0.4))&quot;,
-                ),
-            ),
-            cs.CategoryItem(
-                key=-1,
-                value=cs.Formula(
-                    nodetype=&quot;formula&quot;,
-                    variables=[&quot;phi&quot;],
-                    parser=&quot;TFormula&quot;,
-                    expression=&quot;(1+0.1*sin(x+0.31))/(1+0.07*sin(x+0.39))&quot;,
-                ),
-            ),
-        ]
-    ),
-)
-rich.print(phimod)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phimod</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;phimod&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Phi-dependent tracking efficiency, or something?&quot;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">),</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Particle charge&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span><span class="p">),</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Category</span><span class="p">(</span>
+        <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">,</span>
+        <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;q&quot;</span><span class="p">,</span>
+        <span class="n">content</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">cs</span><span class="o">.</span><span class="n">CategoryItem</span><span class="p">(</span>
+                <span class="n">key</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Formula</span><span class="p">(</span>
+                    <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;formula&quot;</span><span class="p">,</span>
+                    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">],</span>
+                    <span class="n">parser</span><span class="o">=</span><span class="s2">&quot;TFormula&quot;</span><span class="p">,</span>
+                    <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;(1+0.1*sin(x+0.3))/(1+0.07*sin(x+0.4))&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">cs</span><span class="o">.</span><span class="n">CategoryItem</span><span class="p">(</span>
+                <span class="n">key</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Formula</span><span class="p">(</span>
+                    <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;formula&quot;</span><span class="p">,</span>
+                    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;phi&quot;</span><span class="p">],</span>
+                    <span class="n">parser</span><span class="o">=</span><span class="s2">&quot;TFormula&quot;</span><span class="p">,</span>
+                    <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;(1+0.1*sin(x+0.31))/(1+0.07*sin(x+0.39))&quot;</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">rich</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">phimod</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -462,7 +466,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>phimod.to_evaluator().evaluate(1.23, 1)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phimod</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">1.23</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -486,31 +490,31 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import numpy as np
-import hist
-import matplotlib.pyplot as plt
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hist</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
-dists = (
-    hist.Hist.new
-    .StrCat([&quot;gen1&quot;, &quot;gen2&quot;], name=&quot;dataset&quot;, growth=True)
-    .Reg(20, 0, 100, name=&quot;pt&quot;)
-    .Reg(4, -3, 3, name=&quot;eta&quot;)
-    .Weight()
-    .fill(
-        dataset=&quot;gen1&quot;,
-        pt=np.random.exponential(scale=10.0, size=10000) + np.random.exponential(scale=10.0, size=10000),
-        eta=np.random.normal(scale=1, size=10000)
-    )
-    .fill(
-        dataset=&quot;gen2&quot;,
-        pt=np.random.exponential(scale=10.0, size=10000) + np.random.exponential(scale=15.0, size=10000),
-        eta=np.random.normal(scale=1.1, size=10000)
-    )
-)
+<span class="n">dists</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">hist</span><span class="o">.</span><span class="n">Hist</span><span class="o">.</span><span class="n">new</span>
+    <span class="o">.</span><span class="n">StrCat</span><span class="p">([</span><span class="s2">&quot;gen1&quot;</span><span class="p">,</span> <span class="s2">&quot;gen2&quot;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;dataset&quot;</span><span class="p">,</span> <span class="n">growth</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">Reg</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">Reg</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;eta&quot;</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">Weight</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">fill</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gen1&quot;</span><span class="p">,</span>
+        <span class="n">pt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">),</span>
+        <span class="n">eta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="o">.</span><span class="n">fill</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gen2&quot;</span><span class="p">,</span>
+        <span class="n">pt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">),</span>
+        <span class="n">eta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
 
-fig, ax = plt.subplots()
-dists[:, :, sum].plot1d(ax=ax)
-ax.legend(title=&quot;dataset&quot;)
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">dists</span><span class="p">[:,</span> <span class="p">:,</span> <span class="nb">sum</span><span class="p">]</span><span class="o">.</span><span class="n">plot1d</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -520,7 +524,7 @@ ax.legend(title=&quot;dataset&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x1214b6380&gt;
+&lt;matplotlib.legend.Legend at 0x11bbb3050&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -535,17 +539,17 @@ ax.legend(title=&quot;dataset&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>num = dists[&quot;gen1&quot;, :, :].values()
-den = dists[&quot;gen2&quot;, :, :].values()
-sf = np.where(
-    (num &gt; 0) &amp; (den &gt; 0),
-    num / np.maximum(den, 1) * den.sum() / num.sum(),
-    1.0,
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">num</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[</span><span class="s2">&quot;gen1&quot;</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+<span class="n">den</span> <span class="o">=</span> <span class="n">dists</span><span class="p">[</span><span class="s2">&quot;gen2&quot;</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+<span class="n">sf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+    <span class="p">(</span><span class="n">num</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">den</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="n">num</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">den</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">den</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">num</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span>
+    <span class="mf">1.0</span><span class="p">,</span>
+<span class="p">)</span>
 
-# a quick way to plot the scale factor is to steal the axis definitions from the input histograms:
-sfhist = hist.Hist(*dists.axes[1:], data=sf)
-sfhist.plot2d()
+<span class="c1"># a quick way to plot the scale factor is to steal the axis definitions from the input histograms:</span>
+<span class="n">sfhist</span> <span class="o">=</span> <span class="n">hist</span><span class="o">.</span><span class="n">Hist</span><span class="p">(</span><span class="o">*</span><span class="n">dists</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">data</span><span class="o">=</span><span class="n">sf</span><span class="p">)</span>
+<span class="n">sfhist</span><span class="o">.</span><span class="n">plot2d</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -555,7 +559,7 @@ sfhist.plot2d()
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ColormeshArtists(pcolormesh=&lt;matplotlib.collections.QuadMesh object at 0x130968490&gt;, cbar=&lt;matplotlib.colorbar.Colorbar object at 0x130969810&gt;, text=[])
+ColormeshArtists(pcolormesh=&lt;matplotlib.collections.QuadMesh object at 0x11bbb0770&gt;, cbar=&lt;matplotlib.colorbar.Colorbar object at 0x11bd10830&gt;, text=[])
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -570,16 +574,16 @@ ColormeshArtists(pcolormesh=&lt;matplotlib.collections.QuadMesh object at 0x1309
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import correctionlib.convert
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">correctionlib.convert</span>
 
-# without a name, the resulting object will fail validation
-sfhist.name = &quot;gen2_to_gen1&quot;
-sfhist.label = &quot;out&quot;
-gen2_to_gen1 = correctionlib.convert.from_histogram(sfhist)
-gen2_to_gen1.description = &quot;Reweights gen2 to agree with gen1&quot;
-# set overflow bins behavior (default is to raise an error when out of bounds)
-gen2_to_gen1.data.flow = &quot;clamp&quot;
-rich.print(gen2_to_gen1)
+<span class="c1"># without a name, the resulting object will fail validation</span>
+<span class="n">sfhist</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;gen2_to_gen1&quot;</span>
+<span class="n">sfhist</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;out&quot;</span>
+<span class="n">gen2_to_gen1</span> <span class="o">=</span> <span class="n">correctionlib</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">from_histogram</span><span class="p">(</span><span class="n">sfhist</span><span class="p">)</span>
+<span class="n">gen2_to_gen1</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Reweights gen2 to agree with gen1&quot;</span>
+<span class="c1"># set overflow bins behavior (default is to raise an error when out of bounds)</span>
+<span class="n">gen2_to_gen1</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="s2">&quot;clamp&quot;</span>
+<span class="n">rich</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">gen2_to_gen1</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -606,19 +610,19 @@ Node counts: <span style="font-weight: bold">MultiBinning</span>: <span style="c
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ptvals = np.random.exponential(scale=10.0, size=10000) + np.random.exponential(scale=15.0, size=10000)
-etavals = np.random.normal(scale=1.1, size=10000)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="n">etavals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
 
-dists.fill(
-    dataset=&quot;gen2rwt&quot;,
-    pt=ptvals,
-    eta=etavals,
-    weight=gen2_to_gen1.to_evaluator().evaluate(ptvals, etavals)
-)
+<span class="n">dists</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gen2rwt&quot;</span><span class="p">,</span>
+    <span class="n">pt</span><span class="o">=</span><span class="n">ptvals</span><span class="p">,</span>
+    <span class="n">eta</span><span class="o">=</span><span class="n">etavals</span><span class="p">,</span>
+    <span class="n">weight</span><span class="o">=</span><span class="n">gen2_to_gen1</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">)</span>
+<span class="p">)</span>
 
-fig, ax = plt.subplots()
-dists[:, :, sum].plot1d(ax=ax)
-ax.legend(title=&quot;dataset&quot;)
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">dists</span><span class="p">[:,</span> <span class="p">:,</span> <span class="nb">sum</span><span class="p">]</span><span class="o">.</span><span class="n">plot1d</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -628,7 +632,7 @@ ax.legend(title=&quot;dataset&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x1308b88b0&gt;
+&lt;matplotlib.legend.Legend at 0x11bd10aa0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -646,17 +650,17 @@ ax.legend(title=&quot;dataset&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>centers = np.meshgrid(*[ax.centers for ax in sfhist.axes], indexing=&quot;ij&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">centers</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">sfhist</span><span class="o">.</span><span class="n">axes</span><span class="p">],</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">&quot;ij&quot;</span><span class="p">)</span>
 
-gen2_to_gen1_poly, fit = correctionlib.convert.ndpolyfit(
-    points=[c.flatten() for c in centers],
-    values=sfhist.values().flatten(),
-    weights=1/sfhist.variances().flatten(),
-    varnames=[ax.name for ax in sfhist.axes],
-    degree=(2, 2),
-)
-gen2_to_gen1_poly.name = &quot;gen2_to_gen1_poly&quot;
-rich.print(gen2_to_gen1_poly)
+<span class="n">gen2_to_gen1_poly</span><span class="p">,</span> <span class="n">fit</span> <span class="o">=</span> <span class="n">correctionlib</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">ndpolyfit</span><span class="p">(</span>
+    <span class="n">points</span><span class="o">=</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">centers</span><span class="p">],</span>
+    <span class="n">values</span><span class="o">=</span><span class="n">sfhist</span><span class="o">.</span><span class="n">values</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+    <span class="n">weights</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">sfhist</span><span class="o">.</span><span class="n">variances</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+    <span class="n">varnames</span><span class="o">=</span><span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">sfhist</span><span class="o">.</span><span class="n">axes</span><span class="p">],</span>
+    <span class="n">degree</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">gen2_to_gen1_poly</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;gen2_to_gen1_poly&quot;</span>
+<span class="n">rich</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">gen2_to_gen1_poly</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -667,7 +671,7 @@ rich.print(gen2_to_gen1_poly)
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">📈 <span style="font-weight: bold">gen2_to_gen1_poly</span> <span style="font-weight: bold">(</span>v1<span style="font-weight: bold">)</span>
 Fit to polynomial of order <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span>,<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span>
 Fit status: The unconstrained solution is optimal.
-chi2 = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.305322148600006</span>, <span style="color: #800080; text-decoration-color: #800080; font-weight: bold">P</span><span style="font-weight: bold">(</span><span style="color: #808000; text-decoration-color: #808000">dof</span>=<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">71</span><span style="font-weight: bold">)</span> = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.000</span>
+chi2 = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.306256132294569</span>, <span style="color: #800080; text-decoration-color: #800080; font-weight: bold">P</span><span style="font-weight: bold">(</span><span style="color: #808000; text-decoration-color: #808000">dof</span>=<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">71</span><span style="font-weight: bold">)</span> = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.000</span>
 Node counts: <span style="font-weight: bold">Formula</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>
 ╭──────────── ▶ input ────────────╮ ╭──────────── ▶ input ────────────╮
 │ <span style="font-weight: bold">pt</span> (real)                       │ │ <span style="font-weight: bold">eta</span> (real)                      │
@@ -685,17 +689,17 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>dists.fill(
-    dataset=&quot;gen2rwt_poly&quot;,
-    pt=ptvals,
-    eta=etavals,
-    weight=gen2_to_gen1_poly.to_evaluator().evaluate(ptvals, etavals)
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dists</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gen2rwt_poly&quot;</span><span class="p">,</span>
+    <span class="n">pt</span><span class="o">=</span><span class="n">ptvals</span><span class="p">,</span>
+    <span class="n">eta</span><span class="o">=</span><span class="n">etavals</span><span class="p">,</span>
+    <span class="n">weight</span><span class="o">=</span><span class="n">gen2_to_gen1_poly</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">)</span>
+<span class="p">)</span>
 
 
-fig, ax = plt.subplots()
-dists[:, :, sum].plot1d(ax=ax)
-ax.legend(title=&quot;dataset&quot;)
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">dists</span><span class="p">[:,</span> <span class="p">:,</span> <span class="nb">sum</span><span class="p">]</span><span class="o">.</span><span class="n">plot1d</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -705,7 +709,7 @@ ax.legend(title=&quot;dataset&quot;)
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x130a1ad10&gt;
+&lt;matplotlib.legend.Legend at 0x11bd902f0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -720,11 +724,11 @@ ax.legend(title=&quot;dataset&quot;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>corr_bin = gen2_to_gen1.to_evaluator()
-corr_pol = gen2_to_gen1_poly.to_evaluator()
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">corr_bin</span> <span class="o">=</span> <span class="n">gen2_to_gen1</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span>
+<span class="n">corr_pol</span> <span class="o">=</span> <span class="n">gen2_to_gen1_poly</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span>
 
-%timeit corr_bin.evaluate(ptvals, etavals)
-%timeit corr_pol.evaluate(ptvals, etavals)
+<span class="o">%</span><span class="k">timeit</span> corr_bin.evaluate(ptvals, etavals)
+<span class="o">%</span><span class="k">timeit</span> corr_pol.evaluate(ptvals, etavals)
 </pre></div>
 </div>
 </div>
@@ -733,8 +737,8 @@ corr_pol = gen2_to_gen1_poly.to_evaluator()
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-404 µs ± 3.54 µs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-3.28 ms ± 59.2 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+1.06 ms ± 26.7 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+2.65 ms ± 45.1 μs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 </pre></div></div>
 </div>
 <p>However, in an alternative situation, the same may not hold:</p>
@@ -742,8 +746,8 @@ corr_pol = gen2_to_gen1_poly.to_evaluator()
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%timeit np.searchsorted([0.,  5., 10., 15., 20., 25., 30., 35.], ptvals)
-%timeit np.polyval([0.01, 0.1, 1.0], ptvals)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">timeit</span> np.searchsorted([0.,  5., 10., 15., 20., 25., 30., 35.], ptvals)
+<span class="o">%</span><span class="k">timeit</span> np.polyval([0.01, 0.1, 1.0], ptvals)
 </pre></div>
 </div>
 </div>
@@ -752,8 +756,8 @@ corr_pol = gen2_to_gen1_poly.to_evaluator()
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-199 µs ± 4.31 µs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-36.6 µs ± 1.65 µs per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+39.4 μs ± 150 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+14.9 μs ± 63.8 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
 </pre></div></div>
 </div>
 </section>
@@ -765,40 +769,40 @@ corr_pol = gen2_to_gen1_poly.to_evaluator()
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>resrng = cs.Correction(
-    name=&quot;resrng&quot;,
-    description=&quot;Deterministic smearing value generator&quot;,
-    version=1,
-    inputs=[
-        cs.Variable(name=&quot;pt&quot;, type=&quot;real&quot;, description=&quot;Unsmeared jet pt&quot;),
-        cs.Variable(name=&quot;eta&quot;, type=&quot;real&quot;, description=&quot;Jet pseudorapdity&quot;),
-        cs.Variable(name=&quot;phi&quot;, type=&quot;real&quot;, description=&quot;Jet phi (entropy source)&quot;),
-        cs.Variable(name=&quot;evt&quot;, type=&quot;int&quot;, description=&quot;Event number (entropy source)&quot;),
-    ],
-    output=cs.Variable(name=&quot;rng&quot;, type=&quot;real&quot;),
-    data=cs.HashPRNG(
-        nodetype=&quot;hashprng&quot;,
-        inputs=[&quot;pt&quot;, &quot;eta&quot;, &quot;phi&quot;, &quot;evt&quot;],
-        distribution=&quot;stdnormal&quot;,
-    )
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">resrng</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;resrng&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Deterministic smearing value generator&quot;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unsmeared jet pt&quot;</span><span class="p">),</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;eta&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet pseudorapdity&quot;</span><span class="p">),</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet phi (entropy source)&quot;</span><span class="p">),</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;evt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Event number (entropy source)&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;rng&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">),</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">HashPRNG</span><span class="p">(</span>
+        <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;hashprng&quot;</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="s2">&quot;eta&quot;</span><span class="p">,</span> <span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="s2">&quot;evt&quot;</span><span class="p">],</span>
+        <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;stdnormal&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
 
-resmodel = cs.Correction(
-    name=&quot;resmodel&quot;,
-    description=&quot;A jet energy resolution smearing model&quot;,
-    version=1,
-    inputs=[
-        cs.Variable(name=&quot;pt&quot;, type=&quot;real&quot;, description=&quot;Unsmeared jet pt&quot;),
-    ],
-    output=cs.Variable(name=&quot;scale&quot;, type=&quot;real&quot;),
-    data=cs.Binning(
-        nodetype=&quot;binning&quot;,
-        input=&quot;pt&quot;,
-        edges=[10, 20, 30, 40, 50, 80, 120],
-        content=[0.3, 0.25, 0.20, 0.14, 0.06, 0.02],
-        flow=&quot;clamp&quot;,
-    )
-)
+<span class="n">resmodel</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;resmodel&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;A jet energy resolution smearing model&quot;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unsmeared jet pt&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">),</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Binning</span><span class="p">(</span>
+        <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;binning&quot;</span><span class="p">,</span>
+        <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+        <span class="n">edges</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">120</span><span class="p">],</span>
+        <span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.20</span><span class="p">,</span> <span class="mf">0.14</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">],</span>
+        <span class="n">flow</span><span class="o">=</span><span class="s2">&quot;clamp&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -806,21 +810,21 @@ resmodel = cs.Correction(
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># dummy distributions
-phivals = np.random.uniform(-np.pi, np.pi, size=10000)
-eventnumber = np.random.randint(123456, 123567, size=10000)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># dummy distributions</span>
+<span class="n">phivals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<span class="n">eventnumber</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">123456</span><span class="p">,</span> <span class="mi">123567</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
 
-# apply a pT-dependent smearing by scaling the standard normal draw
-smear_val = (
-    resrng.to_evaluator().evaluate(ptvals, etavals, phivals, eventnumber)
-    * resmodel.to_evaluator().evaluate(ptvals)
-)
-pt_smeared = np.maximum(ptvals + smear_val, 0.0)
+<span class="c1"># apply a pT-dependent smearing by scaling the standard normal draw</span>
+<span class="n">smear_val</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">resrng</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">,</span> <span class="n">phivals</span><span class="p">,</span> <span class="n">eventnumber</span><span class="p">)</span>
+    <span class="o">*</span> <span class="n">resmodel</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">pt_smeared</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">ptvals</span> <span class="o">+</span> <span class="n">smear_val</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
 
 
-fig, ax = plt.subplots()
-ax.hist(pt_smeared - ptvals, bins=50)
-ax.set_xlabel(&quot;Smeared $p_T$ - Unsmeared $p_T$&quot;)
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">pt_smeared</span> <span class="o">-</span> <span class="n">ptvals</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Smeared $p_T$ - Unsmeared $p_T$&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -848,37 +852,37 @@ Text(0.5, 0, &#39;Smeared $p_T$ - Unsmeared $p_T$&#39;)
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>cset = correctionlib.schemav2.CorrectionSet(
-    schema_version=2,
-    corrections=[
-        resmodel,
-        resrng,
-    ],
-    compound_corrections=[
-        cs.CompoundCorrection(
-            name=&quot;resolution_model&quot;,
-            inputs=[
-                cs.Variable(name=&quot;pt&quot;, type=&quot;real&quot;, description=&quot;Unsmeared jet pt&quot;),
-                cs.Variable(name=&quot;eta&quot;, type=&quot;real&quot;, description=&quot;Jet pseudorapdity&quot;),
-                cs.Variable(name=&quot;phi&quot;, type=&quot;real&quot;, description=&quot;Jet phi (entropy source)&quot;),
-                cs.Variable(name=&quot;evt&quot;, type=&quot;int&quot;, description=&quot;Event number (entropy source)&quot;),
-            ],
-            output=cs.Variable(name=&quot;shift&quot;, type=&quot;real&quot;, description=&quot;Additive shift to jet pT&quot;),
-            inputs_update=[],
-            input_op=&quot;*&quot;,
-            output_op=&quot;*&quot;,
-            stack=[&quot;resmodel&quot;, &quot;resrng&quot;],
-        )
-    ]
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cset</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">CorrectionSet</span><span class="p">(</span>
+    <span class="n">schema_version</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">corrections</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">resmodel</span><span class="p">,</span>
+        <span class="n">resrng</span><span class="p">,</span>
+    <span class="p">],</span>
+    <span class="n">compound_corrections</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">CompoundCorrection</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;resolution_model&quot;</span><span class="p">,</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unsmeared jet pt&quot;</span><span class="p">),</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;eta&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet pseudorapdity&quot;</span><span class="p">),</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet phi (entropy source)&quot;</span><span class="p">),</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;evt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Event number (entropy source)&quot;</span><span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;shift&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Additive shift to jet pT&quot;</span><span class="p">),</span>
+            <span class="n">inputs_update</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">input_op</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+            <span class="n">output_op</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
+            <span class="n">stack</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;resmodel&quot;</span><span class="p">,</span> <span class="s2">&quot;resrng&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="p">]</span>
+<span class="p">)</span>
 
-oneshot = cset.to_evaluator().compound[&quot;resolution_model&quot;]
+<span class="n">oneshot</span> <span class="o">=</span> <span class="n">cset</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">compound</span><span class="p">[</span><span class="s2">&quot;resolution_model&quot;</span><span class="p">]</span>
 
-print(&quot;One-shot smearing is equivalent to two-step procedure?&quot;)
-print(np.allclose(
-    oneshot.evaluate(ptvals, etavals, phivals, eventnumber),
-    smear_val,
-))
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;One-shot smearing is equivalent to two-step procedure?&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
+    <span class="n">oneshot</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">,</span> <span class="n">phivals</span><span class="p">,</span> <span class="n">eventnumber</span><span class="p">),</span>
+    <span class="n">smear_val</span><span class="p">,</span>
+<span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -901,40 +905,40 @@ True
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ptweight = cs.Correction(
-    name=&quot;ptweight&quot;,
-    version=1,
-    inputs=[
-        cs.Variable(name=&quot;pt&quot;, type=&quot;real&quot;, description=&quot;Muon transverse momentum&quot;),
-        cs.Variable(name=&quot;syst&quot;, type=&quot;string&quot;, description=&quot;Systematic&quot;)
-    ],
-    output=cs.Variable(name=&quot;weight&quot;, type=&quot;real&quot;, description=&quot;Multiplicative event weight&quot;),
-    data=cs.Category(
-        nodetype=&quot;category&quot;,
-        input=&quot;syst&quot;,
-        content=[
-            cs.CategoryItem(
-                key=&quot;MuonEffUp&quot;,
-                value=cs.Binning(
-                    nodetype=&quot;binning&quot;,
-                    input=&quot;pt&quot;,
-                    edges=[0, 10, 20, 30, 40, 50, 80, 120],
-                    content=[1.14, 1.14, 1.09, 1.07, 1.05, 1.03, 1.01],
-                    flow=1.03,
-                ),
-            ),
-        ],
-        default=cs.Binning(
-            nodetype=&quot;binning&quot;,
-            input=&quot;pt&quot;,
-            edges=[10, 20, 30, 40, 50, 80, 120],
-            content=[1.1, 1.08, 1.06, 1.04, 1.02, 1.0],
-            flow=&quot;clamp&quot;,
-        ),
-    ),
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptweight</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ptweight&quot;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Muon transverse momentum&quot;</span><span class="p">),</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;syst&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Systematic&quot;</span><span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span><span class="p">),</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Category</span><span class="p">(</span>
+        <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">,</span>
+        <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;syst&quot;</span><span class="p">,</span>
+        <span class="n">content</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">cs</span><span class="o">.</span><span class="n">CategoryItem</span><span class="p">(</span>
+                <span class="n">key</span><span class="o">=</span><span class="s2">&quot;MuonEffUp&quot;</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Binning</span><span class="p">(</span>
+                    <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;binning&quot;</span><span class="p">,</span>
+                    <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+                    <span class="n">edges</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">120</span><span class="p">],</span>
+                    <span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="mf">1.14</span><span class="p">,</span> <span class="mf">1.14</span><span class="p">,</span> <span class="mf">1.09</span><span class="p">,</span> <span class="mf">1.07</span><span class="p">,</span> <span class="mf">1.05</span><span class="p">,</span> <span class="mf">1.03</span><span class="p">,</span> <span class="mf">1.01</span><span class="p">],</span>
+                    <span class="n">flow</span><span class="o">=</span><span class="mf">1.03</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Binning</span><span class="p">(</span>
+            <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;binning&quot;</span><span class="p">,</span>
+            <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
+            <span class="n">edges</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">120</span><span class="p">],</span>
+            <span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.08</span><span class="p">,</span> <span class="mf">1.06</span><span class="p">,</span> <span class="mf">1.04</span><span class="p">,</span> <span class="mf">1.02</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+            <span class="n">flow</span><span class="o">=</span><span class="s2">&quot;clamp&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
 
-rich.print(ptweight)
+<span class="n">rich</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">ptweight</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -961,7 +965,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ptweight.to_evaluator().evaluate(135., &quot;nominal&quot;)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptweight</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">135.</span><span class="p">,</span> <span class="s2">&quot;nominal&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -981,23 +985,23 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>cset = correctionlib.schemav2.CorrectionSet(
-    schema_version=2,
-    description=&quot;my custom corrections&quot;,
-    corrections=[
-        gen2_to_gen1,
-        ptweight,
-        phimod,
-    ],
-)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cset</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">CorrectionSet</span><span class="p">(</span>
+    <span class="n">schema_version</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;my custom corrections&quot;</span><span class="p">,</span>
+    <span class="n">corrections</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">gen2_to_gen1</span><span class="p">,</span>
+        <span class="n">ptweight</span><span class="p">,</span>
+        <span class="n">phimod</span><span class="p">,</span>
+    <span class="p">],</span>
+<span class="p">)</span>
 
-with open(&quot;mycorrections.json&quot;, &quot;w&quot;) as fout:
-    fout.write(cset.json(exclude_unset=True))
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mycorrections.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cset</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">exclude_unset</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
-import gzip
+<span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
 
-with gzip.open(&quot;mycorrections.json.gz&quot;, &quot;wt&quot;) as fout:
-    fout.write(cset.json(exclude_unset=True))
+<span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;mycorrections.json.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cset</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">exclude_unset</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -1009,7 +1013,7 @@ with gzip.open(&quot;mycorrections.json.gz&quot;, &quot;wt&quot;) as fout:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!correction --help
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>correction<span class="w"> </span>--help
 </pre></div>
 </div>
 </div>
@@ -1021,7 +1025,7 @@ with gzip.open(&quot;mycorrections.json.gz&quot;, &quot;wt&quot;) as fout:
 usage: correction [-h] [--width WIDTH] [--html HTML]
                   {validate,summary,merge,config} ...
 
-Command-line interface to correctionlib
+Command-line interface to correctionlib.
 
 positional arguments:
   {validate,summary,merge,config}
@@ -1040,7 +1044,7 @@ options:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!correction config -h
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>correction<span class="w"> </span>config<span class="w"> </span>-h
 </pre></div>
 </div>
 </div>
@@ -1054,7 +1058,7 @@ usage: correction config [-h] [-v] [--incdir] [--cflags] [--libdir]
 
 options:
   -h, --help     show this help message and exit
-  -v, --version
+  -v, --version  Return correctionlib current version
   --incdir
   --cflags
   --libdir
@@ -1067,17 +1071,17 @@ options:
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%%file main.cc
-#include &lt;iostream&gt;
-#include &quot;correction.h&quot;
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%%file</span> main.cc
+<span class="c1">#include &lt;iostream&gt;</span>
+<span class="c1">#include &quot;correction.h&quot;</span>
 
-int main() {
-    auto cset = correction::CorrectionSet::from_file(&quot;mycorrections.json.gz&quot;);
+<span class="nb">int</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">auto</span> <span class="n">cset</span> <span class="o">=</span> <span class="n">correction</span><span class="p">::</span><span class="n">CorrectionSet</span><span class="p">::</span><span class="n">from_file</span><span class="p">(</span><span class="s2">&quot;mycorrections.json.gz&quot;</span><span class="p">);</span>
 
-    double val = cset-&gt;at(&quot;ptweight&quot;)-&gt;evaluate({15.0, &quot;nominal&quot;});
-    std::cout &lt;&lt; val &lt;&lt; std::endl;
-    return 0;
-}
+    <span class="n">double</span> <span class="n">val</span> <span class="o">=</span> <span class="n">cset</span><span class="o">-&gt;</span><span class="n">at</span><span class="p">(</span><span class="s2">&quot;ptweight&quot;</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">evaluate</span><span class="p">({</span><span class="mf">15.0</span><span class="p">,</span> <span class="s2">&quot;nominal&quot;</span><span class="p">});</span>
+    <span class="n">std</span><span class="p">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">val</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="p">::</span><span class="n">endl</span><span class="p">;</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -1089,21 +1093,13 @@ int main() {
 Overwriting main.cc
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!g++ main.cc -o main $(correction config --cflags --ldflags --rpath)
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>g++<span class="w"> </span>main.cc<span class="w"> </span>-o<span class="w"> </span>main<span class="w"> </span><span class="k">$(</span>correction<span class="w"> </span>config<span class="w"> </span>--cflags<span class="w"> </span>--ldflags<span class="w"> </span>--rpath<span class="k">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-ld: warning: dylib (/usr/local/lib/python3.10/site-packages/correctionlib/lib/libcorrectionlib.dylib) was built for newer macOS version (12.0) than being linked (11.0)
-</pre></div></div>
 </div>
 <p>On some platforms, if you see errors such as</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>main.cc:(.text+0x17d): undefined reference to `correction::CorrectionSet::from_file(std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; const&amp;)&#39;
@@ -1114,7 +1110,7 @@ ld: warning: dylib (/usr/local/lib/python3.10/site-packages/correctionlib/lib/li
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>!./main
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>./main
 </pre></div>
 </div>
 </div>
