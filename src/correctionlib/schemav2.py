@@ -1,4 +1,5 @@
 import math
+import warnings
 from collections import Counter
 from typing import Annotated, Literal, Optional, Union
 
@@ -160,6 +161,17 @@ class HashPRNG(Model):
         self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
     ) -> None:
         nodecount["HashPRNG"] += 1
+
+    @field_validator("distribution")
+    @classmethod
+    def validate_distribution(cls, distribution: str) -> str:
+        if distribution == "stdnormal":
+            warnings.warn(
+                "'stdnormal' distribution is deprecated, use 'normal' instead (cms-nanoAOD/correctionlib#287)",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return distribution
 
 
 class UniformBinning(Model):
