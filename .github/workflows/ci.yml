@@ -43,7 +43,7 @@ jobs:
         fetch-depth: 0
         fetch-tags: true
 
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
 
