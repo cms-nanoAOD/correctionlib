@@ -48,7 +48,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install package
-      run: python -m pip install . --dependency-groups test
+      run: python -m pip install . --group test
 
     - name: Test package
       run: python -m pytest -ra
@@ -77,7 +77,7 @@ jobs:
 
       - name: Install package
         shell: bash -l {0}
-        run: python -m pip install . --dependency-groups test
+        run: python -m pip install . --group test
 
       - name: Test package
         shell: bash -l {0}
