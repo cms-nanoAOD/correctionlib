@@ -202,6 +202,7 @@ Correction ptweight has 2 inputs
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
 <span class="n">ptvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
 <span class="n">ceval</span><span class="p">[</span><span class="s2">&quot;ptweight&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="s2">&quot;nominal&quot;</span><span class="p">)</span>
@@ -214,7 +215,7 @@ Correction ptweight has 2 inputs
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-array([1.1 , 1.1 , 1.1 , 1.1 , 1.1 , 1.1 , 1.06, 1.1 , 1.08, 1.06])
+array([1.08, 1.1 , 1.1 , 1.1 , 1.1 , 1.06, 1.1 , 1.1 , 1.1 , 1.06])
 </pre></div></div>
 </div>
 <p>Currently, only numpy-compatible awkward arrays are accepted, but a jagged array can be flattened and re-wrapped quite easily:</p>
@@ -265,7 +266,9 @@ besides some metadata like a name and version, defines upfront the inputs and ou
     <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
         <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Muon transverse momentum&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span><span class="p">),</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span>
+    <span class="p">),</span>
     <span class="n">data</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">corr</span>
@@ -281,7 +284,7 @@ besides some metadata like a name and version, defines upfront the inputs and ou
 Correction(name=&#39;ptweight&#39;, description=None, version=1, inputs=[Variable(name=&#39;pt&#39;, type=&#39;real&#39;, description=&#39;Muon transverse momentum&#39;)], output=Variable(name=&#39;weight&#39;, type=&#39;real&#39;, description=&#39;Multiplicative event weight&#39;), generic_formulas=None, data=1.1)
 </pre></div></div>
 </div>
-<p>The resulting object can be manipulated in-place as needed. Note that this correction object is not an evluator instance as we saw before. We can convert from the schema to an evaluator with the <code class="docutils literal notranslate"><span class="pre">.to_evaluator()</span></code> function:</p>
+<p>The resulting object can be manipulated in-place as needed. Note that this correction object is not an evaluator instance as we saw before. We can convert from the schema to an evaluator with the <code class="docutils literal notranslate"><span class="pre">.to_evaluator()</span></code> function:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
@@ -347,8 +350,12 @@ Node counts:
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptweight</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ptweight&quot;</span><span class="p">,</span>
     <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Muon transverse momentum&quot;</span><span class="p">)],</span>
-    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span><span class="p">),</span>
+    <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Muon transverse momentum&quot;</span><span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span>
+    <span class="p">),</span>
     <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Binning</span><span class="p">(</span>
         <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;binning&quot;</span><span class="p">,</span>
         <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span>
@@ -414,7 +421,9 @@ demonstrates nesting a content node inside another for the first time, with the 
         <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">),</span>
         <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;q&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Particle charge&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span><span class="p">),</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span>
+    <span class="p">),</span>
     <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Category</span><span class="p">(</span>
         <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">,</span>
         <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;q&quot;</span><span class="p">,</span>
@@ -437,7 +446,7 @@ demonstrates nesting a content node inside another for the first time, with the 
                     <span class="n">expression</span><span class="o">=</span><span class="s2">&quot;(1+0.1*sin(x+0.31))/(1+0.07*sin(x+0.39))&quot;</span><span class="p">,</span>
                 <span class="p">),</span>
             <span class="p">),</span>
-        <span class="p">]</span>
+        <span class="p">],</span>
     <span class="p">),</span>
 <span class="p">)</span>
 <span class="n">rich</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="n">phimod</span><span class="p">)</span>
@@ -451,11 +460,11 @@ demonstrates nesting a content node inside another for the first time, with the 
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">📈 <span style="font-weight: bold">phimod</span> <span style="font-weight: bold">(</span>v1<span style="font-weight: bold">)</span>
 Phi-dependent tracking efficiency, or something?
 Node counts: <span style="font-weight: bold">Category</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>, <span style="font-weight: bold">Formula</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span>
-╭──────────── ▶ input ────────────╮ ╭──── ▶ input ────╮
-│ <span style="font-weight: bold">phi</span> (real)                      │ │ <span style="font-weight: bold">q</span> (int)         │
-│ <span style="font-style: italic">No description</span>                  │ │ Particle charge │
-│ Range: [-inf, inf), overflow ok │ │ Values: -1, 1   │
-╰─────────────────────────────────╯ ╰─────────────────╯
+╭───────── ▶ input ──────────╮ ╭──── ▶ input ────╮
+│ <span style="font-weight: bold">phi</span> (real)                 │ │ <span style="font-weight: bold">q</span> (int)         │
+│ <span style="font-style: italic">No description</span>             │ │ Particle charge │
+│ Range: <span style="color: #800000; text-decoration-color: #800000; font-weight: bold">unused</span>, overflow ok │ │ Values: -1, 1   │
+╰────────────────────────────╯ ╰─────────────────╯
 ╭───────── ◀ output ──────────╮
 │ <span style="font-weight: bold">weight</span> (real)               │
 │ Multiplicative event weight │
@@ -483,32 +492,33 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 </section>
 <section id="Converting-from-histograms">
 <h2>Converting from histograms<a class="headerlink" href="#Converting-from-histograms" title="Link to this heading"></a></h2>
-<p>Often one wants to convert a histogram into a correction object. Here we show how to do that using histgrams made with the <a class="reference external" href="https://hist.readthedocs.io/en/latest/">hist</a> package, but any histogram that respects the <a class="reference external" href="https://uhi.readthedocs.io/en/latest/plotting.html#plotting">Unified Histogram Interface Plottable</a> protocol (including, for example, ROOT TH1s) should work as well.</p>
+<p>Often one wants to convert a histogram into a correction object. Here we show how to do that using histograms made with the <a class="reference external" href="https://hist.readthedocs.io/en/latest/">hist</a> package, but any histogram that respects the <a class="reference external" href="https://uhi.readthedocs.io/en/latest/plotting.html#plotting">Unified Histogram Interface Plottable</a> protocol (including, for example, ROOT TH1s) should work as well.</p>
 <p>Note: some of the conversion utilities require extra packages installed. The simplest way to ensure you have all dependencies is via the <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">correctionlib[convert]</span></code> extras configuration.</p>
 <p>Here we create some mock data for two slightly different pt and eta spectra (say, from two different generators) and derive a correction to reweight one sample to the other.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">hist</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">hist</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="n">dists</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">hist</span><span class="o">.</span><span class="n">Hist</span><span class="o">.</span><span class="n">new</span>
-    <span class="o">.</span><span class="n">StrCat</span><span class="p">([</span><span class="s2">&quot;gen1&quot;</span><span class="p">,</span> <span class="s2">&quot;gen2&quot;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;dataset&quot;</span><span class="p">,</span> <span class="n">growth</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">hist</span><span class="o">.</span><span class="n">Hist</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">StrCat</span><span class="p">([</span><span class="s2">&quot;gen1&quot;</span><span class="p">,</span> <span class="s2">&quot;gen2&quot;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;dataset&quot;</span><span class="p">,</span> <span class="n">growth</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="o">.</span><span class="n">Reg</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">Reg</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;eta&quot;</span><span class="p">)</span>
     <span class="o">.</span><span class="n">Weight</span><span class="p">()</span>
     <span class="o">.</span><span class="n">fill</span><span class="p">(</span>
         <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gen1&quot;</span><span class="p">,</span>
-        <span class="n">pt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">),</span>
-        <span class="n">eta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">),</span>
+        <span class="n">eta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="o">.</span><span class="n">fill</span><span class="p">(</span>
         <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gen2&quot;</span><span class="p">,</span>
-        <span class="n">pt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">),</span>
-        <span class="n">eta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+        <span class="n">pt</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+        <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">),</span>
+        <span class="n">eta</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">),</span>
     <span class="p">)</span>
 <span class="p">)</span>
 
@@ -524,7 +534,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x128b0f140&gt;
+&lt;matplotlib.legend.Legend at 0x126ab0920&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -559,7 +569,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-ColormeshArtists(pcolormesh=&lt;matplotlib.collections.QuadMesh object at 0x12940c140&gt;, cbar=&lt;matplotlib.colorbar.Colorbar object at 0x1294298e0&gt;, text=[])
+ColormeshArtists(pcolormesh=&lt;matplotlib.collections.QuadMesh object at 0x1274464b0&gt;, cbar=&lt;matplotlib.colorbar.Colorbar object at 0x127cb2840&gt;, text=[])
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -610,14 +620,16 @@ Node counts: <span style="font-weight: bold">MultiBinning</span>: <span style="c
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptvals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">exponential</span><span class="p">(</span>
+    <span class="n">scale</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span>
+<span class="p">)</span>
 <span class="n">etavals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
 
 <span class="n">dists</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span>
     <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gen2rwt&quot;</span><span class="p">,</span>
     <span class="n">pt</span><span class="o">=</span><span class="n">ptvals</span><span class="p">,</span>
     <span class="n">eta</span><span class="o">=</span><span class="n">etavals</span><span class="p">,</span>
-    <span class="n">weight</span><span class="o">=</span><span class="n">gen2_to_gen1</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">)</span>
+    <span class="n">weight</span><span class="o">=</span><span class="n">gen2_to_gen1</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">),</span>
 <span class="p">)</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
@@ -632,7 +644,7 @@ Node counts: <span style="font-weight: bold">MultiBinning</span>: <span style="c
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x129597140&gt;
+&lt;matplotlib.legend.Legend at 0x127d879b0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -655,7 +667,7 @@ Node counts: <span style="font-weight: bold">MultiBinning</span>: <span style="c
 <span class="n">gen2_to_gen1_poly</span><span class="p">,</span> <span class="n">fit</span> <span class="o">=</span> <span class="n">correctionlib</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">ndpolyfit</span><span class="p">(</span>
     <span class="n">points</span><span class="o">=</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">centers</span><span class="p">],</span>
     <span class="n">values</span><span class="o">=</span><span class="n">sfhist</span><span class="o">.</span><span class="n">values</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
-    <span class="n">weights</span><span class="o">=</span><span class="mi">1</span><span class="o">/</span><span class="n">sfhist</span><span class="o">.</span><span class="n">variances</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
+    <span class="n">weights</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="n">sfhist</span><span class="o">.</span><span class="n">variances</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span>
     <span class="n">varnames</span><span class="o">=</span><span class="p">[</span><span class="n">ax</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">sfhist</span><span class="o">.</span><span class="n">axes</span><span class="p">],</span>
     <span class="n">degree</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
 <span class="p">)</span>
@@ -671,13 +683,13 @@ Node counts: <span style="font-weight: bold">MultiBinning</span>: <span style="c
 <pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace">📈 <span style="font-weight: bold">gen2_to_gen1_poly</span> <span style="font-weight: bold">(</span>v1<span style="font-weight: bold">)</span>
 Fit to polynomial of order <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span>,<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">2</span>
 Fit status: The unconstrained solution is optimal.
-chi2 = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">5.079189048265459</span>, <span style="color: #800080; text-decoration-color: #800080; font-weight: bold">P</span><span style="font-weight: bold">(</span><span style="color: #808000; text-decoration-color: #808000">dof</span>=<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">71</span><span style="font-weight: bold">)</span> = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.000</span>
+chi2 = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">3.8810467430391604</span>, <span style="color: #800080; text-decoration-color: #800080; font-weight: bold">P</span><span style="font-weight: bold">(</span><span style="color: #808000; text-decoration-color: #808000">dof</span>=<span style="color: #008080; text-decoration-color: #008080; font-weight: bold">71</span><span style="font-weight: bold">)</span> = <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1.000</span>
 Node counts: <span style="font-weight: bold">Formula</span>: <span style="color: #008080; text-decoration-color: #008080; font-weight: bold">1</span>
-╭──────────── ▶ input ────────────╮ ╭──────────── ▶ input ────────────╮
-│ <span style="font-weight: bold">pt</span> (real)                       │ │ <span style="font-weight: bold">eta</span> (real)                      │
-│ <span style="font-style: italic">No description</span>                  │ │ <span style="font-style: italic">No description</span>                  │
-│ Range: [-inf, inf), overflow ok │ │ Range: [-inf, inf), overflow ok │
-╰─────────────────────────────────╯ ╰─────────────────────────────────╯
+╭───────── ▶ input ──────────╮ ╭───────── ▶ input ──────────╮
+│ <span style="font-weight: bold">pt</span> (real)                  │ │ <span style="font-weight: bold">eta</span> (real)                 │
+│ <span style="font-style: italic">No description</span>             │ │ <span style="font-style: italic">No description</span>             │
+│ Range: <span style="color: #800000; text-decoration-color: #800000; font-weight: bold">unused</span>, overflow ok │ │ Range: <span style="color: #800000; text-decoration-color: #800000; font-weight: bold">unused</span>, overflow ok │
+╰────────────────────────────╯ ╰────────────────────────────╯
 ╭─── ◀ output ───╮
 │ <span style="font-weight: bold">output</span> (real)  │
 │ <span style="font-style: italic">No description</span> │
@@ -693,7 +705,7 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
     <span class="n">dataset</span><span class="o">=</span><span class="s2">&quot;gen2rwt_poly&quot;</span><span class="p">,</span>
     <span class="n">pt</span><span class="o">=</span><span class="n">ptvals</span><span class="p">,</span>
     <span class="n">eta</span><span class="o">=</span><span class="n">etavals</span><span class="p">,</span>
-    <span class="n">weight</span><span class="o">=</span><span class="n">gen2_to_gen1_poly</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">)</span>
+    <span class="n">weight</span><span class="o">=</span><span class="n">gen2_to_gen1_poly</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">),</span>
 <span class="p">)</span>
 
 
@@ -709,7 +721,7 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-&lt;matplotlib.legend.Legend at 0x129615f70&gt;
+&lt;matplotlib.legend.Legend at 0x127ff43e0&gt;
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -737,8 +749,8 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-1.06 ms ± 15.6 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
-2.81 ms ± 24 μs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+1.05 ms ± 14.4 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+2.81 ms ± 3.66 μs per loop (mean ± std. dev. of 7 runs, 100 loops each)
 </pre></div></div>
 </div>
 <p>However, in an alternative situation, the same may not hold:</p>
@@ -756,8 +768,8 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-42.9 μs ± 324 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
-15.2 μs ± 167 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
+42.2 μs ± 168 ns per loop (mean ± std. dev. of 7 runs, 10,000 loops each)
+14.9 μs ± 147 ns per loop (mean ± std. dev. of 7 runs, 100,000 loops each)
 </pre></div></div>
 </div>
 </section>
@@ -777,14 +789,16 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
         <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unsmeared jet pt&quot;</span><span class="p">),</span>
         <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;eta&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet pseudorapdity&quot;</span><span class="p">),</span>
         <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet phi (entropy source)&quot;</span><span class="p">),</span>
-        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;evt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Event number (entropy source)&quot;</span><span class="p">),</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;evt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Event number (entropy source)&quot;</span>
+        <span class="p">),</span>
     <span class="p">],</span>
     <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;rng&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">),</span>
     <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">HashPRNG</span><span class="p">(</span>
         <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;hashprng&quot;</span><span class="p">,</span>
         <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="s2">&quot;eta&quot;</span><span class="p">,</span> <span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="s2">&quot;evt&quot;</span><span class="p">],</span>
         <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;normal&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="p">),</span>
 <span class="p">)</span>
 
 <span class="n">resmodel</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">Correction</span><span class="p">(</span>
@@ -801,7 +815,7 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
         <span class="n">edges</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">120</span><span class="p">],</span>
         <span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.20</span><span class="p">,</span> <span class="mf">0.14</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">],</span>
         <span class="n">flow</span><span class="o">=</span><span class="s2">&quot;clamp&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="p">),</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -815,10 +829,9 @@ Node counts: <span style="font-weight: bold">Formula</span>: <span style="color:
 <span class="n">eventnumber</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">123456</span><span class="p">,</span> <span class="mi">123567</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
 
 <span class="c1"># apply a pT-dependent smearing by scaling the standard normal draw</span>
-<span class="n">smear_val</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="n">resrng</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">,</span> <span class="n">phivals</span><span class="p">,</span> <span class="n">eventnumber</span><span class="p">)</span>
-    <span class="o">*</span> <span class="n">resmodel</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">)</span>
-<span class="p">)</span>
+<span class="n">smear_val</span> <span class="o">=</span> <span class="n">resrng</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+    <span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">,</span> <span class="n">phivals</span><span class="p">,</span> <span class="n">eventnumber</span>
+<span class="p">)</span> <span class="o">*</span> <span class="n">resmodel</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">)</span>
 <span class="n">pt_smeared</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">ptvals</span> <span class="o">+</span> <span class="n">smear_val</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
 
 
@@ -847,7 +860,7 @@ Text(0.5, 0, &#39;Smeared $p_T$ - Unsmeared $p_T$&#39;)
 </section>
 <section id="Chaining-with-CompoundCorrection">
 <h2>Chaining with CompoundCorrection<a class="headerlink" href="#Chaining-with-CompoundCorrection" title="Link to this heading"></a></h2>
-<p>A CompoundCorrection allows to apply a sequence of corrections in order, refering to other corrections in the same CorrectionSet object. For example, we can merge the smearing and RNG into one:</p>
+<p>A CompoundCorrection allows to apply a sequence of corrections in order, referring to other corrections in the same CorrectionSet object. For example, we can merge the smearing and RNG into one:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
@@ -864,25 +877,33 @@ Text(0.5, 0, &#39;Smeared $p_T$ - Unsmeared $p_T$&#39;)
             <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
                 <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unsmeared jet pt&quot;</span><span class="p">),</span>
                 <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;eta&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet pseudorapdity&quot;</span><span class="p">),</span>
-                <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet phi (entropy source)&quot;</span><span class="p">),</span>
-                <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;evt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Event number (entropy source)&quot;</span><span class="p">),</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;phi&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Jet phi (entropy source)&quot;</span>
+                <span class="p">),</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;evt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Event number (entropy source)&quot;</span>
+                <span class="p">),</span>
             <span class="p">],</span>
-            <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;shift&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Additive shift to jet pT&quot;</span><span class="p">),</span>
+            <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;shift&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Additive shift to jet pT&quot;</span>
+            <span class="p">),</span>
             <span class="n">inputs_update</span><span class="o">=</span><span class="p">[],</span>
             <span class="n">input_op</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
             <span class="n">output_op</span><span class="o">=</span><span class="s2">&quot;*&quot;</span><span class="p">,</span>
             <span class="n">stack</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;resmodel&quot;</span><span class="p">,</span> <span class="s2">&quot;resrng&quot;</span><span class="p">],</span>
         <span class="p">)</span>
-    <span class="p">]</span>
+    <span class="p">],</span>
 <span class="p">)</span>
 
 <span class="n">oneshot</span> <span class="o">=</span> <span class="n">cset</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">compound</span><span class="p">[</span><span class="s2">&quot;resolution_model&quot;</span><span class="p">]</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;One-shot smearing is equivalent to two-step procedure?&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
-    <span class="n">oneshot</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">,</span> <span class="n">phivals</span><span class="p">,</span> <span class="n">eventnumber</span><span class="p">),</span>
-    <span class="n">smear_val</span><span class="p">,</span>
-<span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span>
+        <span class="n">oneshot</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">ptvals</span><span class="p">,</span> <span class="n">etavals</span><span class="p">,</span> <span class="n">phivals</span><span class="p">,</span> <span class="n">eventnumber</span><span class="p">),</span>
+        <span class="n">smear_val</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -900,7 +921,7 @@ True
 <section id="Systematics">
 <h2>Systematics<a class="headerlink" href="#Systematics" title="Link to this heading"></a></h2>
 <p>There are many ways to encode systematic uncertainties within correctionlib, although no nodes are dedicated to the task. See <a class="reference external" href="https://github.com/cms-nanoAOD/correctionlib/issues/4">issue #4</a> to discuss further the idea of having a dedicated systematic node. The most straightforward option is to use a Category node with string lookup to switch the behavior depending on the active systematic. Below we modify our <code class="docutils literal notranslate"><span class="pre">ptweight</span></code> from before to produce a systematically larger event weight when the
-<code class="docutils literal notranslate"><span class="pre">MuonEffUp</span></code> systematic is specified, while producing the nominal event weight for any other string key, by taking advantage of the <code class="docutils literal notranslate"><span class="pre">default=</span></code> keywoard in the Category node. We also use the <code class="docutils literal notranslate"><span class="pre">flow=</span></code> keyword in the shifted binning to increase the systematic uncertainty for data with muon <span class="math notranslate nohighlight">\(p_T\)</span> larger than 120.</p>
+<code class="docutils literal notranslate"><span class="pre">MuonEffUp</span></code> systematic is specified, while producing the nominal event weight for any other string key, by taking advantage of the <code class="docutils literal notranslate"><span class="pre">default=</span></code> keyword in the Category node. We also use the <code class="docutils literal notranslate"><span class="pre">flow=</span></code> keyword in the shifted binning to increase the systematic uncertainty for data with muon <span class="math notranslate nohighlight">\(p_T\)</span> larger than 120.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
 </pre></div>
@@ -910,9 +931,11 @@ True
     <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
     <span class="n">inputs</span><span class="o">=</span><span class="p">[</span>
         <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;pt&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Muon transverse momentum&quot;</span><span class="p">),</span>
-        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;syst&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Systematic&quot;</span><span class="p">)</span>
+        <span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;syst&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Systematic&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span><span class="p">),</span>
+    <span class="n">output</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Multiplicative event weight&quot;</span>
+    <span class="p">),</span>
     <span class="n">data</span><span class="o">=</span><span class="n">cs</span><span class="o">.</span><span class="n">Category</span><span class="p">(</span>
         <span class="n">nodetype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">,</span>
         <span class="nb">input</span><span class="o">=</span><span class="s2">&quot;syst&quot;</span><span class="p">,</span>
@@ -965,7 +988,7 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptweight</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">135.</span><span class="p">,</span> <span class="s2">&quot;nominal&quot;</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ptweight</span><span class="o">.</span><span class="n">to_evaluator</span><span class="p">()</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="mf">135.0</span><span class="p">,</span> <span class="s2">&quot;nominal&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -985,7 +1008,9 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cset</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">CorrectionSet</span><span class="p">(</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
+
+<span class="n">cset</span> <span class="o">=</span> <span class="n">cs</span><span class="o">.</span><span class="n">CorrectionSet</span><span class="p">(</span>
     <span class="n">schema_version</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
     <span class="n">description</span><span class="o">=</span><span class="s2">&quot;my custom corrections&quot;</span><span class="p">,</span>
     <span class="n">corrections</span><span class="o">=</span><span class="p">[</span>
@@ -998,7 +1023,6 @@ Node counts: <span style="font-weight: bold">Category</span>: <span style="color
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;mycorrections.json&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
     <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cset</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">exclude_unset</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
 
 <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;mycorrections.json.gz&quot;</span><span class="p">,</span> <span class="s2">&quot;wt&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
     <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cset</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">exclude_unset</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
@@ -1030,7 +1054,7 @@ Command-line interface to correctionlib.
 positional arguments:
   {validate,summary,merge,config}
     validate            Check if all files are valid
-    summary             Print a summmary of the corrections
+    summary             Print a summary of the corrections
     merge               Merge one or more correction files and print to stdout
     config              Configuration and linking information
 
@@ -1090,7 +1114,7 @@ options:
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Overwriting main.cc
+Writing main.cc
 </pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">

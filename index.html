@@ -82,15 +82,16 @@
              
   <section id="correctionlib">
 <h1>correctionlib<a class="headerlink" href="#correctionlib" title="Link to this heading"></a></h1>
-<p>The purpose of this library is to provide a well-structured JSON data format for a
-wide variety of ad-hoc correction factors encountered in a typical HEP analysis and
-a companion evaluation tool suitable for use in C++ and python programs.
-Here we restrict our definition of correction factors to a class of functions with
-scalar inputs that produce a scalar output.</p>
+<p>The purpose of this library is to provide a well-structured JSON data format for
+a wide variety of ad-hoc correction factors encountered in a typical HEP
+analysis and a companion evaluation tool suitable for use in C++ and python
+programs. Here we restrict our definition of correction factors to a class of
+functions with scalar inputs that produce a scalar output.</p>
 <p>In python, the function signature is:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="k">return</span> <span class="o">...</span>
 </pre></div>
 </div>
@@ -101,35 +102,39 @@ scalar inputs that produce a scalar output.</p>
 <p>The supported function classes include:</p>
 <ul class="simple">
 <li><p>multi-dimensional binned lookups;</p></li>
-<li><p>binned lookups pointing to multi-argument formulas with a restricted
-math function set (<code class="docutils literal notranslate"><span class="pre">exp</span></code>, <code class="docutils literal notranslate"><span class="pre">sqrt</span></code>, etc.);</p></li>
+<li><p>binned lookups pointing to multi-argument formulas with a restricted math
+function set (<code class="docutils literal notranslate"><span class="pre">exp</span></code>, <code class="docutils literal notranslate"><span class="pre">sqrt</span></code>, etc.);</p></li>
 <li><p>categorical (string or integer enumeration) maps;</p></li>
 <li><p>input transforms (updating one input value in place); and</p></li>
 <li><p>compositions of the above.</p></li>
 </ul>
-<p>Each function type is represented by a “node” in a call graph and holds all
-of its parameters in a JSON structure, described by the JSON schema.
-Possible future extension nodes might include weigted sums (which, when composed with
-the others, could represent a BDT) and perhaps simple MLPs.</p>
+<p>Each function type is represented by a “node” in a call graph and holds all of
+its parameters in a JSON structure, described by the JSON schema. Possible
+future extension nodes might include weigted sums (which, when composed with the
+others, could represent a BDT) and perhaps simple MLPs.</p>
 <p>The tool should provide:</p>
 <ul class="simple">
 <li><p>standardized, versioned <a class="reference external" href="https://json-schema.org/">JSON schemas</a>;</p></li>
 <li><p>forward-porting tools (to migrate data written in older schema versions); and</p></li>
-<li><p>a well-optimized C++ evaluator and python bindings (with numpy vectorization support).</p></li>
+<li><p>a well-optimized C++ evaluator and python bindings (with numpy vectorization
+support).</p></li>
 </ul>
 <p>This tool will definitely not provide:</p>
 <ul class="simple">
-<li><p>support for <code class="docutils literal notranslate"><span class="pre">TLorentzVector</span></code> or other object-type inputs (such tools should be written
-as a higher-level tool depending on this library as a low-level tool)</p></li>
+<li><p>support for <code class="docutils literal notranslate"><span class="pre">TLorentzVector</span></code> or other object-type inputs (such tools should be
+written as a higher-level tool depending on this library as a low-level tool)</p></li>
 </ul>
-<p>Formula support currently includes a mostly-complete subset of the ROOT library <code class="docutils literal notranslate"><span class="pre">TFormula</span></code> class,
-and is implemented in a threadsafe standalone manner. The parsing grammar is formally defined
-and parsed through the use of a header-only <a class="reference external" href="https://github.com/yhirose/cpp-peglib">PEG parser library</a>.
-The supported features mirror CMSSW’s <a class="reference external" href="https://github.com/cms-sw/cmssw/pull/11516">reco::formulaEvaluator</a>
-and fully passes the test suite for that utility with the purposeful exception of the <code class="docutils literal notranslate"><span class="pre">TMath::</span></code> namespace.
-The python bindings may be able to call into <a class="reference external" href="https://numexpr.readthedocs.io/en/latest/user_guide.html">numexpr</a>,
-though, due to the tree-like structure of the corrections, it may prove difficult to exploit vectorization
-at levels other than the entrypoint.</p>
+<p>Formula support currently includes a mostly-complete subset of the ROOT library
+<code class="docutils literal notranslate"><span class="pre">TFormula</span></code> class, and is implemented in a threadsafe standalone manner. The
+parsing grammar is formally defined and parsed through the use of a header-only
+<a class="reference external" href="https://github.com/yhirose/cpp-peglib">PEG parser library</a>. The supported
+features mirror CMSSW’s
+<a class="reference external" href="https://github.com/cms-sw/cmssw/pull/11516">reco::formulaEvaluator</a> and fully
+passes the test suite for that utility with the purposeful exception of the
+<code class="docutils literal notranslate"><span class="pre">TMath::</span></code> namespace. The python bindings may be able to call into
+<a class="reference external" href="https://numexpr.readthedocs.io/en/latest/user_guide.html">numexpr</a>, though, due
+to the tree-like structure of the corrections, it may prove difficult to exploit
+vectorization at levels other than the entrypoint.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
