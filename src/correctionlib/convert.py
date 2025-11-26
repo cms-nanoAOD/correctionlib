@@ -1,8 +1,10 @@
 """Tools to convert other formats to correctionlib"""
 
+from __future__ import annotations
+
 from collections.abc import Iterable, Sequence
 from numbers import Real
-from typing import TYPE_CHECKING, Any, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy
 
@@ -30,7 +32,7 @@ else:
 
 def from_uproot_THx(
     path: str,
-    axis_names: Optional[list[str]] = None,
+    axis_names: list[str] | None = None,
     flow: Literal["clamp", "error"] = "error",
 ) -> Correction:
     """Convert a ROOT histogram
@@ -51,9 +53,9 @@ def from_uproot_THx(
 
 
 def from_histogram(
-    hist: "PlottableHistogram",
-    axis_names: Optional[list[str]] = None,
-    flow: Optional[Union[Content, Literal["clamp", "error"]]] = "error",
+    hist: PlottableHistogram,
+    axis_names: list[str] | None = None,
+    flow: Content | Literal["clamp", "error"] | None = "error",
 ) -> Correction:
     """Read any object with PlottableHistogram interface protocol
 
@@ -61,7 +63,7 @@ def from_histogram(
     https://github.com/scikit-hep/uhi/blob/v0.1.1/src/uhi/typing/plottable.py
     """
 
-    def read_axis(axis: "PlottableAxis", pos: int) -> Variable:
+    def read_axis(axis: PlottableAxis, pos: int) -> Variable:
         axtype = "real"
         if len(axis) == 0:
             raise ValueError(f"Zero-length axis {axis}, what to do?")
@@ -83,7 +85,7 @@ def from_histogram(
     variables = [read_axis(ax, i) for i, ax in enumerate(hist.axes)]
     # Here we could try to optimize the ordering
 
-    def edges(axis: "PlottableAxis") -> list[float]:
+    def edges(axis: PlottableAxis) -> list[float]:
         out = []
         for i, b in enumerate(axis):
             if isinstance(b, (str, int)):
@@ -96,7 +98,7 @@ def from_histogram(
                 out.append(b[1])
         return out
 
-    def flatten_to(values: "ndarray[Any, Any]", depth: int) -> Iterable[Any]:
+    def flatten_to(values: ndarray[Any, Any], depth: int) -> Iterable[Any]:
         for value in values:
             if depth > 0:
                 yield from flatten_to(value, depth - 1)
@@ -104,8 +106,8 @@ def from_histogram(
                 yield value
 
     def build_data(
-        values: "ndarray[Any, Any]",
-        axes: Sequence["PlottableAxis"],
+        values: ndarray[Any, Any],
+        axes: Sequence[PlottableAxis],
         variables: list[Variable],
     ) -> Content:
         vartype = variables[0].type
@@ -179,9 +181,9 @@ def from_histogram(
 
 
 def ndpolyfit(
-    points: list["ndarray[Any, Any]"],
-    values: "ndarray[Any, Any]",
-    weights: "ndarray[Any, Any]",
+    points: list[ndarray[Any, Any]],
+    values: ndarray[Any, Any],
+    weights: ndarray[Any, Any],
     varnames: list[str],
     degree: tuple[int],
 ) -> tuple[Correction, Any]:
@@ -216,7 +218,7 @@ def ndpolyfit(
         raise NotImplementedError(
             "correctionlib Formula not available for more than 4 variables"
         )
-    _degree: "ndarray[Any, Any]" = numpy.array(degree, dtype=int)
+    _degree: ndarray[Any, Any] = numpy.array(degree, dtype=int)
     npoints = len(values)
     powergrid = numpy.ones(shape=(npoints, *(_degree + 1)))
     for i, (x, deg) in enumerate(zip(points, _degree)):
