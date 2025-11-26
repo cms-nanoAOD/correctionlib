@@ -62,4 +62,3 @@ def test_input_names_valid():
         try_name("pt", "eta", "phi_wrong", "evt")
     with pytest.raises(ValueError):
         try_name("pt", "eta", "phi", "evt_wrong")
-    try_name("pt", "eta", "phi", "evt_wrong")
