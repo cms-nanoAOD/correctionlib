@@ -1,7 +1,8 @@
 import math
 import warnings
 from collections import Counter
-from typing import Annotated, Literal, Optional, Union
+from functools import partial
+from typing import Annotated, Callable, Literal, Optional, Union
 
 from pydantic import (
     AfterValidator,
@@ -12,6 +13,7 @@ from pydantic import (
     StrictStr,
     ValidationInfo,
     field_validator,
+    model_validator,
 )
 from rich.columns import Columns
 from rich.console import Console, ConsoleOptions, RenderResult
@@ -387,6 +389,47 @@ CategoryItem.model_rebuild()
 Category.model_rebuild()
 
 
+def walk_content(content: Content, func: Callable[[Content], None]) -> None:
+    """Visit all content nodes in a tree, applying func to each node."""
+    func(content)
+    if isinstance(content, (float, Formula, FormulaRef, HashPRNG)):
+        pass
+    elif isinstance(content, (Binning, MultiBinning)):
+        for bin in content.content:
+            walk_content(bin, func)
+        if not isinstance(content.flow, str):
+            walk_content(content.flow, func)
+    elif isinstance(content, Category):
+        for cat in content.content:
+            walk_content(cat.value, func)
+        if content.default:
+            walk_content(content.default, func)
+    elif isinstance(content, Transform):
+        walk_content(content.rule, func)
+        walk_content(content.content, func)
+    else:
+        raise RuntimeError(f"Unknown content node type: {type(content)}")
+
+
+def _validate_input(allowed_names: set[str], node: Content) -> None:
+    nodename = type(node).__name__
+    if isinstance(node, (Binning, Category, Transform)):
+        if node.input not in allowed_names:
+            msg = f"{nodename} input {node.input!r} not found in Correction inputs {allowed_names}"
+            raise ValueError(msg)
+    elif isinstance(node, (MultiBinning, HashPRNG)):
+        for inp in node.inputs:
+            if inp not in allowed_names:
+                msg = f"{nodename} input {inp!r} not found in Correction inputs {allowed_names}"
+                raise ValueError(msg)
+    elif isinstance(node, Formula):
+        for inp in node.variables:
+            if inp not in allowed_names:
+                msg = f"{nodename} input {inp!r} not found in Correction inputs {allowed_names}"
+                raise ValueError(msg)
+    # FormulaRef has no direct input names
+
+
 class Correction(Model):
     name: str
     description: Optional[str] = Field(
@@ -420,6 +463,12 @@ class Correction(Model):
                 "Output types other than real are not supported. See https://github.com/nsmith-/correctionlib/issues/12"
             )
         return output
+
+    @model_validator(mode="after")
+    def check_input_names(self) -> "Correction":
+        input_names = {var.name for var in self.inputs}
+        walk_content(self.data, partial(_validate_input, input_names))
+        return self
 
     def summary(self) -> tuple[dict[str, int], dict[str, _SummaryInfo]]:
         nodecount: dict[str, int] = Counter()
