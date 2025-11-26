@@ -7,6 +7,9 @@ these recommendations and examples.
 [cookie]: https://github.com/scikit-hep/cookie
 [skhep-dev-intro]: https://scikit-hep.org/developer/intro
 
+A detailed overview of the architecture of this package is available in
+[ARCHITECTURE.md](./ARCHITECTURE.md).
+
 # Setting up a development environment
 
 You can set up a development environment by running:
