@@ -87,7 +87,8 @@ class method or by directly constructing them using keyword arguments.
 
 ## Developing
 
-See CONTRIBUTING.md
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for details on setting up a development
+environment, testing, and building the documentation.
 
 [actions-badge]:
   https://github.com/cms-nanoAOD/correctionlib/workflows/CI/badge.svg
