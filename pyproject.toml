@@ -57,7 +57,7 @@ test = [
   "uproot >=4.0.4",
   "requests",
   "scipy",
-  "pytest >=4.6",
+  "pytest >=6.0",
   "awkward >=2.2.2",
   "dask-awkward >=2024.1.1",
 ]
@@ -84,8 +84,9 @@ dev = [
   "uhi",
 ]
 
-[tool.pytest]
-addopts = ["-rs", "-s", "-Wd"]
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["-ra"]
 testpaths = ["tests"]
 
 [tool.check-manifest]
