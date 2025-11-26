@@ -32,16 +32,6 @@ class Model(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
-class _SummaryInfo:
-    def __init__(self) -> None:
-        self.values: set[Union[str, int]] = set()
-        self.default: bool = False
-        self.overflow: bool = True
-        self.transform: bool = False
-        self.min: float = float("inf")
-        self.max: float = float("-inf")
-
-
 class Variable(Model):
     """An input or output variable"""
 
@@ -92,14 +82,6 @@ class Formula(Model):
         default=None,
     )
 
-    def summarize(
-        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
-    ) -> None:
-        nodecount["Formula"] += 1
-        for input in self.variables:
-            inputstats[input].min = float("-inf")
-            inputstats[input].max = float("inf")
-
 
 class FormulaRef(Model):
     """A reference to one of the Correction generic_formula items, with specific parameters"""
@@ -111,11 +93,6 @@ class FormulaRef(Model):
     parameters: list[float] = Field(
         description="Same interpretation as Formula.parameters"
     )
-
-    def summarize(
-        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
-    ) -> None:
-        nodecount["FormulaRef"] += 1
 
 
 class Transform(Model):
@@ -134,14 +111,6 @@ class Transform(Model):
         description="A subtree that will be evaluated with transformed values"
     )
 
-    def summarize(
-        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
-    ) -> None:
-        nodecount["Transform"] += 1
-        inputstats[self.input].transform = True
-        if not isinstance(self.content, float):
-            self.content.summarize(nodecount, inputstats)
-
 
 class HashPRNG(Model):
     """A node that generates a pseudorandom number deterministic in its inputs
@@ -158,11 +127,6 @@ class HashPRNG(Model):
     distribution: Literal["stdflat", "stdnormal", "normal"] = Field(
         description="The output distribution to draw from"
     )
-
-    def summarize(
-        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
-    ) -> None:
-        nodecount["HashPRNG"] += 1
 
     @field_validator("distribution")
     @classmethod
@@ -255,23 +219,6 @@ class Binning(Model):
             )
         return content
 
-    def summarize(
-        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
-    ) -> None:
-        nodecount["Binning"] += 1
-        inputstats[self.input].overflow &= self.flow != "error"
-        low = float(self.edges[0]) if isinstance(self.edges, list) else self.edges.low
-        high = (
-            float(self.edges[-1]) if isinstance(self.edges, list) else self.edges.high
-        )
-        inputstats[self.input].min = min(inputstats[self.input].min, low)
-        inputstats[self.input].max = max(inputstats[self.input].max, high)
-        for item in self.content:
-            if not isinstance(item, float):
-                item.summarize(nodecount, inputstats)
-        if not isinstance(self.flow, (float, str)):
-            self.flow.summarize(nodecount, inputstats)
-
 
 class MultiBinning(Model):
     """N-dimensional rectangular binning"""
@@ -312,22 +259,6 @@ class MultiBinning(Model):
             )
         return content
 
-    def summarize(
-        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
-    ) -> None:
-        nodecount["MultiBinning"] += 1
-        for input, edges in zip(self.inputs, self.edges):
-            low = float(edges[0]) if isinstance(edges, list) else edges.low
-            high = float(edges[-1]) if isinstance(edges, list) else edges.high
-            inputstats[input].overflow &= self.flow != "error"
-            inputstats[input].min = min(inputstats[input].min, low)
-            inputstats[input].max = max(inputstats[input].max, high)
-        for item in self.content:
-            if not isinstance(item, float):
-                item.summarize(nodecount, inputstats)
-        if not isinstance(self.flow, (float, str)):
-            self.flow.summarize(nodecount, inputstats)
-
 
 class CategoryItem(Model):
     """A key-value pair
@@ -363,23 +294,6 @@ class Category(Model):
             if len(keys) != len(content):
                 raise ValueError("Duplicate keys detected in Category node")
         return content
-
-    def summarize(
-        self, nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo]
-    ) -> None:
-        nodecount["Category"] += 1
-        if self.input not in inputstats:
-            raise RuntimeError(
-                f"The input variable {self.input} of a Category node is not defined "
-                "in the inputs of the Correction object"
-            )
-        inputstats[self.input].values |= {item.key for item in self.content}
-        inputstats[self.input].default |= self.default is not None
-        for item in self.content:
-            if not isinstance(item.value, float):
-                item.value.summarize(nodecount, inputstats)
-        if self.default and not isinstance(self.default, float):
-            self.default.summarize(nodecount, inputstats)
 
 
 Transform.model_rebuild()
@@ -430,6 +344,53 @@ def _validate_input(allowed_names: set[str], node: Content) -> None:
     # FormulaRef has no direct input names
 
 
+def _binning_range(
+    edges: Union[NonUniformBinning, UniformBinning],
+) -> tuple[float, float]:
+    if isinstance(edges, list):
+        low = float(edges[0])
+        high = float(edges[-1])
+    else:
+        low = edges.low
+        high = edges.high
+    return low, high
+
+
+class _SummaryInfo:
+    def __init__(self) -> None:
+        self.values: set[Union[str, int]] = set()
+        self.default: bool = False
+        self.overflow: bool = True
+        self.transform: bool = False
+        self.min: float = float("inf")
+        self.max: float = float("-inf")
+
+
+def _summarize(
+    nodecount: dict[str, int], inputstats: dict[str, _SummaryInfo], node: Content
+) -> None:
+    """Compile summary statistics for a content node."""
+    if isinstance(node, float):
+        return
+    nodecount[type(node).__name__] += 1
+    if isinstance(node, Binning):
+        inputstats[node.input].overflow &= node.flow != "error"
+        low, high = _binning_range(node.edges)
+        inputstats[node.input].min = min(inputstats[node.input].min, low)
+        inputstats[node.input].max = max(inputstats[node.input].max, high)
+    elif isinstance(node, MultiBinning):
+        for input, edges in zip(node.inputs, node.edges):
+            inputstats[input].overflow &= node.flow != "error"
+            low, high = _binning_range(edges)
+            inputstats[input].min = min(inputstats[input].min, low)
+            inputstats[input].max = max(inputstats[input].max, high)
+    elif isinstance(node, Category):
+        inputstats[node.input].values |= {item.key for item in node.content}
+        inputstats[node.input].default |= node.default is not None
+    elif isinstance(node, Transform):
+        inputstats[node.input].transform = True
+
+
 class Correction(Model):
     name: str
     description: Optional[str] = Field(
@@ -473,11 +434,10 @@ class Correction(Model):
     def summary(self) -> tuple[dict[str, int], dict[str, _SummaryInfo]]:
         nodecount: dict[str, int] = Counter()
         inputstats = {var.name: _SummaryInfo() for var in self.inputs}
-        if not isinstance(self.data, float):
-            self.data.summarize(nodecount, inputstats)
+        walk_content(self.data, partial(_summarize, nodecount, inputstats))
         if self.generic_formulas:
             for formula in self.generic_formulas:
-                formula.summarize(nodecount, inputstats)
+                _summarize(nodecount, inputstats, formula)
         return nodecount, inputstats
 
     def __rich_console__(
