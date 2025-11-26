@@ -51,7 +51,7 @@ jobs:
         run: python -m pip install . --group test
 
       - name: Test package
-        run: python -m pytest -ra
+        run: pytest
 
   checkroot:
     name: Check ROOT bindings
@@ -81,7 +81,7 @@ jobs:
 
       - name: Test package
         shell: bash -l {0}
-        run: python -m pytest -ra
+        run: pytest
 
   pass:
     name: All tests passed
