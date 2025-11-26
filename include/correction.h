@@ -55,6 +55,8 @@ class FormulaAst {
       Binary,
     };
     enum class BinaryOp {
+      LogicalOr,
+      LogicalAnd,
       Equal,
       NotEqual,
       Greater,
