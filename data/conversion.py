@@ -133,7 +133,7 @@ corr2 = Correction.model_validate(
             {
                 "name": "flavor",
                 "type": "int",
-                "description": "BTV flavor definiton: 0=b, 1=c, 2=udsg",
+                "description": "BTV flavor definition: 0=b, 1=c, 2=udsg",
             },
             {"name": "abseta", "type": "real"},
             {"name": "pt", "type": "real"},

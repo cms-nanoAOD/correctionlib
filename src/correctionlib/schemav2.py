@@ -287,7 +287,7 @@ class Category(Model):
             keytype = type(content[0].key)
             if not all(isinstance(item.key, keytype) for item in content):
                 raise ValueError(
-                    f"Keys in the Category node do not have a homogenous type, expected all {keytype}"
+                    f"Keys in the Category node do not have a homogeneous type, expected all {keytype}"
                 )
 
             keys = {item.key for item in content}

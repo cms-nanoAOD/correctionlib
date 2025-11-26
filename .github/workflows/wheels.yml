@@ -15,19 +15,19 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-tags: true
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-tags: true
+          fetch-depth: 0
 
-    - name: Build SDist
-      run: pipx run build --sdist
+      - name: Build SDist
+        run: pipx run build --sdist
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: artifact-sdist
-        path: dist/*.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-sdist
+          path: dist/*.tar.gz
 
   build_wheels:
     name: Wheel on ${{ matrix.os }} (${{ matrix.arch }})
@@ -42,22 +42,22 @@ jobs:
             arch: universal2
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-tags: true
-        fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-tags: true
+          fetch-depth: 0
 
-    - uses: pypa/cibuildwheel@v3.3
-      env:
-        CIBW_ARCHS: ${{ matrix.arch }}
-        MACOSX_DEPLOYMENT_TARGET: 11.0
+      - uses: pypa/cibuildwheel@v3.3
+        env:
+          CIBW_ARCHS: ${{ matrix.arch }}
+          MACOSX_DEPLOYMENT_TARGET: 11.0
 
-    - name: Upload wheels
-      uses: actions/upload-artifact@v4
-      with:
-        name: artifact-wheel-${{ matrix.os }}-${{ matrix.arch }}
-        path: wheelhouse/*.whl
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-wheel-${{ matrix.os }}-${{ matrix.arch }}
+          path: wheelhouse/*.whl
 
   pypi-publish:
     needs: [build_wheels, make_sdist]
@@ -67,11 +67,11 @@ jobs:
     permissions:
       id-token: write
     steps:
-    - uses: actions/download-artifact@v4
-      with:
-        path: dist
-        pattern: artifact-*
-        merge-multiple: true
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: artifact-*
+          merge-multiple: true
 
-    - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

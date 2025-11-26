@@ -246,9 +246,9 @@ def test_jsonencode():
     }
   }
 }"""
-    assert (
-        formatted == expected
-    ), f"Formatted does not match expected:\nExpected: {expected}\nFormatted: {formatted}"
-    assert (
-        retrieved == data
-    ), f"Data before and after encoding do not match:\nBefore: {data}\nFormatted: {formatted}"
+    assert formatted == expected, (
+        f"Formatted does not match expected:\nExpected: {expected}\nFormatted: {formatted}"
+    )
+    assert retrieved == data, (
+        f"Data before and after encoding do not match:\nBefore: {data}\nFormatted: {formatted}"
+    )

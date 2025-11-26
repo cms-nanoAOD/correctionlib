@@ -7,7 +7,6 @@
 # Warning: do not change the path here. To use autodoc, you need to install the
 # package first.
 
-from typing import List
 
 # -- Project information -----------------------------------------------------
 
