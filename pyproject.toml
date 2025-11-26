@@ -80,7 +80,26 @@ dev = [
   {include-group = "docs"},
   "pre-commit",
   "mypy",
+  "ruff",
   "uhi",
+]
+
+[tool.pytest]
+addopts = ["-rs", "-s", "-Wd"]
+testpaths = ["tests"]
+
+[tool.check-manifest]
+ignore = [
+  ".github/**",
+  "docs/**",
+  ".pre-commit-config.yaml",
+  ".readthedocs.yml",
+  "src/*/version.py",
+  "data/**",
+  "Makefile",
+  "cpp-peglib/**",
+  "pybind11/**",
+  "rapidjson/**",
 ]
 
 [tool.mypy]
@@ -94,6 +113,16 @@ follow_untyped_imports = true
 [[tool.mypy.overrides]]
 module = ["cppyy.*", "scipy.*"]
 ignore_missing_imports = true
+
+[tool.ruff.lint]
+select = [
+  "E",  # all errors
+  "F",  # all pyflakes checks
+  "I",  # import-related checks
+]
+ignore = [
+  "E501", # line too long (comments and docstrings, code will be formatted with ruff)
+]
 
 [project.scripts]
 correction = "correctionlib.cli:main"
@@ -121,3 +150,6 @@ test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32"]
 [tool.cibuildwheel.environment]
 # this makes sure that we build only on platforms that have a corresponding numpy wheel
 PIP_ONLY_BINARY = ":all:"
+
+[tool.codespell]
+ignore-regex = "[A-Za-z0-9+/]{100,}"  # ignore long base64 strings

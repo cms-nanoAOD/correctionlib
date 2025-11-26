@@ -87,9 +87,7 @@ def summary(console: Console, args: argparse.Namespace) -> int:
 
 
 def setup_summary(subparsers):
-    parser = subparsers.add_parser(
-        "summary", help="Print a summmary of the corrections"
-    )
+    parser = subparsers.add_parser("summary", help="Print a summary of the corrections")
     parser.set_defaults(command=summary)
     parser.add_argument(
         "--ignore-float-inf",
