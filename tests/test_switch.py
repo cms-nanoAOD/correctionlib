@@ -14,7 +14,7 @@ corr = cs.Correction(
         selections=[
             cs.Comparison(
                 variable="eta",
-                op="<=", 
+                op="<=",
                 value=3.0,
                 content=1.0,
             )
