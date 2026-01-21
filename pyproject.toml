@@ -58,6 +58,7 @@ test = [
   "requests",
   "scipy",
   "pytest >=6.0",
+  "pytest-run-parallel",
   "awkward >=2.2.2",
   "dask-awkward >=2024.1.1",
 ]
