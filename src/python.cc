@@ -123,6 +123,7 @@ PYBIND11_MODULE(_core, m) {
         .def("__getitem__", &CorrectionSet::at, py::return_value_policy::move)
         .def("__len__", &CorrectionSet::size)
         .def("__iter__", [](const CorrectionSet &v) {
+          std::lock_guard py_guard(v.py_access_lock_);
           return py::make_key_iterator(v.begin(), v.end());
         }, py::keep_alive<0, 1>())
         .def_property_readonly("compound", &CorrectionSet::compound);
