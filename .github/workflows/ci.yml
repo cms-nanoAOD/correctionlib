@@ -20,7 +20,7 @@ jobs:
           submodules: recursive
           fetch-depth: 0
           fetch-tags: true
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.12
       - uses: pre-commit/action@v3.0.0
