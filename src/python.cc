@@ -6,6 +6,8 @@
 namespace py = pybind11;
 using namespace correction;
 
+std::mutex CorrectionSet::py_access_lock_;
+
 namespace {
   template<typename T> // Correction or CompoundCorrection
   void check_length(const T& c, py::args args) {
