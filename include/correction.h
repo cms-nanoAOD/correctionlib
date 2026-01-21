@@ -291,7 +291,6 @@ class CorrectionSet {
   public:
     static std::unique_ptr<CorrectionSet> from_file(const std::string& fn);
     static std::unique_ptr<CorrectionSet> from_string(const char * data);
-    static std::mutex py_access_lock_;
 
     CorrectionSet(const JSONObject& json);
     bool validate();

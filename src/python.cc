@@ -6,8 +6,6 @@
 namespace py = pybind11;
 using namespace correction;
 
-std::mutex CorrectionSet::py_access_lock_;
-
 namespace {
   template<typename T> // Correction or CompoundCorrection
   void check_length(const T& c, py::args args) {
@@ -125,7 +123,6 @@ PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
         .def("__getitem__", &CorrectionSet::at, py::return_value_policy::move)
         .def("__len__", &CorrectionSet::size)
         .def("__iter__", [](const CorrectionSet &v) {
-          std::lock_guard py_guard(v.py_access_lock_);
           return py::make_key_iterator(v.begin(), v.end());
         }, py::keep_alive<0, 1>())
         .def_property_readonly("compound", &CorrectionSet::compound);
@@ -186,4 +183,10 @@ PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
       .value("ACOSH", FormulaAst::UnaryOp::Acosh)
       .value("ASINH", FormulaAst::UnaryOp::Asinh)
       .value("ATANH", FormulaAst::UnaryOp::Atanh);
+
+  {
+    auto dummy = CorrectionSet::from_string(R"({"schema_version": 2, "corrections": []})");
+    auto it = py::make_key_iterator(dummy->begin(), dummy->end());
+            (void)it;
+  }
 }

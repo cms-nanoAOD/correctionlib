@@ -27,7 +27,6 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -58,7 +57,7 @@ test = [
   "requests",
   "scipy",
   "pytest >=6.0",
-  "pytest-run-parallel",
+  "pytest-run-parallel >=0.8.0",
   "awkward >=2.2.2",
   "dask-awkward >=2024.1.1",
 ]
