@@ -15,7 +15,7 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-tags: true
@@ -24,7 +24,7 @@ jobs:
       - name: Build SDist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: artifact-sdist
           path: dist/*.tar.gz
@@ -35,14 +35,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest]
         arch: [auto64]
         include:
           - os: macos-latest
             arch: universal2
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
           fetch-tags: true
@@ -51,10 +51,11 @@ jobs:
       - uses: pypa/cibuildwheel@v3.3
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_ENABLE: cpython-freethreading
           MACOSX_DEPLOYMENT_TARGET: 11.0
 
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: artifact-wheel-${{ matrix.os }}-${{ matrix.arch }}
           path: wheelhouse/*.whl
