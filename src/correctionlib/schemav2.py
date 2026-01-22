@@ -61,6 +61,7 @@ Content = Union[
             "FormulaRef",
             "Transform",
             "HashPRNG",
+            "Switch",
         ],
         Field(discriminator="nodetype"),
     ],
@@ -296,11 +297,33 @@ class Category(Model):
         return content
 
 
+class Comparison(Model):
+    variable: str = Field(description="The name of the input variable")
+    op: Literal[">", "<", ">=", "<=", "==", "!="] = Field(
+        description="Comparison operator"
+    )
+    value: float = Field(description="Value to compare against")
+    content: Content = Field(description="Content to return if comparison is true")
+
+
+class Switch(Model):
+    nodetype: Literal["switch"]
+    inputs: list[str] = Field(
+        description="The names of the input variables used in the selections"
+    )
+    selections: list[Comparison] = Field(
+        description="List of checks to perform. First one to evaluate true returns its content."
+    )
+    default: Content = Field(description="Default content if no selection matches")
+
+
 Transform.model_rebuild()
 Binning.model_rebuild()
 MultiBinning.model_rebuild()
 CategoryItem.model_rebuild()
 Category.model_rebuild()
+Comparison.model_rebuild()
+Switch.model_rebuild()
 
 
 def walk_content(content: Content, func: Callable[[Content], None]) -> None:
@@ -321,6 +344,10 @@ def walk_content(content: Content, func: Callable[[Content], None]) -> None:
     elif isinstance(content, Transform):
         walk_content(content.rule, func)
         walk_content(content.content, func)
+    elif isinstance(content, Switch):
+        for selection in content.selections:
+            walk_content(selection.content, func)
+        walk_content(content.default, func)
     else:
         raise RuntimeError(f"Unknown content node type: {type(content)}")
 
@@ -331,7 +358,7 @@ def _validate_input(allowed_names: set[str], node: Content) -> None:
         if node.input not in allowed_names:
             msg = f"{nodename} input {node.input!r} not found in Correction inputs {allowed_names}"
             raise ValueError(msg)
-    elif isinstance(node, (MultiBinning, HashPRNG)):
+    elif isinstance(node, (MultiBinning, HashPRNG, Switch)):
         for inp in node.inputs:
             if inp not in allowed_names:
                 msg = f"{nodename} input {inp!r} not found in Correction inputs {allowed_names}"

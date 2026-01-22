@@ -41,7 +41,8 @@ class HashPRNG;
 class Binning;
 class MultiBinning;
 class Category;
-typedef std::variant<double, Formula, FormulaRef, Transform, HashPRNG, Binning, MultiBinning, Category> Content;
+class Switch;
+typedef std::variant<double, Formula, FormulaRef, Transform, HashPRNG, Binning, MultiBinning, Category, Switch> Content;
 class Correction;
 
 class FormulaAst {
@@ -232,6 +233,23 @@ class Category {
     std::variant<IntMap, StrMap> map_;
     std::unique_ptr<const Content> default_;
     size_t variableIdx_;
+};
+
+class Switch {
+  public:
+    Switch(const JSONObject& json, const Correction& context);
+    double evaluate(const std::vector<Variable::Type>& values) const;
+
+  private:
+    struct Selection {
+      size_t variableIdx;
+      std::string op;
+      double value;
+      std::unique_ptr<const Content> content;
+    };
+
+    std::vector<Selection> selections_;
+    std::unique_ptr<const Content> default_;
 };
 
 class Correction {
