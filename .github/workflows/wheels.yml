@@ -35,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest]
         arch: [auto64]
         include:
           - os: macos-latest
@@ -51,6 +51,7 @@ jobs:
       - uses: pypa/cibuildwheel@v3.3
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
+          CIBW_ENABLE: cpython-freethreading
           MACOSX_DEPLOYMENT_TARGET: 11.0
 
       - name: Upload wheels

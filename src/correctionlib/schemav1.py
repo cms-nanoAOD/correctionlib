@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 
 from pydantic import BaseModel, ConfigDict
 
@@ -13,7 +13,7 @@ class Variable(Model):
     name: str
     type: Literal["string", "int", "real"]
     "Implicitly 64 bit integer and double-precision floating point?"
-    description: Optional[str] = None
+    description: str | None = None
     # TODO: clamping behavior for out of range?
 
 
@@ -52,7 +52,7 @@ class MultiBinning(Model):
 class Category(Model):
     nodetype: Literal["category"]
     # TODO: should be Union[List[str], List[int]]
-    keys: list[Union[str, int]]
+    keys: list[str | int]
     content: list[Content]
 
 
@@ -64,7 +64,7 @@ Category.update_forward_refs()
 class Correction(Model):
     name: str
     "A useful name"
-    description: Optional[str] = None
+    description: str | None = None
     "Detailed description of the correction"
     version: int
     "Version"

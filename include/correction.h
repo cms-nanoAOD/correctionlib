@@ -6,6 +6,7 @@
 #include <variant>
 #include <map>
 #include <memory>
+#include <mutex>
 #include "correctionlib_version.h"
 
 namespace correction {

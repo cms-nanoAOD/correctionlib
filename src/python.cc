@@ -85,7 +85,7 @@ namespace {
     return output;
   }
 }
-PYBIND11_MODULE(_core, m) {
+PYBIND11_MODULE(_core, m, py::mod_gil_not_used()) {
     m.doc() = "python binding for corrections evaluator";
 
     py::class_<Variable>(m, "Variable")
@@ -183,4 +183,10 @@ PYBIND11_MODULE(_core, m) {
       .value("ACOSH", FormulaAst::UnaryOp::Acosh)
       .value("ASINH", FormulaAst::UnaryOp::Asinh)
       .value("ATANH", FormulaAst::UnaryOp::Atanh);
+
+  {
+    auto dummy = CorrectionSet::from_string(R"({"schema_version": 2, "corrections": []})");
+    auto it = py::make_key_iterator(dummy->begin(), dummy->end());
+            (void)it;
+  }
 }

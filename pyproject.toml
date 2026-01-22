@@ -27,7 +27,6 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -35,7 +34,7 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Development Status :: 5 - Production/Stable",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "numpy >=1.13.3",
   "pydantic >=2",
@@ -58,6 +57,7 @@ test = [
   "requests",
   "scipy",
   "pytest >=6.0",
+  "pytest-run-parallel >=0.8.0",
   "awkward >=2.2.2",
   "dask-awkward >=2024.1.1",
 ]
@@ -104,7 +104,7 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 files = ["src"]
 
 [[tool.mypy.overrides]]
@@ -143,10 +143,10 @@ BUILD_DEMO = "OFF"
 write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
-skip = ["cp314t-*"]
+skip = ["cp39*"]
 test-groups = ["test"]
 test-command = "python -m pytest {package}/tests"
-test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32"]
+test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32, *_universal2:x86_64"]
 
 [tool.cibuildwheel.environment]
 # this makes sure that we build only on platforms that have a corresponding numpy wheel
