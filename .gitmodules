@@ -9,7 +9,7 @@
 	url = https://github.com/yhirose/cpp-peglib.git
 [submodule "pcg-cpp"]
 	path = pcg-cpp
-	url = https://github.com/imneme/pcg-cpp.git
+	url = https://github.com/Total-Random/pcg-cpp.git
 [submodule "xxhash"]
 	path = xxhash
 	url = https://github.com/Cyan4973/xxHash.git
