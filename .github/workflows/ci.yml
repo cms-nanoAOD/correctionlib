@@ -56,7 +56,7 @@ jobs:
 
       - name: Test package (parallel)
         if: endsWith(matrix.python-version , 't')
-        run: python -Xgil=0 -m pytest -ra --parallel-threads=16 --iterations=10
+        run: python -m pytest -ra --parallel-threads=16 --iterations=10
 
   checkroot:
     name: Check ROOT bindings
