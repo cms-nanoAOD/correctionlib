@@ -146,7 +146,7 @@ write_to = "src/correctionlib/version.py"
 skip = ["cp314t-*"]
 test-groups = ["test"]
 test-command = "python -m pytest {package}/tests"
-test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32"]
+test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32", "cp*-win_arm64"]
 
 [tool.cibuildwheel.environment]
 # this makes sure that we build only on platforms that have a corresponding numpy wheel
