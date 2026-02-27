@@ -58,6 +58,7 @@ test = [
   "requests",
   "scipy",
   "pytest >=6.0",
+  "pytest-run-parallel",
   "awkward >=2.2.2",
   "dask-awkward >=2024.1.1",
 ]
@@ -143,7 +144,6 @@ BUILD_DEMO = "OFF"
 write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
-skip = ["cp314t-*"]
 test-groups = ["test"]
 test-command = "python -m pytest {package}/tests"
 test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32"]
