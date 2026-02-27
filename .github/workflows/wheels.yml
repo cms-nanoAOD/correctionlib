@@ -35,7 +35,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-latest, windows-11-arm]
+        os:
+          [
+            ubuntu-latest,
+            ubuntu-24.04-arm,
+            windows-latest,
+            macos-latest,
+            windows-11-arm,
+          ]
         arch: [auto64]
         include:
           - os: macos-latest
