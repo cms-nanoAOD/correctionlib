@@ -19,15 +19,16 @@ from .schemav2 import (
 )
 
 if TYPE_CHECKING:
+    from typing import Literal
+
     from numpy import ndarray
-    from typing_extensions import Literal
     from uhi.typing.plottable import PlottableAxis, PlottableHistogram
 else:
     # py3.8+: no longer necessary
     try:
         from typing import Literal
     except ImportError:
-        from typing_extensions import Literal
+        from typing import Literal
 
 
 def from_uproot_THx(

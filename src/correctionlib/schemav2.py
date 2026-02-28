@@ -1,8 +1,9 @@
 import math
 import warnings
 from collections import Counter
+from collections.abc import Callable
 from functools import partial
-from typing import Annotated, Callable, Literal, Optional, Union
+from typing import Annotated, Literal, Union
 
 from pydantic import (
     AfterValidator,
@@ -39,7 +40,7 @@ class Variable(Model):
     type: Literal["string", "int", "real"] = Field(
         description="A string, a 64 bit integer, or a double-precision floating point value"
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         description="A nice description of what this variable means",
         default=None,
     )
@@ -77,7 +78,7 @@ class Formula(Model):
     variables: list[str] = Field(
         description="The names of the correction input variables this formula applies to"
     )
-    parameters: Optional[list[float]] = Field(
+    parameters: list[float] | None = Field(
         description="Parameters, if the parser supports them (e.g. [0] for TFormula)",
         default=None,
     )
@@ -195,11 +196,11 @@ class Binning(Model):
     input: str = Field(
         description="The name of the correction input variable this binning applies to"
     )
-    edges: Union[NonUniformBinning, UniformBinning] = Field(
+    edges: NonUniformBinning | UniformBinning = Field(
         description="Edges of the binning, either as a list of monotonically increasing floats or as an instance of UniformBinning. edges[i] <= x < edges[i+1] => f(x, ...) = content[i](...)"
     )
     content: list[Content]
-    flow: Union[Content, Literal["clamp", "error", "wrap"]] = Field(
+    flow: Content | Literal["clamp", "error", "wrap"] = Field(
         description="Overflow behavior for out-of-bounds values"
     )
 
@@ -228,7 +229,7 @@ class MultiBinning(Model):
         description="The names of the correction input variables this binning applies to",
         min_length=1,
     )
-    edges: list[Union[NonUniformBinning, UniformBinning]] = Field(
+    edges: list[NonUniformBinning | UniformBinning] = Field(
         description="Bin edges for each input"
     )
     content: list[Content] = Field(
@@ -237,7 +238,7 @@ class MultiBinning(Model):
         to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[0])-1, etc.
     """
     )
-    flow: Union[Content, Literal["clamp", "error", "wrap"]] = Field(
+    flow: Content | Literal["clamp", "error", "wrap"] = Field(
         description="Overflow behavior for out-of-bounds values"
     )
 
@@ -266,7 +267,7 @@ class CategoryItem(Model):
     The key type must match the type of the Category input variable
     """
 
-    key: Union[StrictInt, StrictStr]
+    key: StrictInt | StrictStr
     value: Content
 
 
@@ -278,7 +279,7 @@ class Category(Model):
         description="The name of the correction input variable this category node applies to"
     )
     content: list[CategoryItem]
-    default: Optional[Content] = None
+    default: Content | None = None
 
     @field_validator("content")
     @classmethod
@@ -345,7 +346,7 @@ def _validate_input(allowed_names: set[str], node: Content) -> None:
 
 
 def _binning_range(
-    edges: Union[NonUniformBinning, UniformBinning],
+    edges: NonUniformBinning | UniformBinning,
 ) -> tuple[float, float]:
     if isinstance(edges, list):
         low = float(edges[0])
@@ -358,7 +359,7 @@ def _binning_range(
 
 class _SummaryInfo:
     def __init__(self) -> None:
-        self.values: set[Union[str, int]] = set()
+        self.values: set[str | int] = set()
         self.default: bool = False
         self.overflow: bool = True
         self.transform: bool = False
@@ -393,7 +394,7 @@ def _summarize(
 
 class Correction(Model):
     name: str
-    description: Optional[str] = Field(
+    description: str | None = Field(
         description="Detailed description of the correction",
         default=None,
     )
@@ -404,7 +405,7 @@ class Correction(Model):
         description="The function signature of the correction"
     )
     output: Variable = Field(description="Output type for this correction")
-    generic_formulas: Optional[list[Formula]] = Field(
+    generic_formulas: list[Formula] | None = Field(
         description="""A list of common formulas that may be used
 
         For corrections with many parameterized formulas that follow a regular pattern,
@@ -499,7 +500,7 @@ class CompoundCorrection(Model):
     """
 
     name: str
-    description: Optional[str] = Field(
+    description: str | None = Field(
         description="Detailed description of the correction stack",
         default=None,
     )
@@ -550,12 +551,12 @@ class CompoundCorrection(Model):
 
 class CorrectionSet(Model):
     schema_version: Literal[2] = Field(description="The overall schema version")
-    description: Optional[str] = Field(
+    description: str | None = Field(
         description="A nice description of what is in this CorrectionSet means",
         default=None,
     )
     corrections: list[Correction]
-    compound_corrections: Optional[list[CompoundCorrection]] = None
+    compound_corrections: list[CompoundCorrection] | None = None
 
     @field_validator("corrections")
     @classmethod
@@ -575,8 +576,8 @@ class CorrectionSet(Model):
     @field_validator("compound_corrections")
     @classmethod
     def validate_compound(
-        cls, items: Optional[list[CompoundCorrection]]
-    ) -> Optional[list[CompoundCorrection]]:
+        cls, items: list[CompoundCorrection] | None
+    ) -> list[CompoundCorrection] | None:
         if items is None:
             return items
         seen = set()
