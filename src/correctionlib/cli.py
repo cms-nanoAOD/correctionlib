@@ -153,11 +153,38 @@ def setup_merge(subparsers):
 
 
 def config(console: Console, args: argparse.Namespace) -> int:
+    import os
+    from pathlib import Path
+    from typing import Optional
+
     from .util import this_module_path
+
+    def current_lcg_view_path() -> Optional[str]:
+        """
+        Return the first detected LCG view base path, or None if not in one.
+        """
+        prefixes = ["/cvmfs/sft.cern.ch/lcg/views/", "/cvmfs/lcg.cern.ch/views/"]
+        env_vars = ("CMAKE_PREFIX_PATH", "PATH", "LD_LIBRARY_PATH", "PYTHONPATH")
+
+        for var in env_vars:
+            for path in os.environ.get(var, "").split(":"):
+                for prefix in prefixes:
+                    if path.startswith(prefix):
+                        return path
+        return None
 
     base_dir = this_module_path()
     incdir = base_dir / "include"
     libdir = base_dir / "lib"
+
+    if not Path(incdir).is_dir():
+        # maybe it is a LCG View
+        lcg_view_path = current_lcg_view_path()
+        if lcg_view_path is not None:
+            base_dir = Path(lcg_view_path)
+            incdir = base_dir / "include"
+            libdir = base_dir / "lib"
+
     out = []
     if args.version:
         out.append(correctionlib.version.version)
