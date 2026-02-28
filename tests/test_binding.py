@@ -3,11 +3,11 @@ import shutil
 import subprocess
 import tempfile
 
+import correctionlib.version
 import pytest
 
 import correctionlib
 import correctionlib.schemav2 as cs
-import correctionlib.version
 
 
 @pytest.fixture(scope="module")
