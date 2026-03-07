@@ -120,6 +120,7 @@ jobs:
 
       - name: Test package
         run: |
+          mkdir -p .benchmarks
           python -m pytest -m cvmfs --benchmark-json=.benchmarks/cvmfs-benchmark.json
 
       - name: Upload benchmark artifact
