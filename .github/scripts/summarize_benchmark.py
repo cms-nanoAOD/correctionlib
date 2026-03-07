@@ -35,6 +35,8 @@ def main():
     lines = [
         "### CVMFS benchmarks",
         "",
+        "Top 25 slowest-loading corrections, sorted by mean time:",
+        "",
         "| Benchmark | Mean (ms) | Stddev (ms) | Rounds |",
         "|---|---:|---:|---:|",
     ]

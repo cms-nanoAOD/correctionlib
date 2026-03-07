@@ -21,11 +21,11 @@ pytestmark = [
         for path in CVMFS_ROOT.glob("**/*.json.gz")
     ],
 )
-def cvmfs_correction(request):
-    return CVMFS_ROOT / request.param
+def cvmfs_correction(request) -> str:
+    return str(CVMFS_ROOT / request.param)
 
 
-def test_validate_correction(cvmfs_correction, benchmark):
+def test_validate_correction(cvmfs_correction: str, benchmark):
     from correctionlib import CorrectionSet
 
     benchmark(CorrectionSet.from_file, cvmfs_correction)
