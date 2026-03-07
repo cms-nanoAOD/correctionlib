@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+from correctionlib import CorrectionSet
+
 CVMFS_ROOT = Path("/cvmfs/cms-griddata.cern.ch/cat/metadata")
 
 pytestmark = [
@@ -18,15 +20,17 @@ pytestmark = [
     params=[
         # make relative for display purposes
         str(path.relative_to(CVMFS_ROOT))
-        for path in CVMFS_ROOT.glob("**/*.json.gz")
+        # structure: POG / Campaign / Tag / JSON file
+        for path in CVMFS_ROOT.glob("*/*/latest/*.json.gz")
     ],
 )
 def cvmfs_correction(request) -> str:
     return str(CVMFS_ROOT / request.param)
 
 
-def test_validate_correction(cvmfs_correction: str, benchmark):
-    from correctionlib import CorrectionSet
+def test_load(cvmfs_correction: str, benchmark):
+    # warm up (download file)
+    CorrectionSet.from_file(cvmfs_correction)
 
     benchmark(CorrectionSet.from_file, cvmfs_correction)
 
