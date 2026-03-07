@@ -27,15 +27,16 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Free Threading",
+  "Programming Language :: Python :: Free Threading :: 3 - Stable",
   "Development Status :: 5 - Production/Stable",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "numpy >=1.13.3",
   "pydantic >=2",
@@ -105,7 +106,7 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 files = ["src"]
 
 [[tool.mypy.overrides]]
@@ -144,7 +145,7 @@ BUILD_DEMO = "OFF"
 write_to = "src/correctionlib/version.py"
 
 [tool.cibuildwheel]
-skip = ["cp3{9,10}*-win_arm64"]
+skip = ["cp310*-win_arm64"]
 test-groups = ["test"]
 test-command = "python -m pytest {package}/tests"
 test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32", "cp*-win_arm64"]

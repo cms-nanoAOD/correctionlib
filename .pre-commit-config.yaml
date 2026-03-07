@@ -40,7 +40,7 @@ repos:
         exclude: binder/mycorrections.json
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.14.13"
+    rev: "v0.15.4"
     hooks:
       - id: ruff
         args: ["--fix", "--show-fixes"]
@@ -52,13 +52,13 @@ repos:
       - id: codespell
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: "v0.24.1"
+    rev: "v0.25"
     hooks:
       - id: validate-pyproject
         additional_dependencies: ["validate-pyproject-schema-store[all]"]
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: "0.36.0"
+    rev: "0.37.0"
     hooks:
       - id: check-dependabot
       - id: check-github-workflows
@@ -68,7 +68,7 @@ repos:
     rev: v3.21.2
     hooks:
       - id: pyupgrade
-        args: ["--py39-plus"]
+        args: ["--py310-plus"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.19.1
