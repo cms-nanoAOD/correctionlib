@@ -30,6 +30,7 @@ jobs:
   checks:
     name: Check Python ${{ matrix.python-version }} on ${{ matrix.runs-on }}
     runs-on: ${{ matrix.runs-on }}
+    needs: [pre-commit]
     strategy:
       fail-fast: false
       matrix:
@@ -55,14 +56,15 @@ jobs:
 
       - name: Test package
         if: ${{ !endsWith(matrix.python-version , 't') }}
-        run: python -m pytest -ra
+        run: python -m pytest
 
       - name: Test package (parallel)
         if: endsWith(matrix.python-version , 't')
-        run: python -m pytest -ra --parallel-threads=16 --iterations=10
+        run: python -m pytest --parallel-threads=16 --iterations=10
 
   checkroot:
     name: Check ROOT bindings
+    needs: [pre-commit]
     runs-on: ubuntu-latest
 
     steps:
@@ -91,9 +93,58 @@ jobs:
         shell: bash -l {0}
         run: pytest
 
+  test-cvmfs:
+    name: Test latest corrections on CVMFS
+    needs: [checks]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: cvmfs-contrib/github-action-cvmfs@v4
+        with:
+          cvmfs_repositories: "cms-griddata.cern.ch"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Install package
+        run: python -m pip install . --group test
+
+      - name: Test package
+        run: |
+          mkdir -p .benchmarks
+          python -m pytest -m cvmfs --benchmark-json=.benchmarks/cvmfs-benchmark.json --benchmark-max-time 0.1
+
+      - name: Upload benchmark artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cvmfs-benchmark-json
+          path: .benchmarks/cvmfs-benchmark.json
+          if-no-files-found: ignore
+
+      - name: Build benchmark PR summary
+        if: always() && github.event_name == 'pull_request'
+        run: python .github/scripts/summarize_benchmark.py
+
+      - name: Comment benchmark summary on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: cvmfs-benchmark
+          path: .benchmarks/pr-comment.md
+
   pass:
     name: All tests passed
-    needs: [checks, checkroot]
+    needs: [checks, checkroot, test-cvmfs]
     runs-on: ubuntu-latest
     steps:
       - run: echo "All jobs passed"
