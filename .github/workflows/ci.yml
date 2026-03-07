@@ -95,7 +95,7 @@ jobs:
 
   test-cvmfs:
     name: Test latest corrections on CVMFS
-    needs: [checks]
+    # needs: [checks]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -119,9 +119,9 @@ jobs:
         run: python -m pip install . --group test
 
       - name: Test package
-        run:
-          python -m pytest -m cvmfs
-          --benchmark-json=.benchmarks/cvmfs-benchmark.json
+        run: |
+          mkdir -p .benchmarks
+          python -m pytest -m cvmfs --benchmark-json=.benchmarks/cvmfs-benchmark.json
 
       - name: Upload benchmark artifact
         if: always()
