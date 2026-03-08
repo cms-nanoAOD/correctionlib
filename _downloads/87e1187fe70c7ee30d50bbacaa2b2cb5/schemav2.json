@@ -1003,6 +1003,19 @@
             ],
             "default": null,
             "title": "Compound Corrections"
+        },
+        "$schema": {
+            "anyOf": [
+                {
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": "https://cms-nanoaod.github.io/correctionlib/_downloads/87e1187fe70c7ee30d50bbacaa2b2cb5/schemav2.json",
+            "description": "A URL to the schema. This is published in the correctionlib documentation\nat https://cms-nanoaod.github.io/correctionlib/schemav2.html and some IDEs\nmay use it to provide autocompletion and validation against the schema.\n",
+            "title": "$Schema"
         }
     },
     "required": [
