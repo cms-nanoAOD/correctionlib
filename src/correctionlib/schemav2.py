@@ -29,7 +29,7 @@ IGNORE_FLOAT_INF = False
 
 
 class Model(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", serialize_by_alias=True)
 
 
 class Variable(Model):
@@ -556,6 +556,15 @@ class CorrectionSet(Model):
     )
     corrections: list[Correction]
     compound_corrections: Optional[list[CompoundCorrection]] = None
+    schema_url: Optional[str] = Field(
+        default="https://cms-nanoaod.github.io/correctionlib/_downloads/87e1187fe70c7ee30d50bbacaa2b2cb5/schemav2.json",
+        alias="$schema",
+        description="""\
+A URL to the schema. This is published in the correctionlib documentation
+at https://cms-nanoaod.github.io/correctionlib/schemav2.html and some IDEs
+may use it to provide autocompletion and validation against the schema.
+""",
+    )
 
     @field_validator("corrections")
     @classmethod
