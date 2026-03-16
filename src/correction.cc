@@ -130,6 +130,7 @@ namespace {
       else if ( type == "formularef" ) { return FormulaRef(obj, context); }
       else if ( type == "transform" ) { return Transform(obj, context); }
       else if ( type == "hashprng" ) { return HashPRNG(obj, context); }
+      else if ( type == "switch" ) { return Switch(obj, context); }
       else { throw std::runtime_error("Unrecognized Content object nodetype"); }
     }
     throw std::runtime_error("Invalid Content node type");
@@ -668,6 +669,62 @@ double Category::evaluate(const std::vector<Variable::Type>& values) const {
   }
 
   return std::visit(node_evaluate{values}, *child);
+}
+
+Switch::Switch(const JSONObject& json, const Correction& context) {
+  json.getRequired<rapidjson::Value::ConstArray>("inputs");
+
+  for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("selections")) {
+    if ( ! item.IsObject() ) { throw std::runtime_error("Expected Comparison object in Switch selections"); }
+    JSONObject comp(item.GetObject());
+
+    Selection sel;
+    sel.variableIdx = find_input_index(comp.getRequired<const char*>("variable"), context.inputs());
+
+    if ( context.inputs()[sel.variableIdx].type() == Variable::VarType::string ) {
+      throw std::runtime_error("Switch node currently only supports numeric comparisons");
+    }
+
+    sel.op = comp.getRequired<std::string_view>("op");
+    sel.value = comp.getRequired<double>("value");
+    sel.content = std::make_unique<Content>(resolve_content(comp.getRequiredValue("content"), context));
+
+    selections_.push_back(std::move(sel));
+  }
+
+  default_ = std::make_unique<Content>(resolve_content(json.getRequiredValue("default"), context));
+}
+
+double Switch::evaluate(const std::vector<Variable::Type>& values) const {
+  for (const auto& sel : selections_) {
+    double val = 0.0;
+    const auto& input = values[sel.variableIdx];
+
+    if ( auto v = std::get_if<double>(&input) ) {
+      val = *v;
+    } else if ( auto v = std::get_if<int64_t>(&input) ) {
+      val = static_cast<double>(*v);
+    } else {
+      throw std::runtime_error("Switch node encountered non-numeric input value during evaluation");
+    }
+
+    bool pass = false;
+
+    if      (sel.op == "<")  pass = (val < sel.value);
+    else if (sel.op == ">")  pass = (val > sel.value);
+    else if (sel.op == "<=") pass = (val <= sel.value);
+    else if (sel.op == ">=") pass = (val >= sel.value);
+    else if (sel.op == "==") pass = (val == sel.value);
+    else if (sel.op == "!=") pass = (val != sel.value);
+    else {
+      throw std::runtime_error("Unknown operator in Switch node: " + sel.op);
+    }
+
+    if (pass) {
+      return std::visit(node_evaluate{values}, *sel.content);
+    }
+  }
+  return std::visit(node_evaluate{values}, *default_);
 }
 
 Correction::Correction(const JSONObject& json) :
