@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.15...4.1)
 
 if(NOT SKBUILD_PROJECT_VERSION)
   set(SKBUILD_PROJECT_VERSION "0.0.0")  # provided by scikit-build-core
@@ -24,12 +24,24 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 find_package(ZLIB)
 
+# Configure lwtnn to build static library only and download dependencies
+set(BUILD_STATIC_LIBRARY ON)
+set(BUILD_TESTING OFF)
+set(BUILTIN_BOOST ON)
+set(BUILTIN_EIGEN ON)
+add_subdirectory(lwtnn EXCLUDE_FROM_ALL)
+
 
 configure_file(include/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h DESTINATION ${PKG_INSTALL}/include)
 
 
-add_library(correctionlib SHARED src/correction.cc src/formula_ast.cc)
+add_library(correctionlib SHARED
+  src/correction.cc
+  src/formula_ast.cc
+  src/detail_impl.cc
+  src/lwtnn.cc
+  )
 set_target_properties(correctionlib PROPERTIES PUBLIC_HEADER include/correction.h WINDOWS_EXPORT_ALL_SYMBOLS ON)
 target_include_directories(correctionlib
   PUBLIC
@@ -41,12 +53,14 @@ target_include_directories(correctionlib
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cpp-peglib>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/xxhash>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pcg-cpp/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lwtnn/include>
   )
 target_compile_features(correctionlib PUBLIC cxx_std_17)
 if(MSVC)
   target_compile_options(correctionlib PRIVATE /Zc:__cplusplus /utf-8)
 else()
   target_compile_options(correctionlib PRIVATE -Wall -Wextra -Wpedantic -Werror)
+target_link_libraries(correctionlib PRIVATE lwtnn-stat)
 endif()
 if(ZLIB_FOUND)
   target_link_libraries(correctionlib PRIVATE ZLIB::ZLIB)
@@ -86,6 +100,12 @@ if(NOT BUILD_DEMO)
   set_target_properties(demo PROPERTIES EXCLUDE_FROM_ALL ON)
 endif()
 
+add_executable(lwtnn_demo src/lwtnn_demo.cc)
+target_link_libraries(lwtnn_demo PRIVATE correctionlib)
+target_compile_features(lwtnn_demo PUBLIC cxx_std_17)
+if(NOT BUILD_DEMO)
+  set_target_properties(lwtnn_demo PROPERTIES EXCLUDE_FROM_ALL ON)
+endif()
 
 install(EXPORT correctionlib-targets FILE correctionlib-targets.cmake DESTINATION ${PKG_INSTALL}/cmake)
 include(CMakePackageConfigHelpers)

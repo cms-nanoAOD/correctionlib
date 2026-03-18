@@ -61,6 +61,7 @@ Content = Union[
             "FormulaRef",
             "Transform",
             "HashPRNG",
+            "LWTNN",
         ],
         Field(discriminator="nodetype"),
     ],
@@ -138,6 +139,18 @@ class HashPRNG(Model):
                 stacklevel=2,
             )
         return distribution
+
+
+class LWTNN(Model):
+    """A node that evaluates a lightweight neural network"""
+
+    nodetype: Literal["lwtnn"]
+    opaque: dict = Field(
+        description="The opaque configuration for lwtnn, passed directly to the C++ code"
+    )
+    finalizer: Formula = Field(
+        description="A formula to apply to the raw lwtnn outputs, with input variables matching the lwtnn outputs"
+    )
 
 
 class UniformBinning(Model):
