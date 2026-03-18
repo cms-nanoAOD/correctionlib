@@ -39,10 +39,6 @@ class JSONObject {
           + std::string(key) + "'");
     }
 
-    // specialization for string_view as rapidjson only provides const char*
-    template<>
-    std::string_view getRequired<std::string_view>(const char*) const;
-
     const rapidjson::Value& getRequiredValue(const char * key) const {
       const auto it = json_.FindMember(key);
       if ( it != json_.MemberEnd() ) {
@@ -77,6 +73,11 @@ class JSONObject {
   private:
     rapidjson::Value::ConstObject json_;
 };
+
+// specialization for string_view as rapidjson only provides const char*
+template<>
+std::string_view JSONObject::getRequired<std::string_view>(const char*) const;
+
 
 namespace detail {
   size_t find_input_index(const std::string_view name, const std::vector<Variable> &inputs);
