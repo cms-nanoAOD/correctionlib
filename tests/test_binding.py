@@ -114,3 +114,25 @@ def test_cmake_static_compilation(csetstr: str):
         subprocess.run(
             [os.path.join(tmpdir, prog)], capture_output=True, check=True, cwd=tmpdir
         )
+
+def test_cli_config_paths():
+    import subprocess
+    from pathlib import Path
+
+    incdir = Path(
+        subprocess.check_output(["correction", "config", "--incdir"])
+        .decode()
+        .strip()
+    )
+    cmakeflag = (
+        subprocess.check_output(["correction", "config", "--cmake"])
+        .decode()
+        .strip()
+    )
+    cmakedir = Path(cmakeflag.split("=", 1)[1])
+
+    assert incdir.exists()
+    assert (incdir / "correction.h").exists()
+    assert cmakedir.exists()
+    assert (cmakedir / "correctionlibConfig.cmake").exists()
+

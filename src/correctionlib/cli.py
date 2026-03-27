@@ -152,10 +152,20 @@ def setup_merge(subparsers):
     return parser
 
 
-def config(console: Console, args: argparse.Namespace) -> int:
-    from .util import this_module_path
+def _artifact_base_dir():
+    import correctionlib._core as _core
+    from pathlib import Path
 
-    base_dir = this_module_path()
+    base = Path(_core.__file__).resolve().parent
+    if (base / "cmake").exists() and (base / "include").exists():
+        return base
+
+    from .util import this_module_path
+    return this_module_path()
+
+
+def config(console: Console, args: argparse.Namespace) -> int:
+    base_dir = _artifact_base_dir()
     incdir = base_dir / "include"
     libdir = base_dir / "lib"
     out = []
@@ -175,7 +185,6 @@ def config(console: Console, args: argparse.Namespace) -> int:
         out.append(f"-Dcorrectionlib_DIR={base_dir / 'cmake'}")
     console.out(" ".join(out), highlight=False)
     return 0
-
 
 def setup_config(subparsers):
     parser = subparsers.add_parser(
