@@ -137,7 +137,7 @@ jobs:
 
       - name: Comment benchmark summary on PR
         if: always() && github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: cvmfs-benchmark
           path: .benchmarks/pr-comment.md
