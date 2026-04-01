@@ -55,7 +55,7 @@ jobs:
           fetch-tags: true
           fetch-depth: 0
 
-      - uses: pypa/cibuildwheel@v3.3
+      - uses: pypa/cibuildwheel@v3.4
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           MACOSX_DEPLOYMENT_TARGET: 11.0
