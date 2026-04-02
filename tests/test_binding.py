@@ -3,11 +3,11 @@ import shutil
 import subprocess
 import tempfile
 
-import correctionlib
-import correctionlib.schemav2 as cs
 import correctionlib.version
 import pytest
 
+import correctionlib
+import correctionlib.schemav2 as cs
 
 @pytest.fixture(scope="module")
 def csetstr():
