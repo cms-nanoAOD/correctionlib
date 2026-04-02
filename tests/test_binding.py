@@ -9,6 +9,7 @@ import pytest
 import correctionlib
 import correctionlib.schemav2 as cs
 
+
 @pytest.fixture(scope="module")
 def csetstr():
     ptweight = cs.Correction(
