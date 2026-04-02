@@ -3,11 +3,10 @@ import shutil
 import subprocess
 import tempfile
 
-import correctionlib.version
-import pytest
-
 import correctionlib
 import correctionlib.schemav2 as cs
+import correctionlib.version
+import pytest
 
 
 @pytest.fixture(scope="module")
@@ -115,19 +114,16 @@ def test_cmake_static_compilation(csetstr: str):
             [os.path.join(tmpdir, prog)], capture_output=True, check=True, cwd=tmpdir
         )
 
+
 def test_cli_config_paths():
     import subprocess
     from pathlib import Path
 
     incdir = Path(
-        subprocess.check_output(["correction", "config", "--incdir"])
-        .decode()
-        .strip()
+        subprocess.check_output(["correction", "config", "--incdir"]).decode().strip()
     )
     cmakeflag = (
-        subprocess.check_output(["correction", "config", "--cmake"])
-        .decode()
-        .strip()
+        subprocess.check_output(["correction", "config", "--cmake"]).decode().strip()
     )
     cmakedir = Path(cmakeflag.split("=", 1)[1])
 
@@ -135,4 +131,3 @@ def test_cli_config_paths():
     assert (incdir / "correction.h").exists()
     assert cmakedir.exists()
     assert (cmakedir / "correctionlibConfig.cmake").exists()
-

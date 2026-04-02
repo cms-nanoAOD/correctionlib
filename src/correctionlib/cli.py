@@ -153,14 +153,18 @@ def setup_merge(subparsers):
 
 
 def _artifact_base_dir():
-    import correctionlib._core as _core
     from pathlib import Path
 
+    import correctionlib._core as _core
+
+    # Prefer extension-module path in editable installs, since headers live with built artifacts, not the source tree.
+    # Prevents failure in test_cmake_static_compilation: fatal error: correction.h: No such file or directory
     base = Path(_core.__file__).resolve().parent
     if (base / "cmake").exists() and (base / "include").exists():
         return base
 
     from .util import this_module_path
+
     return this_module_path()
 
 
@@ -185,6 +189,7 @@ def config(console: Console, args: argparse.Namespace) -> int:
         out.append(f"-Dcorrectionlib_DIR={base_dir / 'cmake'}")
     console.out(" ".join(out), highlight=False)
     return 0
+
 
 def setup_config(subparsers):
     parser = subparsers.add_parser(
