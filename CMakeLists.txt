@@ -4,10 +4,13 @@ if(NOT SKBUILD_PROJECT_VERSION)
   set(SKBUILD_PROJECT_VERSION "0.0.0")  # provided by scikit-build-core
 endif()
 string(REPLACE "." ";" VERSION_SPLIT ${SKBUILD_PROJECT_VERSION})
+set(CORRECTIONLIB_SKBUILD_PROJECT_VERSION "${SKBUILD_PROJECT_VERSION}")
 list(GET VERSION_SPLIT 0 SPLIT_VERSION_MAJOR)
 list(GET VERSION_SPLIT 1 SPLIT_VERSION_MINOR)
 
 project(correctionlib VERSION ${SPLIT_VERSION_MAJOR}.${SPLIT_VERSION_MINOR} LANGUAGES CXX)
+set(CORRECTIONLIB_VERSION_MAJOR "${correctionlib_VERSION_MAJOR}")
+set(CORRECTIONLIB_VERSION_MINOR "${correctionlib_VERSION_MINOR}")
 
 option(BUILD_DEMO "Build demo program" ON)
 
@@ -61,8 +64,8 @@ if(MSVC)
   target_compile_options(correctionlib PRIVATE /Zc:__cplusplus /utf-8)
 else()
   target_compile_options(correctionlib PRIVATE -Wall -Wextra -Wpedantic -Werror)
-target_link_libraries(correctionlib PRIVATE lwtnn-stat)
 endif()
+target_link_libraries(correctionlib PRIVATE lwtnn-stat)
 if(ZLIB_FOUND)
   target_link_libraries(correctionlib PRIVATE ZLIB::ZLIB)
 endif()
