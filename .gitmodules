@@ -13,3 +13,6 @@
 [submodule "xxhash"]
 	path = xxhash
 	url = https://github.com/Cyan4973/xxHash.git
+[submodule "lwtnn"]
+	path = lwtnn
+	url = https://github.com/sbein/lwtnn.git

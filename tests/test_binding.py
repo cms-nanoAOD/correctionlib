@@ -90,9 +90,13 @@ def test_cmake_static_compilation(csetstr: str):
         with open(cmake, "w") as f:
             f.write(CMAKELIST_SRC)
         testprog = os.path.join(tmpdir, "test.cc")
-        # SKBUILD_PROJECT_VERSION only includes major.minor.patch
-        # it also trims any prerelease suffixes
-        versionstr = ".".join(map(str, correctionlib.version.__version_tuple__[:3]))
+
+        # SKBUILD_PROJECT_VERSION stores the normalized base version and trims
+        # any prerelease/dev suffixes, so mirror that behavior here.
+        from packaging.version import Version
+
+        versionstr = Version(correctionlib.version.version).base_version
+
         with open(testprog, "w") as f:
             f.write(TESTPROG_SRC % (versionstr, csetstr))
         flags = (
@@ -114,3 +118,21 @@ def test_cmake_static_compilation(csetstr: str):
         subprocess.run(
             [os.path.join(tmpdir, prog)], capture_output=True, check=True, cwd=tmpdir
         )
+
+
+def test_cli_config_paths():
+    import subprocess
+    from pathlib import Path
+
+    incdir = Path(
+        subprocess.check_output(["correction", "config", "--incdir"]).decode().strip()
+    )
+    cmakeflag = (
+        subprocess.check_output(["correction", "config", "--cmake"]).decode().strip()
+    )
+    cmakedir = Path(cmakeflag.split("=", 1)[1])
+
+    assert incdir.exists()
+    assert (incdir / "correction.h").exists()
+    assert cmakedir.exists()
+    assert (cmakedir / "correctionlibConfig.cmake").exists()
