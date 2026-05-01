@@ -75,7 +75,7 @@ jobs:
           fetch-tags: true
 
       - name: Set up Conda
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           python-version: 3.12
           miniforge-version: latest
