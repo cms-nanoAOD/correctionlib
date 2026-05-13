@@ -5,5 +5,10 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    groups:
+      ci-dependencies:
+        applies-to: version-updates
+        patterns:
+          - "*"
     commit-message:
       prefix: "ci: "
