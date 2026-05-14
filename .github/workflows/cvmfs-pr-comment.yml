@@ -8,7 +8,9 @@ on:
 jobs:
   comment-cvmfs-benchmark:
     name: Comment CVMFS benchmark summary on PR
-    if: github.event.workflow_run.event == 'pull_request'
+    if:
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.pull_requests[0].number != null
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -31,10 +33,21 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
 
+      - name: Check benchmark artifact
+        id: benchmark-artifact
+        run: |
+          if [ -f .benchmarks/cvmfs-benchmark.json ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build benchmark PR summary
+        if: steps.benchmark-artifact.outputs.found == 'true'
         run: python .github/scripts/summarize_benchmark.py
 
       - name: Comment benchmark summary on PR
+        if: steps.benchmark-artifact.outputs.found == 'true'
         uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: cvmfs-benchmark
