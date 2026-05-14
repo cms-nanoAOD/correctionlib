@@ -1,0 +1,42 @@
+name: CVMFS PR comment
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+jobs:
+  comment-cvmfs-benchmark:
+    name: Comment CVMFS benchmark summary on PR
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: 3.12
+
+      - name: Download benchmark artifact
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: cvmfs-benchmark-json
+          path: .benchmarks
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Build benchmark PR summary
+        run: python .github/scripts/summarize_benchmark.py
+
+      - name: Comment benchmark summary on PR
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: cvmfs-benchmark
+          number: ${{ github.event.workflow_run.pull_requests[0].number }}
+          path: .benchmarks/pr-comment.md
