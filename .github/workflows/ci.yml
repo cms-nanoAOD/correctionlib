@@ -75,7 +75,7 @@ jobs:
           fetch-tags: true
 
       - name: Set up Conda
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           python-version: 3.12
           miniforge-version: latest
@@ -107,7 +107,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - uses: cvmfs-contrib/github-action-cvmfs@v4
+      - uses: cvmfs-contrib/github-action-cvmfs@v5
         with:
           cvmfs_repositories: "cms-griddata.cern.ch"
 
@@ -125,22 +125,11 @@ jobs:
 
       - name: Upload benchmark artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cvmfs-benchmark-json
           path: .benchmarks/cvmfs-benchmark.json
           if-no-files-found: ignore
-
-      - name: Build benchmark PR summary
-        if: always() && github.event_name == 'pull_request'
-        run: python .github/scripts/summarize_benchmark.py
-
-      - name: Comment benchmark summary on PR
-        if: always() && github.event_name == 'pull_request'
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: cvmfs-benchmark
-          path: .benchmarks/pr-comment.md
 
   pass:
     name: All tests passed
