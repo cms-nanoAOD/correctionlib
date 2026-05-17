@@ -15,7 +15,7 @@ class detail::LWTNNEvaluationContext {
 
   private:
     // pointers to pointers to pointers to ...
-    std::unique_ptr<lwt::LightweightNeuralNetwork> nn_;
+    std::unique_ptr<const lwt::LightweightNeuralNetwork> nn_;
     std::vector<std::pair<std::string, size_t>> input_spec_;
     std::vector<std::string> output_names_;
     std::unique_ptr<Formula> finalizer_;
@@ -52,7 +52,7 @@ detail::LWTNNEvaluationContext::LWTNNEvaluationContext(const JSONObject& json, c
     throw std::runtime_error("LWTNN finalizer must be a formula node");
   }
 
-  nn_ = std::make_unique<lwt::LightweightNeuralNetwork>(cfg.inputs, cfg.layers, cfg.outputs);
+  nn_ = std::make_unique<const lwt::LightweightNeuralNetwork>(cfg.inputs, cfg.layers, cfg.outputs);
 }
 
 double detail::LWTNNEvaluationContext::evaluate(const std::vector<Variable::Type>& values) const
@@ -72,7 +72,6 @@ double detail::LWTNNEvaluationContext::evaluate(const std::vector<Variable::Type
     }
   }
 
-  // TODO: is nn_->compute() thread-safe? If not, need to add a mutex here.
   const auto output_map = nn_->compute(input_map);
 
   std::vector<Variable::Type> finalizer_inputs;
