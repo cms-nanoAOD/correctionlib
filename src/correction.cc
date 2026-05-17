@@ -9,6 +9,7 @@
 #include <rapidjson/error/en.h>
 #include <optional>
 #include <algorithm>
+#include <deque>
 #include <stdexcept>
 #include <cmath>
 #include <cstdlib> // std::abort
@@ -177,11 +178,11 @@ namespace {
     }
 
     std::vector<Variable::Type>& slot_;
-    static thread_local std::vector<std::vector<Variable::Type>> slots_;
+    static thread_local std::deque<std::vector<Variable::Type>> slots_;
     static thread_local std::size_t depth_;
   };
 
-  thread_local std::vector<std::vector<Variable::Type>> TransformScratch::slots_;
+  thread_local std::deque<std::vector<Variable::Type>> TransformScratch::slots_;
   thread_local std::size_t TransformScratch::depth_ = 0;
 
   std::size_t find_bin_idx(Variable::Type value_variant,
