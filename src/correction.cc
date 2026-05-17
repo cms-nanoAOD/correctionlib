@@ -22,99 +22,24 @@
 #include "gzfilereadstream.h"
 #define WITH_ZLIB 1
 #endif
+#include "correction_detail.h"
 
 using namespace correction;
 
 //! helper function for parsing flow behavior from string
-_FlowBehavior parse_flowbehavior(const rapidjson::Value& flowbehavior) {
+detail::FlowBehavior parse_flow_behavior(const rapidjson::Value& flowbehavior) {
   if ( flowbehavior == "clamp" ) {
-    return _FlowBehavior::clamp;
+    return detail::FlowBehavior::clamp;
   }
   else if ( flowbehavior == "error" ) {
-    return _FlowBehavior::error;
+    return detail::FlowBehavior::error;
   }
   else if ( flowbehavior == "wrap" ) {
-    return _FlowBehavior::wrap;
+    return detail::FlowBehavior::wrap;
   }
   else {
-    return _FlowBehavior::value;
+    return detail::FlowBehavior::value;
   }
-}
-
-class correction::JSONObject {
-  public:
-    JSONObject(rapidjson::Value::ConstObject&& json) : json_(json) { }
-    // necessary to force use of const Value::GetObject() method
-    // must check if json is an object in calling code!
-    JSONObject(const rapidjson::Document& json) : json_(json.GetObject()) { }
-
-    template<typename T>
-    T getRequired(const char * key) const {
-      const auto it = json_.FindMember(key);
-      if ( it != json_.MemberEnd() ) {
-        if ( it->value.template Is<T>() ) {
-          return it->value.template Get<T>();
-        } else {
-          throw std::runtime_error(
-              "Encountered invalid type for required attribute '"
-              + std::string(key) + "'");
-        }
-      }
-      throw std::runtime_error(
-          "Object missing required attribute '"
-          + std::string(key) + "'");
-    }
-
-    const rapidjson::Value& getRequiredValue(const char * key) const {
-      const auto it = json_.FindMember(key);
-      if ( it != json_.MemberEnd() ) {
-        return it->value;
-      }
-      throw std::runtime_error(
-          "Object missing required attribute '"
-          + std::string(key) + "'");
-    }
-
-    template<typename T>
-    std::optional<T> getOptional(const char * key) const {
-      const auto it = json_.FindMember(key);
-      if ( it != json_.MemberEnd() ) {
-        if ( it->value.template Is<T>() ) {
-          return it->value.template Get<T>();
-        } else if ( it->value.IsNull() ) {
-          return std::nullopt;
-        } else {
-          throw std::runtime_error(
-              "Encountered invalid type for optional attribute '"
-              + std::string(key) + "'");
-        }
-      }
-      return std::nullopt;
-    }
-
-    // escape hatch
-    inline auto FindMember(const char * key) const { return json_.FindMember(key); }
-    inline auto MemberEnd() const { return json_.MemberEnd(); }
-
-  private:
-    rapidjson::Value::ConstObject json_;
-};
-
-template<>
-std::string_view JSONObject::getRequired<std::string_view>(const char * key) const {
-  const auto it = json_.FindMember(key);
-  if ( it != json_.MemberEnd() ) {
-    if ( it->value.IsString() ) {
-      return std::string_view(it->value.GetString(), it->value.GetStringLength());
-    } else {
-      throw std::runtime_error(
-          "Encountered invalid type for required attribute '"
-          + std::string(key) + "'");
-    }
-  }
-  throw std::runtime_error(
-      "Object missing required attribute '"
-      + std::string(key) + "'");
 }
 
 namespace {
@@ -130,6 +55,7 @@ namespace {
       else if ( type == "formularef" ) { return FormulaRef(obj, context); }
       else if ( type == "transform" ) { return Transform(obj, context); }
       else if ( type == "hashprng" ) { return HashPRNG(obj, context); }
+      else if ( type == "lwtnn") { return LWTNN(obj, context); }
       else { throw std::runtime_error("Unrecognized Content object nodetype"); }
     }
     throw std::runtime_error("Invalid Content node type");
@@ -147,8 +73,8 @@ namespace {
   };
 
   std::size_t find_bin_idx(Variable::Type value_variant,
-                           const std::variant<_UniformBins, _NonUniformBins> &bins_,
-                           const _FlowBehavior &flow,
+                           const detail::EdgesType &bins_,
+                           const detail::FlowBehavior &flow,
                            std::size_t variableIdx,
                            const char *name)
   {
@@ -158,16 +84,16 @@ namespace {
       else if constexpr (std::is_same_v<T, double>) return arg;
       else throw std::logic_error("I should not have ever seen a string");
       }, value_variant);
-    if ( auto *bins = std::get_if<_UniformBins>(&bins_) ) { // uniform binning
+    if ( auto *bins = std::get_if<detail::UniformBins>(&bins_) ) { // uniform binning
       if (value < bins->low || value >= bins->high) {
         switch (flow) {
-          case _FlowBehavior::value:
+          case detail::FlowBehavior::value:
             return bins->n; // the default value is stored at the end of the content array, after the last bin
-          case _FlowBehavior::clamp:
+          case detail::FlowBehavior::clamp:
             return value < bins->low ? 0 : bins->n - 1; // assuming we always have at least 1 bin
-          case _FlowBehavior::wrap:
+          case detail::FlowBehavior::wrap:
             break;
-          case _FlowBehavior::error:
+          case detail::FlowBehavior::error:
             const std::string belowOrAbove = value < bins->low ? "below" : "above";
             auto msg = "Index " + belowOrAbove + " bounds in " + name + " for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value);
             throw std::runtime_error(std::move(msg));
@@ -175,7 +101,7 @@ namespace {
       }
 
       double norm_value = ((value - bins->low) / (bins->high - bins->low));
-      if (flow == _FlowBehavior::wrap) {
+      if (flow == detail::FlowBehavior::wrap) {
         norm_value -= std::floor(norm_value);
       }
       std::size_t binIdx = bins->n * norm_value;
@@ -184,8 +110,8 @@ namespace {
 
     // otherwise we have non-uniform binning
     using namespace std::string_literals;
-    const auto bins = std::get<_NonUniformBins>(bins_);
-    if ( flow == _FlowBehavior::wrap ) {
+    const auto bins = std::get<detail::NonUniformBins>(bins_);
+    if ( flow == detail::FlowBehavior::wrap ) {
       double low = bins[0];
       double high = bins[bins.size() - 1];
       double norm_value = (value - low) / (high - low);
@@ -195,13 +121,13 @@ namespace {
 
     auto it = std::upper_bound(std::begin(bins), std::end(bins), value);
     if ( it == std::begin(bins) ) { // underflow
-      if ( flow == _FlowBehavior::value ) {
+      if ( flow == detail::FlowBehavior::value ) {
         return bins.size() - 1; // the default value is stored at the end of the content array, after the last bin
       }
-      else if ( flow == _FlowBehavior::error ) {
+      else if ( flow == detail::FlowBehavior::error ) {
         throw std::runtime_error("Index below bounds in "s + name + " for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value));
       }
-      else if ( flow == _FlowBehavior::wrap ) {
+      else if ( flow == detail::FlowBehavior::wrap ) {
         throw std::logic_error("I should not have ever seen an underflow");
       }
       else { // clamp
@@ -209,13 +135,13 @@ namespace {
       }
     }
     else if ( it == std::end(bins) ) { // overflow
-      if ( flow == _FlowBehavior::value ) {
+      if ( flow == detail::FlowBehavior::value ) {
         return bins.size() - 1;
       }
-      else if ( flow == _FlowBehavior::error ) {
+      else if ( flow == detail::FlowBehavior::error ) {
         throw std::runtime_error("Index above bounds in "s + name + " for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value));
       }
-      else if ( flow == _FlowBehavior::wrap ) {
+      else if ( flow == detail::FlowBehavior::wrap ) {
         throw std::logic_error("I should not have ever seen an overflow");
       }
       else { // clamp
@@ -226,15 +152,6 @@ namespace {
     // -1 because upper_bound returns the edge _after_ the bin we are interested in
     const std::size_t binIdx = std::distance(std::begin(bins), it) - 1;
     return binIdx;
-  }
-
-  size_t find_input_index(const std::string_view name, const std::vector<Variable> &inputs) {
-    size_t idx = 0;
-    for (const auto& var : inputs) {
-      if ( name == var.name() ) return idx;
-      idx++;
-    }
-    throw std::runtime_error("Error: could not find variable " + std::string(name) + " in inputs");
   }
 
   double parse_edge(const rapidjson::Value& edge) {
@@ -328,7 +245,7 @@ Formula::Formula(const JSONObject& json, const std::vector<Variable>& inputs, bo
 
   std::vector<size_t> variableIdx;
   for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("variables")) {
-    auto idx = find_input_index(item.GetString(), inputs);
+    auto idx = detail::find_input_index(item.GetString(), inputs);
     if ( inputs[idx].type() != Variable::VarType::real ) {
       throw std::runtime_error("Formulas only accept real-valued inputs, got type "
           + inputs[idx].typeStr() + " for variable " + inputs[idx].name());
@@ -382,7 +299,7 @@ double FormulaRef::evaluate(const std::vector<Variable::Type>& values) const {
 }
 
 Transform::Transform(const JSONObject& json, const Correction& context) {
-  variableIdx_ = find_input_index(json.getRequired<std::string_view>("input"), context.inputs());
+  variableIdx_ = detail::find_input_index(json.getRequired<std::string_view>("input"), context.inputs());
   const auto& variable = context.inputs()[variableIdx_];
   if ( variable.type() == Variable::VarType::string ) {
     throw std::runtime_error("Transform cannot rewrite string inputs");
@@ -413,7 +330,7 @@ HashPRNG::HashPRNG(const JSONObject& json, const Correction& context)
   variablesIdx_.reserve(inputs.Size());
   for (const auto& input : inputs) {
     if ( ! input.IsString() ) { throw std::runtime_error("invalid hashprng input type"); }
-    size_t idx = find_input_index(input.GetString(), context.inputs());
+    size_t idx = detail::find_input_index(input.GetString(), context.inputs());
     if ( context.inputs().at(idx).type() == Variable::VarType::string ) {
       throw std::runtime_error("HashPRNG cannot use string inputs as entropy sources");
     }
@@ -472,7 +389,7 @@ Binning::Binning(const JSONObject& json, const Correction& context)
     if ( edges.size() != content.Size() + 1 ) {
       throw std::runtime_error("Inconsistency in Binning: number of content nodes does not match binning");
     }
-    _NonUniformBins bins{std::move(edges)};
+    detail::NonUniformBins bins{std::move(edges)};
     bins_ = std::move(bins);
   } else if ( edgesObj.IsObject() ) { // UniformBinning
     const JSONObject uniformBins{edgesObj.GetObject()};
@@ -485,19 +402,19 @@ Binning::Binning(const JSONObject& json, const Correction& context)
     }
     const auto low = uniformBins.getRequired<double>("low");
     const auto high = uniformBins.getRequired<double>("high");
-    bins_ = _UniformBins{n, low, high};
+    bins_ = detail::UniformBins{n, low, high};
   } else {
     throw std::runtime_error ("Error when processing Binning: edges are neither an array nor a UniformBinning object");
   }
 
-  variableIdx_ = find_input_index(json.getRequired<std::string_view>("input"), context.inputs());
+  variableIdx_ = detail::find_input_index(json.getRequired<std::string_view>("input"), context.inputs());
   if ( context.inputs().at(variableIdx_).type() == Variable::VarType::string ) {
     throw std::runtime_error("Binning cannot use string inputs as binning variables");
   }
   Content default_value{0.};
   const auto& flowbehavior = json.getRequiredValue("flow");
-  flow_ = parse_flowbehavior(flowbehavior);
-  if (flow_ == _FlowBehavior::value) {
+  flow_ = parse_flow_behavior(flowbehavior);
+  if (flow_ == detail::FlowBehavior::value) {
       default_value = resolve_content(flowbehavior, context);
   }
 
@@ -526,11 +443,11 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
     if ( dimension.IsArray() ) { // non-uniform binning
       std::vector<double> dim_edges = parse_bin_edges(dimension.GetArray());
       if ( ! input.IsString() ) { throw std::runtime_error("invalid multibinning input type"); }
-      size_t variableIdx = find_input_index(input.GetString(), context.inputs());
+      size_t variableIdx = detail::find_input_index(input.GetString(), context.inputs());
       if ( context.inputs().at(variableIdx).type() == Variable::VarType::string ) {
         throw std::runtime_error("MultiBinning cannot use string inputs as binning variables");
       }
-      axes_.push_back({variableIdx, 0, _NonUniformBins(std::move(dim_edges))});
+      axes_.push_back({variableIdx, 0, detail::NonUniformBins(std::move(dim_edges))});
     } else if ( dimension.IsObject() ) { // UniformBinning
       const JSONObject uniformBins{dimension.GetObject()};
       const auto n = uniformBins.getRequired<uint32_t>("n");
@@ -540,11 +457,11 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
       }
       const auto low = uniformBins.getRequired<double>("low");
       const auto high = uniformBins.getRequired<double>("high");
-      size_t variableIdx = find_input_index(input.GetString(), context.inputs());
+      size_t variableIdx = detail::find_input_index(input.GetString(), context.inputs());
       if ( context.inputs().at(variableIdx).type() == Variable::VarType::string ) {
         throw std::runtime_error("MultiBinning cannot use string inputs as binning variables");
       }
-      axes_.push_back({variableIdx, 0, _UniformBins{n, low, high}});
+      axes_.push_back({variableIdx, 0, detail::UniformBins{n, low, high}});
     } else {
       auto msg = "Error when processing MultiBinning: edges for dimension " + std::to_string(idx) + " are neither an array nor a UniformBinning object";
       throw std::runtime_error (std::move(msg));
@@ -569,8 +486,8 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
   }
 
   const auto& flowbehavior = json.getRequiredValue("flow");
-  flow_ = parse_flowbehavior(flowbehavior);
-  if (flow_ == _FlowBehavior::value) {
+  flow_ = parse_flow_behavior(flowbehavior);
+  if (flow_ == detail::FlowBehavior::value) {
       content_.push_back(resolve_content(flowbehavior, context));
   }
 }
@@ -595,17 +512,17 @@ double MultiBinning::evaluate(const std::vector<Variable::Type>& values) const
 
 size_t MultiBinning::nbins(size_t dimension) const
 {
-  if ( const auto *bins = std::get_if<_UniformBins>(&axes_[dimension].bins) )
+  if ( const auto *bins = std::get_if<detail::UniformBins>(&axes_[dimension].bins) )
     return bins->n; // using uniform bins
 
   // otherwise we must have non-uniform bins
-  const auto &bins = std::get<_NonUniformBins>(axes_[dimension].bins);
+  const auto &bins = std::get<detail::NonUniformBins>(axes_[dimension].bins);
   return bins.size() - 1;
 }
 
 Category::Category(const JSONObject& json, const Correction& context)
 {
-  variableIdx_ = find_input_index(json.getRequired<std::string_view>("input"), context.inputs());
+  variableIdx_ = detail::find_input_index(json.getRequired<std::string_view>("input"), context.inputs());
   const auto& variable = context.inputs()[variableIdx_];
   if ( variable.type() == Variable::VarType::string ) {
     map_ = StrMap();

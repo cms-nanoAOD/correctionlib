@@ -61,6 +61,7 @@ Content = Union[
             "FormulaRef",
             "Transform",
             "HashPRNG",
+            "LWTNN",
         ],
         Field(discriminator="nodetype"),
     ],
@@ -138,6 +139,18 @@ class HashPRNG(Model):
                 stacklevel=2,
             )
         return distribution
+
+
+class LWTNN(Model):
+    """A node that evaluates a lightweight neural network"""
+
+    nodetype: Literal["lwtnn"]
+    opaque: dict = Field(
+        description="The opaque configuration for lwtnn, passed directly to the C++ code"
+    )
+    finalizer: Formula = Field(
+        description="A formula to apply to the raw lwtnn outputs, with input variables matching the lwtnn outputs"
+    )
 
 
 class UniformBinning(Model):
@@ -306,7 +319,7 @@ Category.model_rebuild()
 def walk_content(content: Content, func: Callable[[Content], None]) -> None:
     """Visit all content nodes in a tree, applying func to each node."""
     func(content)
-    if isinstance(content, (float, Formula, FormulaRef, HashPRNG)):
+    if isinstance(content, (float, Formula, FormulaRef, HashPRNG, LWTNN)):
         pass
     elif isinstance(content, (Binning, MultiBinning)):
         for bin in content.content:
@@ -340,6 +353,12 @@ def _validate_input(allowed_names: set[str], node: Content) -> None:
         for inp in node.variables:
             if inp not in allowed_names:
                 msg = f"{nodename} input {inp!r} not found in Correction inputs {allowed_names}"
+                raise ValueError(msg)
+    elif isinstance(node, LWTNN):
+        for inp in node.opaque.get("inputs", []):
+            name = inp.get("name")
+            if name not in allowed_names:
+                msg = f"{nodename} input {name!r} not found in Correction inputs {allowed_names}"
                 raise ValueError(msg)
     # FormulaRef has no direct input names
 
