@@ -9,6 +9,7 @@
 #include <rapidjson/error/en.h>
 #include <optional>
 #include <algorithm>
+#include <deque>
 #include <stdexcept>
 #include <cmath>
 #include <cstdlib> // std::abort
@@ -145,6 +146,44 @@ namespace {
 
     const std::vector<Variable::Type>& values;
   };
+
+  // Per-thread scratch storage for Transform::evaluate.
+  // Depth indexing keeps nested Transform evaluations re-entrant-safe.
+  class TransformScratch {
+  public:
+    explicit TransformScratch(const std::vector<Variable::Type>& values):
+      slot_(acquire_slot())
+    {
+      slot_ = values;
+    }
+
+    ~TransformScratch() {
+      release_slot();
+    }
+
+    std::vector<Variable::Type>& values() {
+      return slot_;
+    }
+
+  private:
+    static std::vector<Variable::Type>& acquire_slot() {
+      if (depth_ == slots_.size()) {
+        slots_.emplace_back();
+      }
+      return slots_[depth_++];
+    }
+
+    static void release_slot() {
+      depth_--;
+    }
+
+    std::vector<Variable::Type>& slot_;
+    static thread_local std::deque<std::vector<Variable::Type>> slots_;
+    static thread_local std::size_t depth_;
+  };
+
+  thread_local std::deque<std::vector<Variable::Type>> TransformScratch::slots_;
+  thread_local std::size_t TransformScratch::depth_ = 0;
 
   std::size_t find_bin_idx(Variable::Type value_variant,
                            const std::variant<_UniformBins, _NonUniformBins> &bins_,
@@ -392,7 +431,9 @@ Transform::Transform(const JSONObject& json, const Correction& context) {
 }
 
 double Transform::evaluate(const std::vector<Variable::Type>& values) const {
-  std::vector<Variable::Type> new_values(values);
+  TransformScratch scratch(values);
+  auto& new_values = scratch.values();
+
   double vnew = std::visit(node_evaluate{values}, *rule_);
   auto& v = new_values[variableIdx_];
   if ( std::holds_alternative<double>(v) ) {
