@@ -3,9 +3,9 @@ def register_pyroot_binding() -> None:
 
     from cppyy import gbl
 
-    from .util import this_module_path
+    from .util import artifact_base_dir
 
-    base_path = this_module_path()
+    base_path = artifact_base_dir()
     lib = base_path / "lib"
 
     # maybe not the most robust solution?

@@ -15,3 +15,18 @@ def this_module_path() -> pathlib.Path:
     traversable = importlib.resources.files("correctionlib")
     with importlib.resources.as_file(traversable) as fspath:
         return fspath
+
+
+def artifact_base_dir() -> pathlib.Path:
+    """Find the base directory containing built artifacts (include, lib, cmake).
+
+    In editable installs the artifacts live next to the compiled extension module,
+    not in the source tree. Falls back to this_module_path() for regular installs.
+    """
+    import correctionlib._core as _core
+
+    base = pathlib.Path(_core.__file__).resolve().parent
+    if (base / "cmake").exists() and (base / "include").exists():
+        return base
+
+    return this_module_path()
