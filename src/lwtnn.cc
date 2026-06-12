@@ -28,7 +28,14 @@ detail::LWTNNEvaluationContext::LWTNNEvaluationContext(const JSONObject& json, c
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
   blob.Accept(writer);
   std::istringstream in(buffer.GetString());
-  auto cfg = lwt::parse_json(in);
+  lwt::JSONConfig cfg;
+  try {
+    cfg = lwt::parse_json(in);
+  } catch (const std::exception& ex) {
+    throw std::runtime_error(
+      std::string("Failed to parse LWTNN model from 'opaque' field: ") + ex.what()
+    );
+  }
 
   for (const auto& input : cfg.inputs) {
     input_spec_.emplace_back(input.name, find_input_index(input.name, context.inputs()));

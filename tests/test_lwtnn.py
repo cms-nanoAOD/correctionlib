@@ -1,8 +1,23 @@
+import json
 from pathlib import Path
+
+import pytest
 
 from correctionlib.highlevel import CorrectionSet
 
 LWTNN_TEST_FIXTURE = Path(__file__).parent / "data" / "lwtnn_example.json"
+
+
+def test_lwtnn_bad_opaque():
+    data = json.loads(LWTNN_TEST_FIXTURE.read_text())
+    # Drill down to the lwtnn node and corrupt its opaque blob
+    lwtnn_node = data["corrections"][0]["data"]["content"]["content"]
+    assert lwtnn_node["nodetype"] == "lwtnn"
+    lwtnn_node["opaque"] = {}
+    with pytest.raises(
+        RuntimeError, match="Failed to parse LWTNN model from 'opaque' field"
+    ):
+        CorrectionSet.from_string(json.dumps(data))
 
 
 def test_lwtnn_example():
