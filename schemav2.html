@@ -60,6 +60,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#formula">Formula</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#formularef">FormulaRef</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hashprng">HashPRNG</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lwtnn">LWTNN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lwtnninput">LWTNNInput</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lwtnnschema">LWTNNSchema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#multibinning">MultiBinning</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#transform">Transform</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#uniformbinning">UniformBinning</a></li>
@@ -255,7 +258,7 @@ may use it to provide autocompletion and validation against the schema.</p></td>
 </tr>
 <tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#uniformbinning">UniformBinning</a></p></td>
 </tr>
-<tr class="row-even"><td rowspan="10"><ul class="simple">
+<tr class="row-even"><td rowspan="11"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
@@ -264,9 +267,9 @@ may use it to provide autocompletion and validation against the schema.</p></td>
 <tr class="row-odd"><td><p>type</p></td>
 <td colspan="4"><p><em>array</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="8"><p>items</p></td>
-<td rowspan="8"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-even"><td rowspan="9"><p>items</p></td>
+<td rowspan="9"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td colspan="2"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -281,32 +284,36 @@ may use it to provide autocompletion and validation against the schema.</p></td>
 </tr>
 <tr class="row-even"><td colspan="2"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="12"><ul class="simple">
+<tr class="row-odd"><td rowspan="13"><ul class="simple">
 <li><p><strong>flow</strong></p></li>
 </ul>
 </td>
 <td colspan="5"><p><em>Flow</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="5"><p>Overflow behavior for out-of-bounds values</p></td>
+<tr class="row-even"><td colspan="5"><p>Overflow behavior for out-of-bounds values</p></td>
 </tr>
-<tr class="row-even"><td rowspan="10"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-odd"><td rowspan="11"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td colspan="3"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>type</p></td>
 <td colspan="3"><p><em>number</em></p></td>
@@ -368,7 +375,7 @@ may use it to provide autocompletion and validation against the schema.</p></td>
 <tr class="row-odd"><td><p>items</p></td>
 <td colspan="2"><p><a class="reference internal" href="#categoryitem">CategoryItem</a></p></td>
 </tr>
-<tr class="row-even"><td rowspan="11"><ul class="simple">
+<tr class="row-even"><td rowspan="12"><ul class="simple">
 <li><p>default</p></li>
 </ul>
 </td>
@@ -377,8 +384,8 @@ may use it to provide autocompletion and validation against the schema.</p></td>
 <tr class="row-odd"><td><p>default</p></td>
 <td colspan="2"><p>null</p></td>
 </tr>
-<tr class="row-even"><td rowspan="9"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-even"><td rowspan="10"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -393,13 +400,15 @@ may use it to provide autocompletion and validation against the schema.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
-<td><p><em>number</em></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
 </tr>
 <tr class="row-even"><td><p>type</p></td>
+<td><p><em>number</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>null</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -429,14 +438,14 @@ may use it to provide autocompletion and validation against the schema.</p></td>
 <tr class="row-odd"><td><p>type</p></td>
 <td><p><em>string</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="9"><ul class="simple">
+<tr class="row-even"><td rowspan="10"><ul class="simple">
 <li><p><strong>value</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Value</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-odd"><td rowspan="9"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -451,10 +460,12 @@ may use it to provide autocompletion and validation against the schema.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -686,7 +697,7 @@ of the correction object</p>
 <tr class="row-even"><td><p>type</p></td>
 <td><p><em>null</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="10"><ul class="simple">
+<tr class="row-odd"><td rowspan="11"><ul class="simple">
 <li><p><strong>data</strong></p></li>
 </ul>
 </td>
@@ -694,8 +705,8 @@ of the correction object</p>
 </tr>
 <tr class="row-even"><td colspan="3"><p>The root content node</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-odd"><td rowspan="9"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -710,10 +721,12 @@ of the correction object</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td><p>additionalProperties</p></td>
+<tr class="row-even"><td><p>additionalProperties</p></td>
 <td colspan="3"><p>False</p></td>
 </tr>
 </tbody>
@@ -924,6 +937,121 @@ downstream code could then shift and scale it as necessary.</p>
 </tbody>
 </table>
 </section>
+<section id="lwtnn">
+<span id="lwtnn"></span><h3>LWTNN<a class="headerlink" href="#lwtnn" title="Link to this heading"></a></h3>
+<p>A node that evaluates a lightweight neural network</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>object</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>properties</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p><strong>nodetype</strong></p></li>
+</ul>
+</td>
+<td colspan="2"><p><em>Nodetype</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>const</p></td>
+<td><p>lwtnn</p></td>
+</tr>
+<tr class="row-even"><td rowspan="2"><ul class="simple">
+<li><p><strong>opaque</strong></p></li>
+</ul>
+</td>
+<td colspan="2"><p>The opaque configuration for lwtnn, passed directly to the C++ code</p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#lwtnnschema">LWTNNSchema</a></p></td>
+</tr>
+<tr class="row-even"><td rowspan="2"><ul class="simple">
+<li><p><strong>finalizer</strong></p></li>
+</ul>
+</td>
+<td colspan="2"><p>A formula to apply to the raw lwtnn outputs, with input variables matching the lwtnn outputs</p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+</tr>
+<tr class="row-even"><td><p>additionalProperties</p></td>
+<td colspan="2"><p>False</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="lwtnninput">
+<span id="lwtnninput"></span><h3>LWTNNInput<a class="headerlink" href="#lwtnninput" title="Link to this heading"></a></h3>
+<p>An input variable for an LWTNN node</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>object</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>properties</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="2"><ul class="simple">
+<li><p><strong>name</strong></p></li>
+</ul>
+</td>
+<td colspan="2"><p><em>Name</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td><p><em>string</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>additionalProperties</p></td>
+<td colspan="2"><p>True</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="lwtnnschema">
+<span id="lwtnnschema"></span><h3>LWTNNSchema<a class="headerlink" href="#lwtnnschema" title="Link to this heading"></a></h3>
+<p>The expected schema for the opaque configuration of an LWTNN node</p>
+<p>This is not the entire LWTNN schema, just the parts that we need to
+validate and extract input/output variable names from. Full validation
+of the opaque blob is deferred to the C++ code.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="3"><p><em>object</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="4"><p>properties</p></td>
+</tr>
+<tr class="row-odd"><td rowspan="4"><ul class="simple">
+<li><p><strong>inputs</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Inputs</em></p></td>
+</tr>
+<tr class="row-even"><td colspan="3"><p>The input variables for the LWTNN model. These must match input variable names in the CorrectionSet.</p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
+<td colspan="2"><p><em>array</em></p></td>
+</tr>
+<tr class="row-even"><td><p>items</p></td>
+<td colspan="2"><p><a class="reference internal" href="#lwtnninput">LWTNNInput</a></p></td>
+</tr>
+<tr class="row-odd"><td rowspan="3"><ul class="simple">
+<li><p><strong>outputs</strong></p></li>
+</ul>
+</td>
+<td colspan="3"><p><em>Outputs</em></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
+<td colspan="2"><p><em>array</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>items</p></td>
+<td><p>type</p></td>
+<td><p><em>string</em></p></td>
+</tr>
+<tr class="row-even"><td><p>additionalProperties</p></td>
+<td colspan="3"><p>True</p></td>
+</tr>
+</tbody>
+</table>
+</section>
 <section id="multibinning">
 <span id="multibinning"></span><h3>MultiBinning<a class="headerlink" href="#multibinning" title="Link to this heading"></a></h3>
 <p>N-dimensional rectangular binning</p>
@@ -993,7 +1121,7 @@ downstream code could then shift and scale it as necessary.</p>
 </tr>
 <tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#uniformbinning">UniformBinning</a></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="11"><ul class="simple">
+<tr class="row-odd"><td rowspan="12"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
@@ -1009,9 +1137,9 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 <tr class="row-odd"><td><p>type</p></td>
 <td colspan="5"><p><em>array</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="8"><p>items</p></td>
-<td rowspan="8"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-even"><td rowspan="9"><p>items</p></td>
+<td rowspan="9"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td colspan="3"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -1026,32 +1154,36 @@ to the element at i0 in dimension 0, i1 in dimension 1, etc. and d0 = len(edges[
 </tr>
 <tr class="row-even"><td colspan="3"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-odd"><td><p>type</p></td>
+<tr class="row-odd"><td colspan="3"><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
+</tr>
+<tr class="row-even"><td><p>type</p></td>
 <td colspan="3"><p><em>number</em></p></td>
 </tr>
-<tr class="row-even"><td rowspan="12"><ul class="simple">
+<tr class="row-odd"><td rowspan="13"><ul class="simple">
 <li><p><strong>flow</strong></p></li>
 </ul>
 </td>
 <td colspan="6"><p><em>Flow</em></p></td>
 </tr>
-<tr class="row-odd"><td colspan="6"><p>Overflow behavior for out-of-bounds values</p></td>
+<tr class="row-even"><td colspan="6"><p>Overflow behavior for out-of-bounds values</p></td>
 </tr>
-<tr class="row-even"><td rowspan="10"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-odd"><td rowspan="11"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td colspan="4"><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+<tr class="row-odd"><td colspan="4"><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-even"><td colspan="4"><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
 </tr>
 <tr class="row-odd"><td><p>type</p></td>
 <td colspan="4"><p><em>number</em></p></td>
@@ -1105,7 +1237,7 @@ high levels in the tree, since they require an allocation.</p>
 <tr class="row-even"><td><p>type</p></td>
 <td colspan="2"><p><em>string</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="10"><ul class="simple">
+<tr class="row-odd"><td rowspan="11"><ul class="simple">
 <li><p><strong>rule</strong></p></li>
 </ul>
 </td>
@@ -1113,8 +1245,8 @@ high levels in the tree, since they require an allocation.</p>
 </tr>
 <tr class="row-even"><td colspan="3"><p>A subtree that implements the rewrite rule</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-odd"><td rowspan="9"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
@@ -1129,32 +1261,36 @@ high levels in the tree, since they require an allocation.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
 </tr>
-<tr class="row-even"><td><p>type</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
 </tr>
-<tr class="row-odd"><td rowspan="10"><ul class="simple">
+<tr class="row-even"><td rowspan="11"><ul class="simple">
 <li><p><strong>content</strong></p></li>
 </ul>
 </td>
 <td colspan="3"><p><em>Content</em></p></td>
 </tr>
-<tr class="row-even"><td colspan="3"><p>A subtree that will be evaluated with transformed values</p></td>
+<tr class="row-odd"><td colspan="3"><p>A subtree that will be evaluated with transformed values</p></td>
 </tr>
-<tr class="row-odd"><td rowspan="8"><p>anyOf</p></td>
-<td rowspan="7"><p>oneOf</p></td>
+<tr class="row-even"><td rowspan="9"><p>anyOf</p></td>
+<td rowspan="8"><p>oneOf</p></td>
 <td><p><a class="reference internal" href="#binning">Binning</a></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#multibinning">MultiBinning</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#category">Category</a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#category">Category</a></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#formula">Formula</a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#formula">Formula</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#formularef">FormulaRef</a></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#transform">Transform</a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#transform">Transform</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#hashprng">HashPRNG</a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#lwtnn">LWTNN</a></p></td>
 </tr>
 <tr class="row-even"><td><p>type</p></td>
 <td><p><em>number</em></p></td>
