@@ -31,35 +31,42 @@ detail::LWTNNEvaluationContext::LWTNNEvaluationContext(const JSONObject& json, c
   lwt::JSONConfig cfg;
   try {
     cfg = lwt::parse_json(in);
+
+    for (const auto& input : cfg.inputs) {
+      size_t idx = find_input_index(input.name, context.inputs());
+      if ( context.inputs().at(idx).type() == Variable::VarType::string ) {
+        throw std::runtime_error("LWTNN cannot use string inputs, but input '" + input.name + "' has string type");
+      }
+      input_spec_.emplace_back(input.name, idx);
+    }
+
+    std::vector<Variable> finalize_inputs;
+    for (const auto& name : cfg.outputs) {
+      output_names_.push_back(name);
+      finalize_inputs.emplace_back(name, "", Variable::VarType::real);
+    }
+    if ( output_names_.empty() ) {
+      throw std::runtime_error("LWTNN model has no outputs");
+    }
+
+    const auto& finalizer_data = json.getRequiredValue("finalizer");
+    if ( finalizer_data.IsObject()
+        && finalizer_data.HasMember("nodetype")
+        && finalizer_data["nodetype"].IsString()
+        && finalizer_data["nodetype"] == "formula"
+      ) {
+      finalizer_ = std::make_unique<Formula>(JSONObject(finalizer_data.GetObject()), finalize_inputs);
+    }
+    else {
+      throw std::runtime_error("LWTNN finalizer must be a formula node");
+    }
+
+    nn_ = std::make_unique<const lwt::LightweightNeuralNetwork>(cfg.inputs, cfg.layers, cfg.outputs);
   } catch (const std::exception& ex) {
     throw std::runtime_error(
       std::string("Failed to parse LWTNN model from 'opaque' field: ") + ex.what()
     );
   }
-
-  for (const auto& input : cfg.inputs) {
-    input_spec_.emplace_back(input.name, find_input_index(input.name, context.inputs()));
-  }
-
-  std::vector<Variable> finalize_inputs;
-  for (const auto& name : cfg.outputs) {
-    output_names_.push_back(name);
-    finalize_inputs.emplace_back(name, "", Variable::VarType::real);
-  }
-
-  const auto& finalizer_data = json.getRequiredValue("finalizer");
-  if ( finalizer_data.IsObject()
-      && finalizer_data.HasMember("nodetype")
-      && finalizer_data["nodetype"].IsString()
-      && finalizer_data["nodetype"] == "formula"
-    ) {
-    finalizer_ = std::make_unique<Formula>(JSONObject(finalizer_data.GetObject()), finalize_inputs);
-  }
-  else {
-    throw std::runtime_error("LWTNN finalizer must be a formula node");
-  }
-
-  nn_ = std::make_unique<const lwt::LightweightNeuralNetwork>(cfg.inputs, cfg.layers, cfg.outputs);
 }
 
 double detail::LWTNNEvaluationContext::evaluate(const std::vector<Variable::Type>& values) const

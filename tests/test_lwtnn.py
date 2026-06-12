@@ -3,9 +3,13 @@ from pathlib import Path
 
 import pytest
 
-from correctionlib.highlevel import CorrectionSet
+from correctionlib.highlevel import CorrectionSet, model_auto, open_auto
 
 LWTNN_TEST_FIXTURE = Path(__file__).parent / "data" / "lwtnn_example.json"
+
+
+def test_validate_lwtnn():
+    model_auto(open_auto(str(LWTNN_TEST_FIXTURE)))
 
 
 def test_lwtnn_bad_opaque():

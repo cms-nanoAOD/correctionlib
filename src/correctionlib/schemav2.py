@@ -355,10 +355,24 @@ def _validate_input(allowed_names: set[str], node: Content) -> None:
                 msg = f"{nodename} input {inp!r} not found in Correction inputs {allowed_names}"
                 raise ValueError(msg)
     elif isinstance(node, LWTNN):
-        for inp in node.opaque.get("inputs", []):
+        inputs = node.opaque.get("inputs", [])
+        if len(inputs) == 0:
+            raise ValueError(
+                "LWTNN opaque configuration is missing required 'inputs' field or it is empty"
+            )
+        for inp in inputs:
             name = inp.get("name")
+            if name is None:
+                raise ValueError(
+                    "LWTNN opaque input entry is missing required 'name' field"
+                )
             if name not in allowed_names:
                 msg = f"{nodename} input {name!r} not found in Correction inputs {allowed_names}"
+                raise ValueError(msg)
+        lwtnn_outputs = set(node.opaque.get("outputs", []))
+        for var in node.finalizer.variables:
+            if var not in lwtnn_outputs:
+                msg = f"{nodename} finalizer variable {var!r} not found in lwtnn outputs {lwtnn_outputs}"
                 raise ValueError(msg)
     # FormulaRef has no direct input names
 
@@ -381,6 +395,7 @@ class _SummaryInfo:
         self.default: bool = False
         self.overflow: bool = True
         self.transform: bool = False
+        self.used: bool = False
         self.min: float = float("inf")
         self.max: float = float("-inf")
 
@@ -395,19 +410,32 @@ def _summarize(
     if isinstance(node, Binning):
         inputstats[node.input].overflow &= node.flow != "error"
         low, high = _binning_range(node.edges)
+        inputstats[node.input].used = True
         inputstats[node.input].min = min(inputstats[node.input].min, low)
         inputstats[node.input].max = max(inputstats[node.input].max, high)
     elif isinstance(node, MultiBinning):
         for input, edges in zip(node.inputs, node.edges):
             inputstats[input].overflow &= node.flow != "error"
             low, high = _binning_range(edges)
+            inputstats[input].used = True
             inputstats[input].min = min(inputstats[input].min, low)
             inputstats[input].max = max(inputstats[input].max, high)
     elif isinstance(node, Category):
+        inputstats[node.input].used = True
         inputstats[node.input].values |= {item.key for item in node.content}
         inputstats[node.input].default |= node.default is not None
     elif isinstance(node, Transform):
+        inputstats[node.input].used = True
         inputstats[node.input].transform = True
+    elif isinstance(node, Formula):
+        for var in node.variables:
+            inputstats[var].used = True
+    elif isinstance(node, LWTNN):
+        inputs = node.opaque.get("inputs", [])
+        for inp in inputs:
+            name = inp.get("name")
+            if name is not None and name in inputstats:
+                inputstats[name].used = True
 
 
 class Correction(Model):
@@ -472,7 +500,7 @@ class Correction(Model):
         def fmt_input(var: Variable, stats: _SummaryInfo) -> str:
             out = var.__rich__()
             if var.type == "real":
-                if stats.min == float("inf") and stats.max == float("-inf"):
+                if not stats.used:
                     out += "\nRange: [bold red]unused[/bold red]"
                 else:
                     out += f"\nRange: [{stats.min}, {stats.max})"
