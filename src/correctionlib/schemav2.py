@@ -141,11 +141,36 @@ class HashPRNG(Model):
         return distribution
 
 
+class LWTNNInput(Model):
+    """An input variable for an LWTNN node"""
+
+    model_config = ConfigDict(extra="allow")
+
+    name: str
+
+
+class LWTNNSchema(Model):
+    """The expected schema for the opaque configuration of an LWTNN node
+
+    This is not the entire LWTNN schema, just the parts that we need to
+    validate and extract input/output variable names from. Full validation
+    of the opaque blob is deferred to the C++ code.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    inputs: list[LWTNNInput] = Field(
+        description="The input variables for the LWTNN model. "
+        "These must match input variable names in the CorrectionSet."
+    )
+    outputs: list[str]
+
+
 class LWTNN(Model):
     """A node that evaluates a lightweight neural network"""
 
     nodetype: Literal["lwtnn"]
-    opaque: dict = Field(
+    opaque: LWTNNSchema = Field(
         description="The opaque configuration for lwtnn, passed directly to the C++ code"
     )
     finalizer: Formula = Field(
@@ -355,21 +380,15 @@ def _validate_input(allowed_names: set[str], node: Content) -> None:
                 msg = f"{nodename} input {inp!r} not found in Correction inputs {allowed_names}"
                 raise ValueError(msg)
     elif isinstance(node, LWTNN):
-        inputs = node.opaque.get("inputs", [])
-        if len(inputs) == 0:
-            raise ValueError(
-                "LWTNN opaque configuration is missing required 'inputs' field or it is empty"
-            )
-        for inp in inputs:
-            name = inp.get("name")
-            if name is None:
-                raise ValueError(
-                    "LWTNN opaque input entry is missing required 'name' field"
-                )
-            if name not in allowed_names:
-                msg = f"{nodename} input {name!r} not found in Correction inputs {allowed_names}"
+        if len(node.opaque.inputs) == 0:
+            raise ValueError("LWTNN opaque configuration 'inputs' field is empty")
+        for lwtinp in node.opaque.inputs:
+            if lwtinp.name not in allowed_names:
+                msg = f"{nodename} input {lwtinp.name!r} not found in Correction inputs {allowed_names}"
                 raise ValueError(msg)
-        lwtnn_outputs = set(node.opaque.get("outputs", []))
+        lwtnn_outputs = node.opaque.outputs
+        if len(lwtnn_outputs) == 0:
+            raise ValueError("LWTNN opaque configuration 'outputs' field is empty")
         for var in node.finalizer.variables:
             if var not in lwtnn_outputs:
                 msg = f"{nodename} finalizer variable {var!r} not found in lwtnn outputs {lwtnn_outputs}"
@@ -431,11 +450,8 @@ def _summarize(
         for var in node.variables:
             inputstats[var].used = True
     elif isinstance(node, LWTNN):
-        inputs = node.opaque.get("inputs", [])
-        for inp in inputs:
-            name = inp.get("name")
-            if name is not None and name in inputstats:
-                inputstats[name].used = True
+        for inp in node.opaque.inputs:
+            inputstats[inp.name].used = True
 
 
 class Correction(Model):
