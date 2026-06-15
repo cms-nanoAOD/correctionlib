@@ -9,6 +9,7 @@
 #include <rapidjson/error/en.h>
 #include <optional>
 #include <algorithm>
+#include <deque>
 #include <stdexcept>
 #include <cmath>
 #include <cstdlib> // std::abort
@@ -72,6 +73,44 @@ namespace {
     const std::vector<Variable::Type>& values;
   };
 
+  // Per-thread scratch storage for Transform::evaluate.
+  // Depth indexing keeps nested Transform evaluations re-entrant-safe.
+  class TransformScratch {
+  public:
+    explicit TransformScratch(const std::vector<Variable::Type>& values):
+      slot_(acquire_slot())
+    {
+      slot_ = values;
+    }
+
+    ~TransformScratch() {
+      release_slot();
+    }
+
+    std::vector<Variable::Type>& values() {
+      return slot_;
+    }
+
+  private:
+    static std::vector<Variable::Type>& acquire_slot() {
+      if (depth_ == slots_.size()) {
+        slots_.emplace_back();
+      }
+      return slots_[depth_++];
+    }
+
+    static void release_slot() {
+      depth_--;
+    }
+
+    std::vector<Variable::Type>& slot_;
+    static thread_local std::deque<std::vector<Variable::Type>> slots_;
+    static thread_local std::size_t depth_;
+  };
+
+  thread_local std::deque<std::vector<Variable::Type>> TransformScratch::slots_;
+  thread_local std::size_t TransformScratch::depth_ = 0;
+
   std::size_t find_bin_idx(Variable::Type value_variant,
                            const detail::EdgesType &bins_,
                            const detail::FlowBehavior &flow,
@@ -110,7 +149,7 @@ namespace {
 
     // otherwise we have non-uniform binning
     using namespace std::string_literals;
-    const auto bins = std::get<detail::NonUniformBins>(bins_);
+    const auto& bins = std::get<detail::NonUniformBins>(bins_);
     if ( flow == detail::FlowBehavior::wrap ) {
       double low = bins[0];
       double high = bins[bins.size() - 1];
@@ -309,7 +348,9 @@ Transform::Transform(const JSONObject& json, const Correction& context) {
 }
 
 double Transform::evaluate(const std::vector<Variable::Type>& values) const {
-  std::vector<Variable::Type> new_values(values);
+  TransformScratch scratch(values);
+  auto& new_values = scratch.values();
+
   double vnew = std::visit(node_evaluate{values}, *rule_);
   auto& v = new_values[variableIdx_];
   if ( std::holds_alternative<double>(v) ) {
@@ -558,27 +599,25 @@ Category::Category(const JSONObject& json, const Correction& context)
 double Category::evaluate(const std::vector<Variable::Type>& values) const {
   const Content* child = nullptr;
   if ( auto pval = std::get_if<std::string>(&values[variableIdx_]) ) {
-    try {
-      child = &std::get<StrMap>(map_).at(*pval);
-    } catch (std::out_of_range& ex) {
-      if ( default_ ) {
-        child = default_.get();
-      }
-      else {
-        throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + *pval);
-      }
+    const auto& m = std::get<StrMap>(map_);
+    auto it = m.find(*pval);
+    if ( it != m.end() ) {
+      child = &it->second;
+    } else if ( default_ ) {
+      child = default_.get();
+    } else {
+      throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + *pval);
     }
   }
   else if ( auto pval = std::get_if<int64_t>(&values[variableIdx_]) ) {
-    try {
-      child = &std::get<IntMap>(map_).at(*pval);
-    } catch (std::out_of_range& ex) {
-      if ( default_ ) {
-        child = default_.get();
-      }
-      else {
-        throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
-      }
+    const auto& m = std::get<IntMap>(map_);
+    auto it = m.find(*pval);
+    if ( it != m.end() ) {
+      child = &it->second;
+    } else if ( default_ ) {
+      child = default_.get();
+    } else {
+      throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
     }
   } else {
     throw std::runtime_error("Invalid variable type");
@@ -682,6 +721,11 @@ size_t CompoundCorrection::input_index(const std::string_view name) const {
 }
 
 double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) const {
+  // Per-thread scratch storage. This call site is not re-entrant so we
+  // can use a simpler implementation than for TransformScratch
+  static thread_local std::vector<Variable::Type> ivalues;
+  static thread_local std::vector<Variable::Type> cvalues;
+
   if ( values.size() != inputs_.size() ) {
     throw std::invalid_argument("Incorrect number of inputs (got " + std::to_string(values.size())
           + ", expected " + std::to_string(inputs_.size()) + ")");
@@ -689,9 +733,9 @@ double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) c
   for (size_t i=0; i < inputs_.size(); ++i) {
     inputs_[i].validate(values[i]);
   }
-  std::vector<Variable::Type> ivalues(values);
-  std::vector<Variable::Type> cvalues;
+  ivalues = values;
   cvalues.reserve(values.size());
+
   double out = 0.;
   double sf = 0.;
   bool start{true};
