@@ -806,6 +806,11 @@ size_t CompoundCorrection::input_index(const std::string_view name) const {
 }
 
 double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) const {
+  // Per-thread scratch storage. This call site is not re-entrant so we
+  // can use a simpler implementation than for TransformScratch
+  static thread_local std::vector<Variable::Type> ivalues;
+  static thread_local std::vector<Variable::Type> cvalues;
+
   if ( values.size() != inputs_.size() ) {
     throw std::invalid_argument("Incorrect number of inputs (got " + std::to_string(values.size())
           + ", expected " + std::to_string(inputs_.size()) + ")");
@@ -813,9 +818,9 @@ double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) c
   for (size_t i=0; i < inputs_.size(); ++i) {
     inputs_[i].validate(values[i]);
   }
-  std::vector<Variable::Type> ivalues(values);
-  std::vector<Variable::Type> cvalues;
+  ivalues = values;
   cvalues.reserve(values.size());
+
   double out = 0.;
   double sf = 0.;
   bool start{true};
