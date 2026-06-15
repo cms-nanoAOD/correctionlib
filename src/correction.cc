@@ -682,27 +682,25 @@ Category::Category(const JSONObject& json, const Correction& context)
 double Category::evaluate(const std::vector<Variable::Type>& values) const {
   const Content* child = nullptr;
   if ( auto pval = std::get_if<std::string>(&values[variableIdx_]) ) {
-    try {
-      child = &std::get<StrMap>(map_).at(*pval);
-    } catch (std::out_of_range& ex) {
-      if ( default_ ) {
-        child = default_.get();
-      }
-      else {
-        throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + *pval);
-      }
+    const auto& m = std::get<StrMap>(map_);
+    auto it = m.find(*pval);
+    if ( it != m.end() ) {
+      child = &it->second;
+    } else if ( default_ ) {
+      child = default_.get();
+    } else {
+      throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + *pval);
     }
   }
   else if ( auto pval = std::get_if<int64_t>(&values[variableIdx_]) ) {
-    try {
-      child = &std::get<IntMap>(map_).at(*pval);
-    } catch (std::out_of_range& ex) {
-      if ( default_ ) {
-        child = default_.get();
-      }
-      else {
-        throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
-      }
+    const auto& m = std::get<IntMap>(map_);
+    auto it = m.find(*pval);
+    if ( it != m.end() ) {
+      child = &it->second;
+    } else if ( default_ ) {
+      child = default_.get();
+    } else {
+      throw std::out_of_range("Index not available in Category for input argument " + std::to_string(variableIdx_) + " val: " + std::to_string(*pval));
     }
   } else {
     throw std::runtime_error("Invalid variable type");
