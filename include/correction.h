@@ -20,6 +20,8 @@ class Variable {
     typedef std::variant<int64_t, double, std::string> Type;
 
     Variable(const JSONObject& json);
+    Variable(const std::string& name, const std::string& description, VarType type) :
+      name_(name), description_(description), type_(type) {};
     std::string name() const { return name_; };
     std::string description() const { return description_; };
     VarType type() const { return type_; };
@@ -38,10 +40,11 @@ class Formula;
 class FormulaRef;
 class Transform;
 class HashPRNG;
+class LWTNN;
 class Binning;
 class MultiBinning;
 class Category;
-typedef std::variant<double, Formula, FormulaRef, Transform, HashPRNG, Binning, MultiBinning, Category> Content;
+typedef std::variant<double, Formula, FormulaRef, Transform, HashPRNG, LWTNN, Binning, MultiBinning, Category> Content;
 class Correction;
 
 class FormulaAst {
@@ -176,16 +179,40 @@ class HashPRNG {
     Distribution dist_;
 };
 
-// common internal for Binning and MultiBinning
-enum class _FlowBehavior {value, clamp, error, wrap};
+// Forward declaration (opaque outside correctionlib source)
+namespace detail {
+  class LWTNNEvaluationContext;
+}
 
-using _NonUniformBins = std::vector<double>;
+class LWTNN {
+  public:
+    LWTNN(const JSONObject& json, const Correction& context);
+    double evaluate(const std::vector<Variable::Type>& values) const;
 
-struct _UniformBins {
-   std::size_t n; // number of bins
-   double low; // lower edge of first bin
-   double high; // upper edge of last bin
+    // this variant is in a separate source file, so move/delete needs to be explicit
+    // TODO: eventually break all the Content variants into separate source files
+    ~LWTNN();
+    LWTNN(LWTNN&&);
+    LWTNN& operator=(LWTNN&&);
+
+  private:
+    std::unique_ptr<const detail::LWTNNEvaluationContext> model_;
 };
+
+namespace detail {
+  // common internal for Binning and MultiBinning
+  enum class FlowBehavior {value, clamp, error, wrap};
+
+  using NonUniformBins = std::vector<double>;
+
+  struct UniformBins {
+    std::size_t n; // number of bins
+    double low; // lower edge of first bin
+    double high; // upper edge of last bin
+  };
+
+  using EdgesType = std::variant<UniformBins, NonUniformBins>;
+}
 
 class Binning {
   public:
@@ -193,19 +220,21 @@ class Binning {
     double evaluate(const std::vector<Variable::Type>& values) const;
 
   private:
-    std::variant<_UniformBins, _NonUniformBins> bins_; // bin edges
+    detail::EdgesType bins_; // bin edges
     // bin contents: contents_[i] is the value corresponding to bins_[i+1].
     // the default value is at contents_[0]
     std::vector<Content> contents_;
     size_t variableIdx_;
-    _FlowBehavior flow_;
+    detail::FlowBehavior flow_;
 };
 
-struct _MultiBinningAxis {
-  size_t variableIdx;
-  size_t stride;
-  std::variant<_UniformBins, _NonUniformBins> bins;
-};
+namespace detail {
+  struct MultiBinningAxis {
+    size_t variableIdx;
+    size_t stride;
+    detail::EdgesType bins;
+  };
+}
 
 class MultiBinning {
   public:
@@ -216,9 +245,9 @@ class MultiBinning {
   private:
     size_t nbins(size_t dimension) const;
 
-    std::vector<_MultiBinningAxis> axes_;
+    std::vector<detail::MultiBinningAxis> axes_;
     std::vector<Content> content_;
-    _FlowBehavior flow_;
+    detail::FlowBehavior flow_;
 };
 
 class Category {

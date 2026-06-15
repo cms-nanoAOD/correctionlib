@@ -153,9 +153,9 @@ def setup_merge(subparsers):
 
 
 def config(console: Console, args: argparse.Namespace) -> int:
-    from .util import this_module_path
+    from .util import artifact_base_dir
 
-    base_dir = this_module_path()
+    base_dir = artifact_base_dir()
     incdir = base_dir / "include"
     libdir = base_dir / "lib"
     out = []

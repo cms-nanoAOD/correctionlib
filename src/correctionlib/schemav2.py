@@ -61,6 +61,7 @@ Content = Union[
             "FormulaRef",
             "Transform",
             "HashPRNG",
+            "LWTNN",
         ],
         Field(discriminator="nodetype"),
     ],
@@ -138,6 +139,43 @@ class HashPRNG(Model):
                 stacklevel=2,
             )
         return distribution
+
+
+class LWTNNInput(Model):
+    """An input variable for an LWTNN node"""
+
+    model_config = ConfigDict(extra="allow")
+
+    name: str
+
+
+class LWTNNSchema(Model):
+    """The expected schema for the opaque configuration of an LWTNN node
+
+    This is not the entire LWTNN schema, just the parts that we need to
+    validate and extract input/output variable names from. Full validation
+    of the opaque blob is deferred to the C++ code.
+    """
+
+    model_config = ConfigDict(extra="allow")
+
+    inputs: list[LWTNNInput] = Field(
+        description="The input variables for the LWTNN model. "
+        "These must match input variable names in the CorrectionSet."
+    )
+    outputs: list[str]
+
+
+class LWTNN(Model):
+    """A node that evaluates a lightweight neural network"""
+
+    nodetype: Literal["lwtnn"]
+    opaque: LWTNNSchema = Field(
+        description="The opaque configuration for lwtnn, passed directly to the C++ code"
+    )
+    finalizer: Formula = Field(
+        description="A formula to apply to the raw lwtnn outputs, with input variables matching the lwtnn outputs"
+    )
 
 
 class UniformBinning(Model):
@@ -306,7 +344,7 @@ Category.model_rebuild()
 def walk_content(content: Content, func: Callable[[Content], None]) -> None:
     """Visit all content nodes in a tree, applying func to each node."""
     func(content)
-    if isinstance(content, (float, Formula, FormulaRef, HashPRNG)):
+    if isinstance(content, (float, Formula, FormulaRef, HashPRNG, LWTNN)):
         pass
     elif isinstance(content, (Binning, MultiBinning)):
         for bin in content.content:
@@ -341,6 +379,20 @@ def _validate_input(allowed_names: set[str], node: Content) -> None:
             if inp not in allowed_names:
                 msg = f"{nodename} input {inp!r} not found in Correction inputs {allowed_names}"
                 raise ValueError(msg)
+    elif isinstance(node, LWTNN):
+        if len(node.opaque.inputs) == 0:
+            raise ValueError("LWTNN opaque configuration 'inputs' field is empty")
+        for lwtinp in node.opaque.inputs:
+            if lwtinp.name not in allowed_names:
+                msg = f"{nodename} input {lwtinp.name!r} not found in Correction inputs {allowed_names}"
+                raise ValueError(msg)
+        lwtnn_outputs = node.opaque.outputs
+        if len(lwtnn_outputs) == 0:
+            raise ValueError("LWTNN opaque configuration 'outputs' field is empty")
+        for var in node.finalizer.variables:
+            if var not in lwtnn_outputs:
+                msg = f"{nodename} finalizer variable {var!r} not found in lwtnn outputs {lwtnn_outputs}"
+                raise ValueError(msg)
     # FormulaRef has no direct input names
 
 
@@ -362,6 +414,7 @@ class _SummaryInfo:
         self.default: bool = False
         self.overflow: bool = True
         self.transform: bool = False
+        self.used: bool = False
         self.min: float = float("inf")
         self.max: float = float("-inf")
 
@@ -376,19 +429,29 @@ def _summarize(
     if isinstance(node, Binning):
         inputstats[node.input].overflow &= node.flow != "error"
         low, high = _binning_range(node.edges)
+        inputstats[node.input].used = True
         inputstats[node.input].min = min(inputstats[node.input].min, low)
         inputstats[node.input].max = max(inputstats[node.input].max, high)
     elif isinstance(node, MultiBinning):
         for input, edges in zip(node.inputs, node.edges):
             inputstats[input].overflow &= node.flow != "error"
             low, high = _binning_range(edges)
+            inputstats[input].used = True
             inputstats[input].min = min(inputstats[input].min, low)
             inputstats[input].max = max(inputstats[input].max, high)
     elif isinstance(node, Category):
+        inputstats[node.input].used = True
         inputstats[node.input].values |= {item.key for item in node.content}
         inputstats[node.input].default |= node.default is not None
     elif isinstance(node, Transform):
+        inputstats[node.input].used = True
         inputstats[node.input].transform = True
+    elif isinstance(node, Formula):
+        for var in node.variables:
+            inputstats[var].used = True
+    elif isinstance(node, LWTNN):
+        for inp in node.opaque.inputs:
+            inputstats[inp.name].used = True
 
 
 class Correction(Model):
@@ -453,7 +516,7 @@ class Correction(Model):
         def fmt_input(var: Variable, stats: _SummaryInfo) -> str:
             out = var.__rich__()
             if var.type == "real":
-                if stats.min == float("inf") and stats.max == float("-inf"):
+                if not stats.used:
                     out += "\nRange: [bold red]unused[/bold red]"
                 else:
                     out += f"\nRange: [{stats.min}, {stats.max})"

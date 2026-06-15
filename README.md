@@ -85,6 +85,30 @@ using the
 [parse_obj](https://pydantic-docs.helpmanual.io/usage/models/#helper-functions)
 class method or by directly constructing them using keyword arguments.
 
+## Compatibility
+
+The evaluator keys on the `schema_version` field in the JSON data and only
+operates with the same major schema version. For minor versions, the evaluator
+MUST remain backwards-compatible with all older minor versions of the same major
+series, but MAY introduce new features that make it forwards-incompatible with
+older readers. For patch versions, the library MUST be fully
+backwards-compatible and MUST NOT introduce new features or schema changes.
+
+In practice we have not always lived up to these goals. The table below lists
+known deviations. Forwards-incompatible changes (marked "Forwards") are allowed
+under the versioning policy and are included for informational purposes only;
+backwards-incompatible changes (marked "Backwards") represent unintended breaks.
+
+| Version       | Break type                      | Change                                                                                                                                      |
+| ------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| v2.2.0        | Forwards (new node)             | `HashPRNG` node added; files using it require v2.2.0+                                                                                       |
+| v2.3.0        | Forwards (new edge format)      | `UniformBinning` object allowed for `edges`; requires v2.3.0+                                                                               |
+| v2.6.0        | Forwards (new edge values)      | String infinity sentinels (`"inf"`, `"-inf"`) allowed in edges; requires v2.6.0+                                                            |
+| v2.6.0–v2.6.3 | Backwards (patch rule violated) | Float `±inf` in edges rejected with no escape hatch; files using float infinities broke. `IGNORE_FLOAT_INF=True` workaround added in v2.6.4 |
+| v2.7.0        | Forwards (new flow value)       | `flow: "wrap"` added to `Binning`/`MultiBinning`; requires v2.7.0+                                                                          |
+| v2.8.0        | Forwards (`$schema` field)      | `"$schema"` key added to JSON, rejected by older Python parsers (`extra="forbid"`)                                                          |
+| v2.9.0        | Forwards (new node)             | `LWTNN` node added; files using it require v2.9.0+                                                                                          |
+
 ## Developing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for details on setting up a development
