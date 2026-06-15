@@ -223,7 +223,7 @@ namespace {
 
     // otherwise we have non-uniform binning
     using namespace std::string_literals;
-    const auto bins = std::get<_NonUniformBins>(bins_);
+    const auto& bins = std::get<_NonUniformBins>(bins_);
     if ( flow == _FlowBehavior::wrap ) {
       double low = bins[0];
       double high = bins[bins.size() - 1];
