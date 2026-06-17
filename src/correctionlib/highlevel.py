@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Iterator, Mapping
+from functools import lru_cache
 from numbers import Integral
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -333,6 +334,11 @@ class _CompoundMap(Mapping[str, CompoundCorrection]):
         return iter(self._base)
 
 
+@lru_cache(maxsize=64)
+def _from_string(data: str) -> correctionlib._core.CorrectionSet:
+    return correctionlib._core.CorrectionSet.from_string(data)
+
+
 class CorrectionSet(Mapping[str, Correction]):
     """High-level correction set evaluator object
 
@@ -347,7 +353,7 @@ class CorrectionSet(Mapping[str, Correction]):
             self._data = data
         else:
             self._data = data.model_dump_json(exclude_unset=True)
-        self._base = correctionlib._core.CorrectionSet.from_string(self._data)
+        self._base = _from_string(self._data)
 
     @classmethod
     def from_file(cls, filename: str) -> CorrectionSet:
@@ -362,7 +368,7 @@ class CorrectionSet(Mapping[str, Correction]):
 
     def __setstate__(self, state: dict[str, Any]) -> None:
         self._data = state["_data"]
-        self._base = correctionlib._core.CorrectionSet.from_string(self._data)
+        self._base = _from_string(self._data)
 
     def _ipython_key_completions_(self) -> list[str]:
         return list(self.keys())
