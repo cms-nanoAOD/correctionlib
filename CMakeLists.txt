@@ -16,6 +16,19 @@ option(BUILD_DEMO "Build demo program" ON)
 
 set(PKG_INSTALL "correctionlib") ## python package name
 
+# When cross-compiling, pybind11 asks FindPython for Development.Module without the
+# Interpreter component, so CMake (>=4.4) has nothing to deduce the free-threaded ABI
+# from and rejects the GIL-disabled headers with "missing: Development.Module".
+# Older CMake accepted them but derived a SOABI without the "t" flag. State the ABI
+# explicitly when the headers we were pointed at are free-threaded.
+if(NOT DEFINED Python_FIND_ABI AND EXISTS "${Python_INCLUDE_DIR}/pyconfig.h")
+  file(STRINGS "${Python_INCLUDE_DIR}/pyconfig.h" PY_GIL_DISABLED_DEFINE
+    REGEX "^[ \t]*#[ \t]*define[ \t]+Py_GIL_DISABLED[ \t]+1")
+  if(PY_GIL_DISABLED_DEFINE)
+    set(Python_FIND_ABI "OFF;ANY;ANY;ON")
+  endif()
+endif()
+
 include(FetchContent)
 FetchContent_Declare(pybind11
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pybind11
