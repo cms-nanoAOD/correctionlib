@@ -77,6 +77,16 @@ if(MSVC)
   target_compile_options(correctionlib PRIVATE /Zc:__cplusplus /utf-8)
 else()
   target_compile_options(correctionlib PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  # cpp-peglib declares operator"" _ with the whitespace C++23 deprecates, which
+  # recent clang diagnoses and -Werror makes fatal. Upstream fixed it in v1.14.0,
+  # but every release carrying that fix has dropped the parser.log API we use, so
+  # silence it here instead. Probe the positive form: compilers accept unknown
+  # -Wno-* options silently, so checking that directly proves nothing.
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-Wdeprecated-literal-operator HAVE_WDEPRECATED_LITERAL_OPERATOR)
+  if(HAVE_WDEPRECATED_LITERAL_OPERATOR)
+    target_compile_options(correctionlib PRIVATE -Wno-deprecated-literal-operator)
+  endif()
 endif()
 target_link_libraries(correctionlib PRIVATE lwtnn-stat)
 if(ZLIB_FOUND)
