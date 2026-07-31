@@ -141,7 +141,7 @@ def test_evaluator():
     platform.architecture() in {("32bit", "ELF"), ("32bit", "")},
     reason="cibuildwheel tests fail while building i686 wheels due to floating point rounding differences of order 1e-16",
 )
-def test_tformula():
+def test_tformula(ulp_report):
     def evaluate(expr, variables, parameters):
         cset = {
             "schema_version": 2,
@@ -431,11 +431,12 @@ def test_tformula():
             * (math.log(x) / math.log(10) - v[5])
         )
         # the following shows a small numerical error: 1.2512381067949132 - 1.251238106794914 == -8e-16
-        assert evaluate(
-            "max(0.0001,[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-1*([4]*((log10(x)-[5])*(log10(x)-[5])))))",
-            [x],
-            v,
-        ) == pytest.approx(
+        ulp_report(
+            evaluate(
+                "max(0.0001,[0]+[1]/(pow(log10(x),2)+[2])+[3]*exp(-1*([4]*((log10(x)-[5])*(log10(x)-[5])))))",
+                [x],
+                v,
+            ),
             max(
                 0.0001,
                 v[0]
