@@ -34,11 +34,16 @@ def ulp_distance(actual: float, expected: float) -> float:
     """Count the representable doubles between two floats."""
     if actual != actual or expected != expected:  # NaN
         return float("inf")
+    if actual in (float("inf"), float("-inf")) or expected in (
+        float("inf"),
+        float("-inf"),
+    ):
+        return float("inf")
     if actual == expected:
         return 0
     try:
         return abs(_ordinal(actual) - _ordinal(expected))
-    except (OverflowError, struct.error):  # infinities
+    except (OverflowError, struct.error):
         return float("inf")
 
 
