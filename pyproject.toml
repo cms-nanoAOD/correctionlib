@@ -160,5 +160,10 @@ test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32", "cp*-win_arm64"]
 # this makes sure that we build only on platforms that have a corresponding numpy wheel
 PIP_ONLY_BINARY = ":all:"
 
+[tool.cibuildwheel.linux]
+# the linux tests run in a container, so the ULP report path has to be handed in
+# explicitly; the other platforms see the runner environment already
+environment-pass = ["CORRECTIONLIB_ULP_REPORT"]
+
 [tool.codespell]
 ignore-regex = "[A-Za-z0-9+/]{100,}"  # ignore long base64 strings

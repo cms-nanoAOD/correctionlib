@@ -59,6 +59,17 @@ jobs:
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           MACOSX_DEPLOYMENT_TARGET: 11.0
+          CORRECTIONLIB_ULP_REPORT: ${{ github.workspace }}/ulp-report.md
+
+      # cibuildwheel overwrites GITHUB_STEP_SUMMARY with its own build table once it
+      # finishes, so the tests collect this separately and it gets appended after
+      - name: Report float assertion ULPs
+        if: always()
+        shell: bash
+        run: |
+          if [ -f ulp-report.md ]; then
+            cat ulp-report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload wheels
         uses: actions/upload-artifact@v7
