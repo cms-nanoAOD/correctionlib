@@ -111,6 +111,7 @@ ignore = [
 [tool.mypy]
 python_version = "3.9"
 files = ["src"]
+follow_imports_for_stubs = true
 
 [[tool.mypy.overrides]]
 module = ["awkward.*", "uproot.*"]
@@ -119,6 +120,13 @@ follow_untyped_imports = true
 [[tool.mypy.overrides]]
 module = ["cppyy.*", "scipy.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# numpy's stubs use PEP 695 "type" statements, which mypy refuses to parse while we
+# target python_version 3.9, so skip them; follow_imports_for_stubs above is what
+# makes the skip apply to .pyi files at all
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
 
 [tool.ruff.lint]
 select = [
