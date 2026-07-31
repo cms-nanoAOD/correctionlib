@@ -139,7 +139,10 @@ Homepage = "https://github.com/cms-nanoAOD/correctionlib"
 [tool.scikit-build]
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 cmake.version = ">=3.11.0"
-sdist.include = ["src/correctionlib/version.py"]
+# only Eigen/ is needed to build lwtnn; the rest of the Eigen checkout (tests,
+# docs, demos, unsupported/) would roughly triple the sdist for nothing
+sdist.exclude = ["eigen/**"]
+sdist.include = ["src/correctionlib/version.py", "eigen/Eigen/**"]
 
 [tool.scikit-build.cmake.define]
 BUILD_DEMO = "OFF"
@@ -151,7 +154,7 @@ write_to = "src/correctionlib/version.py"
 skip = ["cp3{9,10}*-win_arm64"]
 test-groups = ["test"]
 test-command = "python -m pytest {package}/tests"
-test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32", "cp*-win_arm64", "cp*-manylinux_aarch64"]
+test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32", "cp*-win_arm64"]
 
 [tool.cibuildwheel.environment]
 # this makes sure that we build only on platforms that have a corresponding numpy wheel

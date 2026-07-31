@@ -38,4 +38,7 @@ def test_lwtnn_example():
         gen_phi,
         gen_iso,
     )
-    assert sf == 0.95186825355646787
+    # lwtnn's Eigen kernels sum in an order that depends on the vector ISA and the
+    # Eigen version, so the last couple of ULPs are not reproducible across
+    # platforms -- an aarch64 wheel build differed by one ULP here, see #348.
+    assert sf == pytest.approx(0.95186825355646787, rel=1e-12)

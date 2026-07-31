@@ -27,13 +27,31 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads)
 find_package(ZLIB)
 
-# Configure lwtnn to build static library only and download dependencies
+# Configure lwtnn to build static library only and download dependencies.
+# Eigen comes from the vendored copy rather than from lwtnn's BUILTIN_EIGEN, which
+# configures Eigen's own CMake project and so fails on systems that have MPFR but no
+# GMP development headers. Eigen is header only, so pointing lwtnn's FindEigen3 at
+# the headers is all it takes; override to build against another copy, e.g.
+# -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+set(EIGEN3_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/eigen"
+  CACHE PATH "Directory holding the Eigen headers to build the bundled lwtnn against")
 set(BUILD_STATIC_LIBRARY ON)
 set(BUILD_TESTING OFF)
 set(BUILTIN_BOOST ON)
-set(BUILTIN_EIGEN ON)
+set(BUILTIN_EIGEN OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(lwtnn EXCLUDE_FROM_ALL)
+
+# lwtnn drops EIGEN3_INCLUDE_DIR verbatim into its targets' usage requirements, and
+# its install(EXPORT) rules reject an absolute in-tree path there. lwtnn does its own
+# BUILD_INTERFACE wrapping in the BUILTIN_EIGEN branch; do the same for our copy.
+foreach(lwtnn_target IN ITEMS lwtnn lwtnn-stat)
+  get_target_property(lwtnn_include_dirs ${lwtnn_target} INTERFACE_INCLUDE_DIRECTORIES)
+  string(REPLACE "${EIGEN3_INCLUDE_DIR}" "$<BUILD_INTERFACE:${EIGEN3_INCLUDE_DIR}>"
+    lwtnn_include_dirs "${lwtnn_include_dirs}")
+  set_target_properties(${lwtnn_target} PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${lwtnn_include_dirs}")
+endforeach()
 
 
 configure_file(include/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/correctionlib_version.h)
