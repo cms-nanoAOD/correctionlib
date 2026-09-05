@@ -102,7 +102,6 @@ ignore = [
   ".readthedocs.yml",
   "src/*/version.py",
   "data/**",
-  "Makefile",
   "cpp-peglib/**",
   "pybind11/**",
   "rapidjson/**",
