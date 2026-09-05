@@ -78,6 +78,11 @@ class JSONObject {
 template<>
 std::string_view JSONObject::getRequired<std::string_view>(const char*) const;
 
+// specialization for double: accept any JSON number, since JSON does not
+// distinguish integer-valued literals (e.g. 0) from floating point ones (0.0)
+template<>
+double JSONObject::getRequired<double>(const char*) const;
+
 
 namespace detail {
   size_t find_input_index(const std::string_view name, const std::vector<Variable> &inputs);

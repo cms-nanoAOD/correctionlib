@@ -50,7 +50,9 @@ make install  # set PREFIX=... to change from default (./correctionlib)
 
 where `python` is the name of the python scram tool you intend to link against.
 This will output a `correctionlib` directory that acts as a python package, and
-can be moved where needed.
+can be moved where needed. The `lwtnn` neural network node needs the header-only
+Eigen and Boost libraries; if they are not in the default system include paths,
+pass their locations with `make EIGEN_INC=/path/to/eigen3 BOOST_INC=/path/to/boost/include`.
 
 ## Outside CMSSW
 

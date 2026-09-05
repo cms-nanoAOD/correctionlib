@@ -32,7 +32,7 @@ def validate(console: Console, args: argparse.Namespace) -> int:
             retcode = 1
             if args.failfast:
                 break
-        except BaseException:
+        except Exception:
             if not args.quiet:
                 raise
             retcode = 2
@@ -232,4 +232,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())
