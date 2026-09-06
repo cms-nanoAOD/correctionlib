@@ -102,7 +102,7 @@ class Transform(Model):
     Any downstream nodes will see a different value for the rewritten input
     If the input is an integer type, the rule output will be cast from a
     double to integer type before using. These should be used sparingly and at
-    high levels in the tree, since they require an allocation.
+    high levels in the tree, since they require copying the input values.
     """
 
     nodetype: Literal["transform"]
@@ -354,7 +354,7 @@ def walk_content(content: Content, func: Callable[[Content], None]) -> None:
     elif isinstance(content, Category):
         for cat in content.content:
             walk_content(cat.value, func)
-        if content.default:
+        if content.default is not None:
             walk_content(content.default, func)
     elif isinstance(content, Transform):
         walk_content(content.rule, func)
@@ -684,9 +684,10 @@ may use it to provide autocompletion and validation against the schema.
 
 
 if __name__ == "__main__":
+    import json
     import os
     import sys
 
     dirname = sys.argv[-1]
     with open(os.path.join(dirname, f"schemav{VERSION}.json"), "w") as fout:
-        fout.write(CorrectionSet.schema_json(indent=4))
+        json.dump(CorrectionSet.model_json_schema(), fout, indent=4)
