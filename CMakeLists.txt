@@ -16,6 +16,19 @@ option(BUILD_DEMO "Build demo program" ON)
 
 set(PKG_INSTALL "correctionlib") ## python package name
 
+# When cross-compiling, pybind11 asks FindPython for Development.Module without the
+# Interpreter component, so CMake (>=4.4) has nothing to deduce the free-threaded ABI
+# from and rejects the GIL-disabled headers with "missing: Development.Module".
+# Older CMake accepted them but derived a SOABI without the "t" flag. State the ABI
+# explicitly when the headers we were pointed at are free-threaded.
+if(NOT DEFINED Python_FIND_ABI AND EXISTS "${Python_INCLUDE_DIR}/pyconfig.h")
+  file(STRINGS "${Python_INCLUDE_DIR}/pyconfig.h" PY_GIL_DISABLED_DEFINE
+    REGEX "^[ \t]*#[ \t]*define[ \t]+Py_GIL_DISABLED[ \t]+1")
+  if(PY_GIL_DISABLED_DEFINE)
+    set(Python_FIND_ABI "OFF;ANY;ANY;ON")
+  endif()
+endif()
+
 include(FetchContent)
 FetchContent_Declare(pybind11
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pybind11
@@ -64,6 +77,16 @@ if(MSVC)
   target_compile_options(correctionlib PRIVATE /Zc:__cplusplus /utf-8)
 else()
   target_compile_options(correctionlib PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  # cpp-peglib declares operator"" _ with the whitespace C++23 deprecates, which
+  # recent clang diagnoses and -Werror makes fatal. Upstream fixed it in v1.14.0,
+  # but every release carrying that fix has dropped the parser.log API we use, so
+  # silence it here instead. Probe the positive form: compilers accept unknown
+  # -Wno-* options silently, so checking that directly proves nothing.
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-Wdeprecated-literal-operator HAVE_WDEPRECATED_LITERAL_OPERATOR)
+  if(HAVE_WDEPRECATED_LITERAL_OPERATOR)
+    target_compile_options(correctionlib PRIVATE -Wno-deprecated-literal-operator)
+  endif()
 endif()
 target_link_libraries(correctionlib PRIVATE lwtnn-stat)
 if(ZLIB_FOUND)
