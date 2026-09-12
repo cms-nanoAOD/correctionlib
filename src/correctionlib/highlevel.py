@@ -334,7 +334,7 @@ class _CompoundMap(Mapping[str, CompoundCorrection]):
         return iter(self._base)
 
 
-@lru_cache(maxsize=64)
+@lru_cache(maxsize=16)
 def _from_string(data: str) -> correctionlib._core.CorrectionSet:
     return correctionlib._core.CorrectionSet.from_string(data)
 
