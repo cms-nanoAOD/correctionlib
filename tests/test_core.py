@@ -174,6 +174,12 @@ def test_tformula():
         assert evaluate("23.*log(max(x, 0.1))", [x], []) == 23.0 * math.log(max(x, 0.1))
         assert evaluate("2.2e3 + x", [x], []) == 2.2e3 + x
         assert evaluate("-2e-3 * x", [x], []) == -2e-3 * x
+        assert evaluate("1e+16 + x", [x], []) == 1e16 + x
+        assert evaluate("1.5E+3 * x", [x], []) == 1.5e3 * x
+        assert evaluate("2E5 - x", [x], []) == 2e5 - x
+        assert evaluate(".5 * x", [x], []) == 0.5 * x
+        assert evaluate("x - .25e1", [x], []) == x - 2.5
+        assert evaluate(str(1e16) + "*x", [x], []) == 1e16 * x
 
     assert evaluate("5", [], []) == 5.0
     assert evaluate("3+2", [], []) == 5.0
@@ -755,6 +761,37 @@ def test_binning():
         assert corr.evaluate(3.0) == 1.0
         assert corr.evaluate(4.6) == 2.0
         assert corr.evaluate(6.1) == 1.0
+        # a value infinitesimally below the period boundary wraps to (almost) 3.0,
+        # which is still inside the last bin
+        assert corr.evaluate(-1e-17) == 2.0
+        assert corr.evaluate(math.nextafter(3.0, 0.0)) == 2.0
+
+    def binning_rounding_edges(flow):
+        # (value - low) / (high - low) rounds up to exactly 1.0 for the largest
+        # double below high, which must still be assigned to the last bin
+        low, high = -4.005762189252304, -1.886552955475989
+        value = math.nextafter(high, low)
+        assert value < high
+        cset = wrap(
+            schema.Correction(
+                name="test",
+                version=2,
+                inputs=[schema.Variable(name="x", type="real")],
+                output=schema.Variable(name="a scale", type="real"),
+                data=schema.Binning(
+                    nodetype="binning",
+                    input="x",
+                    edges=schema.UniformBinning(n=3, low=low, high=high),
+                    content=[1.0, 2.0, 3.0],
+                    flow=flow,
+                ),
+            )
+        )
+        return cset["test"], value
+
+    for flow in ["error", "clamp", "wrap", 42.0]:
+        corr, value = binning_rounding_edges(flow)
+        assert corr.evaluate(value) == 3.0
 
     def multibinning(flow, uniform=True):
         if uniform:

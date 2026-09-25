@@ -12,7 +12,7 @@ Adapted from:
 import gzip
 import json
 import math
-from typing import Any, List, Type  # noqa: F401
+from typing import Any
 
 import pydantic
 
@@ -60,7 +60,7 @@ class JSONEncoder(json.JSONEncoder):
         self.parent = type(None)  # type of parent for recursive use
 
     def encode(self, obj: Any) -> str:
-        grandparent = self.parent  # type: Type[Any]
+        grandparent: type[Any] = self.parent
         self.parent = type(obj)
         retval = ""
         if isinstance(obj, (list, tuple)):  # lists, tuples
@@ -81,7 +81,7 @@ class JSONEncoder(json.JSONEncoder):
                     ):  # break list of long strings into multiple lines
                         output = obj
                     else:  # group strings into several lines
-                        line = []  # type: List[str]
+                        line: list[str] = []
                         nchars = 0
                         for item in obj:
                             if len(line) == 0 or nchars + len(item) < self.maxstrlen:

@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <cmath>
 #include <cstdlib> // std::abort
+#include <cstring> // std::memcpy
 #include <random>
 #include "correction.h"
 #define XXH_INLINE_ALL 1
@@ -27,23 +28,60 @@
 
 using namespace correction;
 
-//! helper function for parsing flow behavior from string
-detail::FlowBehavior parse_flow_behavior(const rapidjson::Value& flowbehavior) {
-  if ( flowbehavior == "clamp" ) {
-    return detail::FlowBehavior::clamp;
-  }
-  else if ( flowbehavior == "error" ) {
-    return detail::FlowBehavior::error;
-  }
-  else if ( flowbehavior == "wrap" ) {
-    return detail::FlowBehavior::wrap;
-  }
-  else {
-    return detail::FlowBehavior::value;
-  }
-}
-
 namespace {
+  //! helper function for parsing flow behavior from string
+  detail::FlowBehavior parse_flow_behavior(const rapidjson::Value& flowbehavior) {
+    if ( flowbehavior == "clamp" ) {
+      return detail::FlowBehavior::clamp;
+    }
+    else if ( flowbehavior == "error" ) {
+      return detail::FlowBehavior::error;
+    }
+    else if ( flowbehavior == "wrap" ) {
+      return detail::FlowBehavior::wrap;
+    }
+    else {
+      return detail::FlowBehavior::value;
+    }
+  }
+
+  void throw_parse_error(const rapidjson::ParseResult& result) {
+    throw std::runtime_error(
+        std::string("JSON parse error: ") + rapidjson::GetParseError_En(result.Code())
+        + " at offset " + std::to_string(result.Offset())
+        );
+  }
+
+  //! Parse a JSON document from an in-memory string, requiring the top-level value to be an object
+  rapidjson::Document parse_json_object(const char * data, const char * what) {
+    rapidjson::Document json;
+    rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
+    if (!ok) { throw_parse_error(ok); }
+    if ( ! json.IsObject() ) { throw std::runtime_error(std::string("Expected ") + what + " object"); }
+    return json;
+  }
+
+  //! Read a JSON array of numbers into a vector, rejecting anything else
+  std::vector<double> parse_number_array(const rapidjson::Value::ConstArray& items, const char * what) {
+    std::vector<double> out;
+    out.reserve(items.Size());
+    for (const auto& item : items) {
+      if ( ! item.IsNumber() ) {
+        throw std::runtime_error(std::string("Expected number in ") + what);
+      }
+      out.push_back(item.GetDouble());
+    }
+    return out;
+  }
+
+  //! Look up an input variable by a JSON value that must be a string
+  size_t find_input_index(const rapidjson::Value& name, const std::vector<Variable>& inputs, const char * what) {
+    if ( ! name.IsString() ) {
+      throw std::runtime_error(std::string("Expected string for ") + what);
+    }
+    return detail::find_input_index(std::string_view(name.GetString(), name.GetStringLength()), inputs);
+  }
+
   Content resolve_content(const rapidjson::Value& json, const Correction& context) {
     if ( json.IsNumber() ) { return json.GetDouble(); }
     else if ( json.IsObject() && json.HasMember("nodetype") ) {
@@ -140,11 +178,13 @@ namespace {
       }
 
       double norm_value = ((value - bins->low) / (bins->high - bins->low));
-      if (flow == detail::FlowBehavior::wrap) {
+      if (flow == detail::FlowBehavior::wrap && (value < bins->low || value >= bins->high)) {
         norm_value -= std::floor(norm_value);
       }
-      std::size_t binIdx = bins->n * norm_value;
-      return binIdx;
+      // norm_value is in [0, 1) mathematically, but floating point rounding can
+      // produce exactly 1.0 for values just below the upper edge (or after wrapping),
+      // which would alias the default-value slot at index n
+      return std::min<std::size_t>(bins->n * norm_value, bins->n - 1);
     }
 
     // otherwise we have non-uniform binning
@@ -155,6 +195,8 @@ namespace {
       double high = bins[bins.size() - 1];
       double norm_value = (value - low) / (high - low);
       norm_value -= std::floor(norm_value);
+      // mathematically in [low, high), but rounding can land exactly on high,
+      // in which case the overflow handling below clamps into the last bin
       value = low + norm_value * (high - low);
     }
 
@@ -166,10 +208,7 @@ namespace {
       else if ( flow == detail::FlowBehavior::error ) {
         throw std::runtime_error("Index below bounds in "s + name + " for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value));
       }
-      else if ( flow == detail::FlowBehavior::wrap ) {
-        throw std::logic_error("I should not have ever seen an underflow");
-      }
-      else { // clamp
+      else { // clamp (or wrap, which cannot underflow after rewrapping above)
         it++;
       }
     }
@@ -180,10 +219,7 @@ namespace {
       else if ( flow == detail::FlowBehavior::error ) {
         throw std::runtime_error("Index above bounds in "s + name + " for input argument " + std::to_string(variableIdx) + " value: " + std::to_string(value));
       }
-      else if ( flow == detail::FlowBehavior::wrap ) {
-        throw std::logic_error("I should not have ever seen an overflow");
-      }
-      else { // clamp
+      else { // clamp, or wrap where rounding landed exactly on the upper edge
         it--;
       }
     }
@@ -194,10 +230,10 @@ namespace {
   }
 
   double parse_edge(const rapidjson::Value& edge) {
-    if ( edge.IsDouble() ) {
+    if ( edge.IsNumber() ) {
       return edge.GetDouble();
     } else if ( edge.IsString() ) {
-      std::string_view str = edge.GetString();
+      std::string_view str(edge.GetString(), edge.GetStringLength());
       if ((str == "inf") || (str == "+inf")) return std::numeric_limits<double>::infinity();
       else if (str == "-inf") return -std::numeric_limits<double>::infinity();
     }
@@ -255,16 +291,7 @@ void Variable::validate(const Type& t) const {
 }
 
 Variable Variable::from_string(const char * data) {
-  rapidjson::Document json;
-  rapidjson::ParseResult ok = json.Parse(data);
-  if (!ok) {
-    throw std::runtime_error(
-        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
-        + " at offset " + std::to_string(ok.Offset())
-        );
-  }
-  if ( ! json.IsObject() ) { throw std::runtime_error("Expected Variable object"); }
-  return Variable(json);
+  return Variable(parse_json_object(data, "Variable"));
 }
 
 Formula::Formula(const JSONObject& json, const Correction& context, bool generic)
@@ -284,7 +311,7 @@ Formula::Formula(const JSONObject& json, const std::vector<Variable>& inputs, bo
 
   std::vector<size_t> variableIdx;
   for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("variables")) {
-    auto idx = detail::find_input_index(item.GetString(), inputs);
+    auto idx = find_input_index(item, inputs, "Formula variable name");
     if ( inputs[idx].type() != Variable::VarType::real ) {
       throw std::runtime_error("Formulas only accept real-valued inputs, got type "
           + inputs[idx].typeStr() + " for variable " + inputs[idx].name());
@@ -294,25 +321,14 @@ Formula::Formula(const JSONObject& json, const std::vector<Variable>& inputs, bo
 
   std::vector<double> params;
   if ( auto items = json.getOptional<rapidjson::Value::ConstArray>("parameters") ) {
-    for (const auto& item : *items) {
-      params.push_back(item.GetDouble());
-    }
+    params = parse_number_array(*items, "Formula parameters");
   }
 
   ast_ = std::make_unique<FormulaAst>(FormulaAst::parse(type_, expression_, params, variableIdx, !generic));
 }
 
 Formula::Ref Formula::from_string(const char * data, std::vector<Variable>& inputs) {
-  rapidjson::Document json;
-  rapidjson::ParseResult ok = json.Parse(data);
-  if (!ok) {
-    throw std::runtime_error(
-        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
-        + " at offset " + std::to_string(ok.Offset())
-        );
-  }
-  if ( ! json.IsObject() ) { throw std::runtime_error("Expected Formula object"); }
-  return std::make_shared<Formula>(json, inputs);
+  return std::make_shared<Formula>(parse_json_object(data, "Formula"), inputs);
 }
 
 double Formula::evaluate(const std::vector<Variable::Type>& values) const {
@@ -327,10 +343,14 @@ double Formula::evaluate(const std::vector<Variable::Type>& values, const std::v
 }
 
 FormulaRef::FormulaRef(const JSONObject& json, const Correction& context) {
-  formula_ = context.formula_ref(json.getRequired<int>("index"));
-  for (const auto& item : json.getRequired<rapidjson::Value::ConstArray>("parameters")) {
-    parameters_.push_back(item.GetDouble());
+  const auto index = json.getRequired<unsigned>("index");
+  try {
+    formula_ = context.formula_ref(index);
+  } catch (const std::out_of_range&) {
+    throw std::runtime_error("FormulaRef index " + std::to_string(index)
+        + " is out of range of the Correction generic_formulas list");
   }
+  parameters_ = parse_number_array(json.getRequired<rapidjson::Value::ConstArray>("parameters"), "FormulaRef parameters");
 }
 
 double FormulaRef::evaluate(const std::vector<Variable::Type>& values) const {
@@ -394,7 +414,8 @@ double HashPRNG::evaluate(const std::vector<Variable::Type>& values) const {
       seedData[i] = static_cast<uint64_t>(*v);
     }
     else if ( auto v = std::get_if<double>(&values[variablesIdx_[i]]) ) {
-      seedData[i] = *reinterpret_cast<const uint64_t*>(v);
+      static_assert(sizeof(double) == sizeof(uint64_t));
+      std::memcpy(&seedData[i], v, sizeof(uint64_t));
     }
     else { throw std::logic_error("I should not have ever seen a string"); }
   }
@@ -477,18 +498,19 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
   const auto& inputs = json.getRequired<rapidjson::Value::ConstArray>("inputs");
 
   const auto& edges = json.getRequired<rapidjson::Value::ConstArray>("edges");
+  if ( edges.Size() != inputs.Size() ) {
+    throw std::runtime_error("Inconsistency in MultiBinning: number of edge dimensions ("
+        + std::to_string(edges.Size()) + ") does not match number of inputs (" + std::to_string(inputs.Size()) + ")");
+  }
   axes_.reserve(edges.Size());
   size_t idx {0};
   for (const auto& dimension : edges) {
-    const auto& input = inputs[idx];
+    size_t variableIdx = find_input_index(inputs[idx], context.inputs(), "MultiBinning input name");
+    if ( context.inputs().at(variableIdx).type() == Variable::VarType::string ) {
+      throw std::runtime_error("MultiBinning cannot use string inputs as binning variables");
+    }
     if ( dimension.IsArray() ) { // non-uniform binning
-      std::vector<double> dim_edges = parse_bin_edges(dimension.GetArray());
-      if ( ! input.IsString() ) { throw std::runtime_error("invalid multibinning input type"); }
-      size_t variableIdx = detail::find_input_index(input.GetString(), context.inputs());
-      if ( context.inputs().at(variableIdx).type() == Variable::VarType::string ) {
-        throw std::runtime_error("MultiBinning cannot use string inputs as binning variables");
-      }
-      axes_.push_back({variableIdx, 0, detail::NonUniformBins(std::move(dim_edges))});
+      axes_.push_back({variableIdx, 0, detail::NonUniformBins(parse_bin_edges(dimension.GetArray()))});
     } else if ( dimension.IsObject() ) { // UniformBinning
       const JSONObject uniformBins{dimension.GetObject()};
       const auto n = uniformBins.getRequired<uint32_t>("n");
@@ -498,10 +520,6 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
       }
       const auto low = uniformBins.getRequired<double>("low");
       const auto high = uniformBins.getRequired<double>("high");
-      size_t variableIdx = detail::find_input_index(input.GetString(), context.inputs());
-      if ( context.inputs().at(variableIdx).type() == Variable::VarType::string ) {
-        throw std::runtime_error("MultiBinning cannot use string inputs as binning variables");
-      }
       axes_.push_back({variableIdx, 0, detail::UniformBins{n, low, high}});
     } else {
       auto msg = "Error when processing MultiBinning: edges for dimension " + std::to_string(idx) + " are neither an array nor a UniformBinning object";
@@ -512,11 +530,9 @@ MultiBinning::MultiBinning(const JSONObject& json, const Correction& context)
 
   const auto& content = json.getRequired<rapidjson::Value::ConstArray>("content");
   size_t stride {1};
-  --idx; // now corresponds to the last dimension
-  for (auto it=axes_.rbegin(); it != axes_.rend(); ++it) {
-    it->stride = stride;
-    stride *= nbins(idx);
-    --idx;
+  for (size_t dim = axes_.size(); dim-- > 0; ) { // C-ordered: last dimension has unit stride
+    axes_[dim].stride = stride;
+    stride *= nbins(dim);
   }
   content_.reserve(content.Size() + 1); // + 1 for default value
   for (const auto& item : content) {
@@ -579,11 +595,11 @@ Category::Category(const JSONObject& json, const Correction& context)
       }
       std::get<StrMap>(map_).try_emplace(kv_pair["key"].GetString(), resolve_content(kv_pair["value"], context));
     }
-    else if ( kv_pair["key"].IsInt() ) {
+    else if ( kv_pair["key"].IsInt64() ) {
       if ( variable.type() != Variable::VarType::integer ) {
         throw std::runtime_error("Category got a key of type int, but its input is type " + variable.typeStr());
       }
-      std::get<IntMap>(map_).try_emplace(kv_pair["key"].GetInt(), resolve_content(kv_pair["value"], context));
+      std::get<IntMap>(map_).try_emplace(kv_pair["key"].GetInt64(), resolve_content(kv_pair["value"], context));
     }
     else {
       throw std::runtime_error("Invalid key type in Category");
@@ -712,12 +728,7 @@ CompoundCorrection::CompoundCorrection(const JSONObject& json, const CorrectionS
 }
 
 size_t CompoundCorrection::input_index(const std::string_view name) const {
-  size_t idx = 0;
-  for (const auto& var : inputs_) {
-    if ( name == var.name() ) return idx;
-    idx++;
-  }
-  throw std::runtime_error("Error: could not find variable " + std::string(name) + " in inputs");
+  return detail::find_input_index(name, inputs_);
 }
 
 double CompoundCorrection::evaluate(const std::vector<Variable::Type>& values) const {
@@ -773,6 +784,7 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
   constexpr unsigned char magicref[2] = {0x1f, 0x8b};
   unsigned char magic[2];
   if (fread(magic, sizeof *magic, 2, fp) != 2) {
+    fclose(fp);
     throw std::runtime_error("Failed to read file magic: " + fn);
   }
   rewind(fp);
@@ -782,6 +794,9 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
     fclose(fp);
 #ifdef WITH_ZLIB
     gzFile_s* fpz = gzopen(fn.c_str(), "r");
+    if ( fpz == nullptr ) {
+      throw std::runtime_error("Failed to open gzip-compressed file: " + fn);
+    }
     rapidjson::GzFileReadStream is(fpz, readBuffer, sizeof(readBuffer));
     ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
     gzclose(fpz);
@@ -793,27 +808,13 @@ std::unique_ptr<CorrectionSet> CorrectionSet::from_file(const std::string& fn) {
     ok = json.ParseStream<rapidjson::kParseNanAndInfFlag>(is);
     fclose(fp);
   }
-  if (!ok) {
-    throw std::runtime_error(
-        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
-        + " at offset " + std::to_string(ok.Offset())
-        );
-  }
+  if (!ok) { throw_parse_error(ok); }
   if ( ! json.IsObject() ) { throw std::runtime_error("Expected CorrectionSet object"); }
   return std::make_unique<CorrectionSet>(json);
 }
 
 std::unique_ptr<CorrectionSet> CorrectionSet::from_string(const char * data) {
-  rapidjson::Document json;
-  rapidjson::ParseResult ok = json.Parse<rapidjson::kParseNanAndInfFlag>(data);
-  if (!ok) {
-    throw std::runtime_error(
-        std::string("JSON parse error: ") + rapidjson::GetParseError_En(ok.Code())
-        + " at offset " + std::to_string(ok.Offset())
-        );
-  }
-  if ( ! json.IsObject() ) { throw std::runtime_error("Expected CorrectionSet object"); }
-  return std::make_unique<CorrectionSet>(json);
+  return std::make_unique<CorrectionSet>(parse_json_object(data, "CorrectionSet"));
 }
 
 CorrectionSet::CorrectionSet(const JSONObject& json) {

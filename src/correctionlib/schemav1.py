@@ -56,9 +56,9 @@ class Category(Model):
     content: list[Content]
 
 
-Binning.update_forward_refs()
-MultiBinning.update_forward_refs()
-Category.update_forward_refs()
+Binning.model_rebuild()
+MultiBinning.model_rebuild()
+Category.model_rebuild()
 
 
 class Correction(Model):
@@ -80,9 +80,10 @@ class CorrectionSet(Model):
 
 
 if __name__ == "__main__":
+    import json
     import os
     import sys
 
     dirname = sys.argv[-1]
     with open(os.path.join(dirname, f"schemav{VERSION}.json"), "w") as fout:
-        fout.write(CorrectionSet.schema_json(indent=4))
+        json.dump(CorrectionSet.model_json_schema(), fout, indent=4)

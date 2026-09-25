@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 from numbers import Real
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy
 
@@ -20,14 +20,7 @@ from .schemav2 import (
 
 if TYPE_CHECKING:
     from numpy import ndarray
-    from typing_extensions import Literal
     from uhi.typing.plottable import PlottableAxis, PlottableHistogram
-else:
-    # py3.8+: no longer necessary
-    try:
-        from typing import Literal
-    except ImportError:
-        from typing_extensions import Literal
 
 
 def from_uproot_THx(

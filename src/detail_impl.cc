@@ -20,6 +20,24 @@ std::string_view JSONObject::getRequired<std::string_view>(const char * key) con
       + std::string(key) + "'");
 }
 
+template<>
+double JSONObject::getRequired<double>(const char * key) const
+{
+  const auto it = json_.FindMember(key);
+  if ( it != json_.MemberEnd() ) {
+    if ( it->value.IsNumber() ) {
+      return it->value.GetDouble();
+    } else {
+      throw std::runtime_error(
+          "Encountered invalid type for required attribute '"
+          + std::string(key) + "'");
+    }
+  }
+  throw std::runtime_error(
+      "Object missing required attribute '"
+      + std::string(key) + "'");
+}
+
 size_t detail::find_input_index(const std::string_view name, const std::vector<Variable> &inputs) {
   size_t idx = 0;
   for (const auto& var : inputs) {
