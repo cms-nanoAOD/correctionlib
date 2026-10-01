@@ -165,5 +165,9 @@ test-skip = ["*-musllinux_*", "cp3{10,11,12}-win32", "cp*-win_arm64", "cp*-manyl
 # this makes sure that we build only on platforms that have a corresponding numpy wheel
 PIP_ONLY_BINARY = ":all:"
 
+[tool.cibuildwheel.windows]
+# correctionlib.dll is shipped in correctionlib/lib and loaded via ctypes, no delvewheel needed
+repair-wheel-command = ""
+
 [tool.codespell]
 ignore-regex = "[A-Za-z0-9+/]{100,}"  # ignore long base64 strings
