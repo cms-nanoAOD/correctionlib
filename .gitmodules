@@ -16,3 +16,7 @@
 [submodule "lwtnn"]
 	path = lwtnn
 	url = https://github.com/lwtnn/lwtnn.git
+[submodule "eigen"]
+	path = eigen
+	url = https://gitlab.com/libeigen/eigen.git
+	shallow = true
