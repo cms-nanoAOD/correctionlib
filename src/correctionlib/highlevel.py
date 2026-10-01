@@ -122,8 +122,6 @@ def _wrap_awkward(
             non_array_args.append(arg)
             non_array_indices.append(iarg)
 
-    array_args = awkward.broadcast_arrays(*array_args)
-
     arg_indices = array_indices + non_array_indices
 
     tocall = partial(
@@ -133,6 +131,8 @@ def _wrap_awkward(
         arg_indices=arg_indices,
     )
 
+    # awkward.transform broadcasts its inputs itself, so broadcasting them first only
+    # does that work twice (and the explicit pass was the larger half of the wrapper's cost)
     return awkward.transform(tocall, *array_args)
 
 
