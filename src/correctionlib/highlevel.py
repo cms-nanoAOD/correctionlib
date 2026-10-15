@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
 _min_version_ak = version.parse("2.0.0")
 _min_version_dak = version.parse("2024.1.1")
+_min_version_graphed = version.parse("0.0.7")
 
 
 def open_auto(filename: str) -> str:
@@ -183,24 +184,44 @@ def _wrap_graphed(
     correction: Correction | CompoundCorrection,
     *args: Any,
 ) -> Any:
+    import graphed
     from graphed.awkward import gak
+
+    if version.parse(graphed.__version__) < _min_version_graphed:
+        raise RuntimeError(
+            f"""imported graphed is version {graphed.__version__} < {str(_min_version_graphed)}
+            Please upgrade graphed.
+            """
+        )
+
+    context = correction._context
+    payload = getattr(context, "_graphed_payload", None)
+    if payload is None:
+        # one bytes object per set, so graphed hashes a large payload once
+        payload = context._data.encode()
+        setattr(context, "_graphed_payload", payload)  # noqa: B010
 
     arrays: list[Any] = []
     template: list[Any] = []
     for arg in args:
-        if _isinstance(arg, "graphed"):
+        if _isgraphed(arg):
             template.append(f"${len(arrays)}")
             arrays.append(arg)
         else:
             template.append(arg)
     # graphed records the call as a node keyed by the set's contents and evaluates it when run
     return gak.apply_correction(
-        correction._context._data.encode(),
+        payload,
         correction._name,
         arrays,
         correction.evaluate,
         args=template,
     )
+
+
+def _isgraphed(arg: Any) -> bool:
+    """Return True if arg's class or a base is defined in graphed, without importing it"""
+    return any(c.__module__.partition(".")[0] == "graphed" for c in type(arg).__mro__)
 
 
 def _isinstance(arg: Any, clsprefix: str) -> bool:
@@ -225,7 +246,7 @@ def _evaluate(
         )
     if any(_isinstance(arg, "dask_awkward") for arg in args):
         return _wrap_dask_awkward(corr, *args)  # type: ignore
-    if any(_isinstance(arg, "graphed") for arg in args):
+    if any(_isgraphed(arg) for arg in args):
         return _wrap_graphed(corr, *args)
     if any(_isinstance(arg, "awkward") for arg in args):
         return _wrap_awkward(corr._base.evalv, *args)  # type: ignore
