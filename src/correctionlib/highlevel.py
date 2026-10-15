@@ -179,6 +179,30 @@ def _wrap_dask_awkward(
     )
 
 
+def _wrap_graphed(
+    correction: Correction | CompoundCorrection,
+    *args: Any,
+) -> Any:
+    from graphed.awkward import gak
+
+    arrays: list[Any] = []
+    template: list[Any] = []
+    for arg in args:
+        if _isinstance(arg, "graphed"):
+            template.append(f"${len(arrays)}")
+            arrays.append(arg)
+        else:
+            template.append(arg)
+    # graphed records the call as a node keyed by the set's contents and evaluates it when run
+    return gak.apply_correction(
+        correction._context._data.encode(),
+        correction._name,
+        arrays,
+        correction.evaluate,
+        args=template,
+    )
+
+
 def _isinstance(arg: Any, clsprefix: str) -> bool:
     """Return True if arg is an instance of a class with the given prefix
 
@@ -201,6 +225,8 @@ def _evaluate(
         )
     if any(_isinstance(arg, "dask_awkward") for arg in args):
         return _wrap_dask_awkward(corr, *args)  # type: ignore
+    if any(_isinstance(arg, "graphed") for arg in args):
+        return _wrap_graphed(corr, *args)
     if any(_isinstance(arg, "awkward") for arg in args):
         return _wrap_awkward(corr._base.evalv, *args)  # type: ignore
     if all(isinstance(arg, (str, int, float)) for arg in args):

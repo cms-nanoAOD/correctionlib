@@ -61,6 +61,7 @@ test = [
   "pytest-run-parallel",
   "awkward >=2.2.2",
   "dask-awkward >=2024.1.1",
+  "graphed >=0.0.7; python_version >= '3.11'",
   "pytest-benchmark",
 ]
 docs = [
