@@ -121,6 +121,15 @@ def merge(console: Console, args: argparse.Namespace) -> int:
                 )
                 return 1
             cset.compound_corrections.append(corr2)
+        for uset2 in cset2.uncertainty_sets if cset2.uncertainty_sets else []:
+            if cset.uncertainty_sets is None:
+                cset.uncertainty_sets = []
+            if any(uset.name == uset2.name for uset in cset.uncertainty_sets):
+                console.print(
+                    f"[red]Uncertainty set {uset2.name!r} from {file} is a duplicate"
+                )
+                return 1
+            cset.uncertainty_sets.append(uset2)
     cset.description = "Merged from " + " ".join(args.files)
     if args.format == "compact":
         sys.stdout.write(cset.model_dump_json())

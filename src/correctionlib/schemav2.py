@@ -611,6 +611,87 @@ class CompoundCorrection(Model):
         )
 
 
+class FrozenInputSpec(Model):
+    """A frozen input value to a correction, for use in uncertainty sources"""
+
+    name: str = Field(description="The name of the correction input variable")
+    value: Union[StrictInt, StrictStr, float] = Field(
+        description="The value to use for this input variable"
+    )
+
+
+class UncertaintySpec(Model):
+    """An uncertainty source specification"""
+
+    nuisance_name: str = Field(
+        description="Name of the nuisance parameter associated with this uncertainty source (i.e. combine name in datacard)"
+    )
+    correction: str = Field(
+        description="Name of the Correction or CompoundCorrection (in this CorrectionSet) which defines this uncertainty source"
+    )
+    inputs: list[FrozenInputSpec] = Field(
+        description="Frozen input values to use in the correction evaluation"
+    )
+
+
+class UncertaintySet(Model):
+    """A set of uncertainty sources
+
+    This is metadata only: it is not used by the correction evaluator.
+    """
+
+    name: str = Field(description="Uncertainty set name")
+    description: Optional[str] = Field(
+        description="Detailed description of the uncertainty set",
+        default=None,
+    )
+    uncertainties: list[UncertaintySpec] = Field(
+        description="List of uncertainty sources in this set"
+    )
+
+    @field_validator("uncertainties")
+    @classmethod
+    def validate_uncertainties(
+        cls, items: list[UncertaintySpec]
+    ) -> list[UncertaintySpec]:
+        seen = set()
+        dupe = set()
+        for item in items:
+            if item.nuisance_name in seen:
+                dupe.add(item.nuisance_name)
+            seen.add(item.nuisance_name)
+        if len(dupe):
+            raise ValueError(
+                f"Uncertainty sources must have unique nuisance names, found duplicates for {dupe}"
+            )
+        return items
+
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        yield f":warning: [bold]{self.name}[/bold]"
+        yield self.description or "[i]No description[/i]"
+
+        def fmt_spec(spec: UncertaintySpec) -> str:
+            inputs = ", ".join(f"{inp.name}={inp.value!r}" for inp in spec.inputs)
+            return f"[bold]{spec.nuisance_name}[/bold]: {spec.correction}({inputs})"
+
+        yield Panel(
+            "\n".join(fmt_spec(spec) for spec in self.uncertainties),
+            title=":input_numbers: uncertainties",
+            expand=False,
+        )
+
+
+def _check_frozen_input(var: Variable, value: Union[int, str, float]) -> bool:
+    """Check if a frozen input value is compatible with the variable type"""
+    if var.type == "string":
+        return isinstance(value, str)
+    if var.type == "int":
+        return isinstance(value, int)
+    return isinstance(value, (int, float))
+
+
 class CorrectionSet(Model):
     schema_version: Literal[2] = Field(description="The overall schema version")
     description: Optional[str] = Field(
@@ -619,6 +700,10 @@ class CorrectionSet(Model):
     )
     corrections: list[Correction]
     compound_corrections: Optional[list[CompoundCorrection]] = None
+    uncertainty_sets: Optional[list[UncertaintySet]] = Field(
+        description="Sets of uncertainty sources defined in terms of the corrections in this CorrectionSet",
+        default=None,
+    )
     schema_url: Optional[str] = Field(
         default="https://cms-nanoaod.github.io/correctionlib/_downloads/87e1187fe70c7ee30d50bbacaa2b2cb5/schemav2.json",
         alias="$schema",
@@ -663,6 +748,56 @@ may use it to provide autocompletion and validation against the schema.
             )
         return items
 
+    @field_validator("uncertainty_sets")
+    @classmethod
+    def validate_uncertainty_sets(
+        cls, items: Optional[list[UncertaintySet]]
+    ) -> Optional[list[UncertaintySet]]:
+        if items is None:
+            return items
+        seen = set()
+        dupe = set()
+        for item in items:
+            if item.name in seen:
+                dupe.add(item.name)
+            seen.add(item.name)
+        if len(dupe):
+            raise ValueError(
+                f"UncertaintySet objects must have unique names, found duplicates for {dupe}"
+            )
+        return items
+
+    @model_validator(mode="after")
+    def check_uncertainty_sets(self) -> "CorrectionSet":
+        if self.uncertainty_sets is None:
+            return self
+        signatures = {corr.name: corr.inputs for corr in self.corrections}
+        for ccorr in self.compound_corrections or []:
+            signatures[ccorr.name] = ccorr.inputs
+        for uset in self.uncertainty_sets:
+            for spec in uset.uncertainties:
+                where = f"UncertaintySet {uset.name!r} source {spec.nuisance_name!r}"
+                if spec.correction not in signatures:
+                    raise ValueError(
+                        f"{where} references unknown correction {spec.correction!r}"
+                    )
+                variables = {var.name: var for var in signatures[spec.correction]}
+                seen = set()
+                for inp in spec.inputs:
+                    if inp.name not in variables:
+                        raise ValueError(
+                            f"{where} input {inp.name!r} not found in {spec.correction!r} inputs {set(variables)}"
+                        )
+                    if inp.name in seen:
+                        raise ValueError(f"{where} input {inp.name!r} is frozen twice")
+                    seen.add(inp.name)
+                    var = variables[inp.name]
+                    if not _check_frozen_input(var, inp.value):
+                        raise ValueError(
+                            f"{where} input {inp.name!r} value {inp.value!r} does not match variable type {var.type!r}"
+                        )
+        return self
+
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
@@ -677,6 +812,9 @@ may use it to provide autocompletion and validation against the schema.
         if self.compound_corrections:
             for ccorr in self.compound_corrections:
                 tree.add(ccorr)
+        if self.uncertainty_sets:
+            for uset in self.uncertainty_sets:
+                tree.add(uset)
         yield tree
 
     def to_evaluator(self) -> correctionlib.highlevel.CorrectionSet:
