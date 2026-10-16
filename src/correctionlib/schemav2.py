@@ -632,6 +632,17 @@ class UncertaintySpec(Model):
     inputs: list[FrozenInputSpec] = Field(
         description="Frozen input values to use in the correction evaluation"
     )
+    operation: Optional[Literal["shift", "scale", "replace", "relative"]] = Field(
+        description="""How the correction output (out) relates to the nominal value
+
+        shift: nominal + out (additive)
+        scale: nominal * out (multiplicative)
+        replace: out (full alternative evaluation)
+        relative: nominal * (1 + out) (relative uncertainty)
+        If not specified, the relation is left to the analyzer.
+        """,
+        default=None,
+    )
 
 
 class UncertaintySet(Model):
@@ -674,7 +685,10 @@ class UncertaintySet(Model):
 
         def fmt_spec(spec: UncertaintySpec) -> str:
             inputs = ", ".join(f"{inp.name}={inp.value!r}" for inp in spec.inputs)
-            return f"[bold]{spec.nuisance_name}[/bold]: {spec.correction}({inputs})"
+            out = f"[bold]{spec.nuisance_name}[/bold]: {spec.correction}({inputs})"
+            if spec.operation is not None:
+                out += f" ({spec.operation})"
+            return out
 
         yield Panel(
             "\n".join(fmt_spec(spec) for spec in self.uncertainties),

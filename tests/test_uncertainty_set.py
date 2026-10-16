@@ -75,6 +75,7 @@ def btag_set(name="btagDDBvLV2_L_comb", prefix=""):
                     {"name": "working_point", "value": "L"},
                     {"name": "systematic", "value": "up_correlated"},
                 ],
+                "operation": "replace",
             },
             {
                 "nuisance_name": "CMS_Xbbtag_comb_uncorrelated_2016postVFP",
@@ -97,6 +98,7 @@ def jes_set(prefix=""):
                 "nuisance_name": "CMS_scale_j_AbsoluteScale",
                 "correction": f"{prefix}jes",
                 "inputs": [],
+                "operation": "relative",
             },
             {
                 "nuisance_name": "CMS_scale_j_Stack",
@@ -119,6 +121,9 @@ def test_uncertainty_set_roundtrip():
     frozen = cset.uncertainty_sets[1].uncertainties[1].inputs
     assert isinstance(frozen[0].value, int)
     assert isinstance(cset.uncertainty_sets[0].uncertainties[0].inputs[0].value, str)
+    assert [
+        spec.operation for uset in cset.uncertainty_sets for spec in uset.uncertainties
+    ] == ["replace", None, "relative", None]
 
     cset2 = model.CorrectionSet.model_validate_json(cset.model_dump_json())
     assert cset2 == cset
@@ -222,6 +227,20 @@ def test_uncertainty_set_evaluation_unaffected():
                 ],
             }
         ],
+        # unknown operation
+        [
+            {
+                "name": "a",
+                "uncertainties": [
+                    {
+                        "nuisance_name": "n",
+                        "correction": "jes",
+                        "inputs": [],
+                        "operation": "add",
+                    }
+                ],
+            }
+        ],
         # extra field
         [
             {
@@ -231,7 +250,7 @@ def test_uncertainty_set_evaluation_unaffected():
                         "nuisance_name": "n",
                         "correction": "jes",
                         "inputs": [],
-                        "type": "shift",
+                        "direction": "up",
                     }
                 ],
             }
@@ -250,6 +269,7 @@ def test_uncertainty_set_summary():
     out = console.file.getvalue()
     assert "btagDDBvLV2_L_comb" in out
     assert "CMS_Xbbtag_comb_uncorrelated_2016postVFP" in out
+    assert "(relative)" in out
     assert "Full set of JES uncertainty sources" in out
 
 
