@@ -27,7 +27,6 @@ classifiers = [
   "License :: OSI Approved :: BSD License",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -35,7 +34,7 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Development Status :: 5 - Production/Stable",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
   "numpy >=1.13.3",
   "pydantic >=2",
@@ -109,7 +108,7 @@ ignore = [
 ]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 files = ["src"]
 follow_imports_for_stubs = true
 
@@ -123,7 +122,7 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 # numpy's stubs use PEP 695 "type" statements, which mypy refuses to parse while we
-# target python_version 3.9, so skip them; follow_imports_for_stubs above is what
+# target python_version 3.10, so skip them; follow_imports_for_stubs above is what
 # makes the skip apply to .pyi files at all
 module = ["numpy", "numpy.*"]
 follow_imports = "skip"
