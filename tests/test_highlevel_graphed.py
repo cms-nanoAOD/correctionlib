@@ -4,6 +4,7 @@ import pytest
 import correctionlib
 import correctionlib.highlevel
 from correctionlib import schemav2 as model
+from correctionlib.highlevel import _isgraphed
 
 graphed = pytest.importorskip("graphed")
 graphed_awkward = pytest.importorskip("graphed.awkward")
@@ -78,22 +79,20 @@ def events():
     return session, array, graphed_awkward.from_awkward(session, "events", array)
 
 
-@pytest.mark.parametrize("syst", ["nominal", "up"])
-def test_correction_on_graphed(cset, events, syst):
+@pytest.mark.parametrize(
+    ("get", "syst"),
+    [
+        (lambda c: c["scale"], "nominal"),
+        (lambda c: c["scale"], "up"),
+        (lambda c: c.compound["stack"], "up"),
+    ],
+    ids=["nominal", "up", "compound"],
+)
+def test_correction_on_graphed(cset, events, get, syst):
     session, array, deferred = events
-    out = cset["scale"].evaluate(syst, deferred.pt)
+    out = get(cset).evaluate(syst, deferred.pt)
     assert _isgraphed(out)
-    assert (
-        session.materialize(out).to_list()
-        == cset["scale"].evaluate(syst, array.pt).to_list()
-    )
-
-
-def test_compound_correction_on_graphed(cset, events):
-    session, array, deferred = events
-    out = cset.compound["stack"].evaluate("up", deferred.pt)
-    assert _isgraphed(out)
-    want = cset.compound["stack"].evaluate("up", array.pt)
+    want = get(cset).evaluate(syst, array.pt)
     assert session.materialize(out).to_list() == want.to_list()
 
 
@@ -127,8 +126,8 @@ def test_graphed_subclass_from_another_package(cset):
 
 def test_graphed_named_package_is_not_graphed():
     lookalike = type("Lookalike", (), {"__module__": "graphed_tools.x"})
-    assert not correctionlib.highlevel._isgraphed(lookalike())
-    assert correctionlib.highlevel._isgraphed(SubclassedArray.__new__(SubclassedArray))
+    assert not _isgraphed(lookalike())
+    assert _isgraphed(SubclassedArray.__new__(SubclassedArray))
 
 
 def test_one_payload_per_correction_set(cset, events, monkeypatch):
@@ -152,7 +151,3 @@ def test_old_graphed_is_refused(cset, events, monkeypatch):
     monkeypatch.setattr(graphed, "__version__", "0.0.6")
     with pytest.raises(RuntimeError, match=r"graphed is version 0\.0\.6"):
         cset["scale"].evaluate("up", deferred.pt)
-
-
-def _isgraphed(out):
-    return type(out).__module__.startswith("graphed.")

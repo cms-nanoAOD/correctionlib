@@ -197,7 +197,7 @@ def _wrap_graphed(
     context = correction._context
     payload = getattr(context, "_graphed_payload", None)
     if payload is None:
-        # one bytes object per set, so graphed hashes a large payload once
+        # one bytes object per set, shared by every node recorded from it
         payload = context._data.encode()
         setattr(context, "_graphed_payload", payload)  # noqa: B010
 
@@ -209,7 +209,6 @@ def _wrap_graphed(
             arrays.append(arg)
         else:
             template.append(arg)
-    # graphed records the call as a node keyed by the set's contents and evaluates it when run
     return gak.apply_correction(
         payload,
         correction._name,
@@ -237,6 +236,9 @@ def _evaluate(
     *args: awkward.Array | numpy.ndarray[Any, Any] | str | int | float,
 ) -> float | awkward.Array | numpy.ndarray[Any, numpy.dtype[numpy.float64]]:
     # TODO: create a ufunc with numpy.vectorize in constructor?
+    # first, so scalar calls skip the per-argument collection checks below
+    if all(isinstance(arg, (str, int, float)) for arg in args):
+        return corr._base.evaluate(*args)  # type: ignore
     if any(_isinstance(arg, "dask.array") for arg in args):
         raise TypeError(
             "Correctionlib does not yet handle dask.array collections. "
@@ -250,8 +252,6 @@ def _evaluate(
         return _wrap_graphed(corr, *args)
     if any(_isinstance(arg, "awkward") for arg in args):
         return _wrap_awkward(corr._base.evalv, *args)  # type: ignore
-    if all(isinstance(arg, (str, int, float)) for arg in args):
-        return corr._base.evaluate(*args)  # type: ignore
 
     # everything else: convert to numpy and broadcast
     vargs = [
