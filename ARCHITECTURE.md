@@ -17,6 +17,10 @@ the codebase. It assumes some familiarity with correctionlib as a user.
     It's a `Union` of the various types of corrections available: `Binning`,
     `MultiBinning`, `Category`, `Formula`, `FormulaRef`, `Transform`,
     `HashPRNG`, float
+  - `UncertaintySet` is a named list of uncertainty sources, each pointing to a
+    `Correction` (or `CompoundCorrection`) in the same `CorrectionSet` with some
+    of its inputs frozen. A source can be one side (`direction` up or down) of a
+    two-sided variation. It is metadata only: the C++ evaluator ignores it
 - `highlevel` module: user-facing types (`correctionlib.Correction` resolves to
   `correctionlib.highlevel.Correction`, etc.)
   - `CorrectionSet` is a list of `Correction`s (same as in `schemav2` but focus

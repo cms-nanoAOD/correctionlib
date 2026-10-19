@@ -2,21 +2,26 @@ import math
 import warnings
 from collections import Counter
 from functools import partial
-from typing import Annotated, Callable, Literal, Optional, Union
+from typing import Annotated, Any, Callable, Literal, Optional, Union
 
 from pydantic import (
     AfterValidator,
+    AllowInfNan,
     BaseModel,
     ConfigDict,
     Field,
+    SerializerFunctionWrapHandler,
+    Strict,
     StrictInt,
     StrictStr,
     ValidationInfo,
     field_validator,
+    model_serializer,
     model_validator,
 )
 from rich.columns import Columns
 from rich.console import Console, ConsoleOptions, RenderResult
+from rich.markup import escape
 from rich.panel import Panel
 from rich.tree import Tree
 
@@ -611,6 +616,139 @@ class CompoundCorrection(Model):
         )
 
 
+class FrozenInputSpec(Model):
+    """A frozen input value to a correction, for use in uncertainty sources"""
+
+    name: str = Field(description="The name of the correction input variable")
+    value: Union[
+        StrictInt, StrictStr, Annotated[float, Strict(), AllowInfNan(False)]
+    ] = Field(description="The value to use for this input variable")
+
+
+class UncertaintySpec(Model):
+    """An uncertainty source specification"""
+
+    nuisance_name: str = Field(
+        description="Name of the nuisance parameter associated with this uncertainty source (i.e. combine name in datacard)"
+    )
+    correction: str = Field(
+        description="Name of the Correction or CompoundCorrection (in this CorrectionSet) which defines this uncertainty source"
+    )
+    inputs: list[FrozenInputSpec] = Field(
+        description="Frozen input values to use in the correction evaluation"
+    )
+    direction: Optional[Literal["up", "down"]] = Field(
+        description="""\
+Which side of a two-sided variation this source describes. If not specified,
+this source is the only variation for its nuisance (e.g. a symmetric shift).
+""",
+        default=None,
+    )
+    operation: Optional[Literal["shift", "scale", "replace", "relative"]] = Field(
+        description="""\
+How the correction output (out) relates to the nominal value. The nominal value
+is provided by the analyzer.
+
+shift: nominal + out (additive)
+scale: nominal * out (multiplicative)
+replace: out (full alternative evaluation)
+relative: nominal * (1 + out) (relative uncertainty, as stored e.g. for JES sources)
+
+If not specified, the relation is left to the analyzer.
+""",
+        default=None,
+    )
+
+    @field_validator("inputs")
+    @classmethod
+    def validate_inputs(cls, items: list[FrozenInputSpec]) -> list[FrozenInputSpec]:
+        seen = set()
+        dupe = set()
+        for item in items:
+            if item.name in seen:
+                dupe.add(item.name)
+            seen.add(item.name)
+        if len(dupe):
+            raise ValueError(
+                f"Frozen inputs must have unique names, found duplicates for {dupe}"
+            )
+        return items
+
+
+class UncertaintySet(Model):
+    """A set of uncertainty sources
+
+    This is metadata only: it is not used by the correction evaluator.
+    """
+
+    name: str = Field(description="Uncertainty set name")
+    description: Optional[str] = Field(
+        description="Detailed description of the uncertainty set",
+        default=None,
+    )
+    uncertainties: list[UncertaintySpec] = Field(
+        description="List of uncertainty sources in this set"
+    )
+
+    @field_validator("uncertainties")
+    @classmethod
+    def validate_uncertainties(
+        cls, items: list[UncertaintySpec]
+    ) -> list[UncertaintySpec]:
+        seen = set()
+        dupe = set()
+        directions: dict[str, set[Optional[str]]] = {}
+        for item in items:
+            key = (item.nuisance_name, item.direction)
+            if key in seen:
+                dupe.add(key)
+            seen.add(key)
+            directions.setdefault(item.nuisance_name, set()).add(item.direction)
+        if len(dupe):
+            raise ValueError(
+                f"Uncertainty sources must have unique (nuisance_name, direction) pairs, found duplicates for {dupe}"
+            )
+        mixed = {
+            name for name, dirs in directions.items() if None in dirs and len(dirs) > 1
+        }
+        if len(mixed):
+            raise ValueError(
+                f"Uncertainty sources cannot mix entries with and without a direction for the same nuisance, found {mixed}"
+            )
+        return items
+
+    def __rich_console__(
+        self, console: Console, options: ConsoleOptions
+    ) -> RenderResult:
+        yield f":left_right_arrow: [bold]{self.name}[/bold]"
+        yield self.description or "[i]No description[/i]"
+
+        def fmt_spec(spec: UncertaintySpec) -> str:
+            inputs = ", ".join(f"{inp.name}={inp.value!r}" for inp in spec.inputs)
+            out = f"[bold]{spec.nuisance_name}[/bold]"
+            if spec.direction is not None:
+                out += escape(f" [{spec.direction}]")
+            out += f": {spec.correction}({inputs})"
+            if spec.operation is not None:
+                out += f" ({spec.operation})"
+            return out
+
+        yield Panel(
+            "\n".join(fmt_spec(spec) for spec in self.uncertainties),
+            title=":input_numbers: uncertainties",
+            expand=False,
+        )
+
+
+def _check_frozen_input(var: Variable, value: Union[int, str, float]) -> bool:
+    """Check if a frozen input value is compatible with the variable type"""
+    if var.type == "string":
+        return isinstance(value, str)
+    if var.type == "int":
+        return isinstance(value, int)
+    return isinstance(value, (int, float))
+
+
 class CorrectionSet(Model):
     schema_version: Literal[2] = Field(description="The overall schema version")
     description: Optional[str] = Field(
@@ -619,6 +757,10 @@ class CorrectionSet(Model):
     )
     corrections: list[Correction]
     compound_corrections: Optional[list[CompoundCorrection]] = None
+    uncertainty_sets: Optional[list[UncertaintySet]] = Field(
+        description="Sets of uncertainty sources defined in terms of the corrections in this CorrectionSet",
+        default=None,
+    )
     schema_url: Optional[str] = Field(
         default="https://cms-nanoaod.github.io/correctionlib/_downloads/87e1187fe70c7ee30d50bbacaa2b2cb5/schemav2.json",
         alias="$schema",
@@ -663,6 +805,69 @@ may use it to provide autocompletion and validation against the schema.
             )
         return items
 
+    @field_validator("uncertainty_sets")
+    @classmethod
+    def validate_uncertainty_sets(
+        cls, items: Optional[list[UncertaintySet]]
+    ) -> Optional[list[UncertaintySet]]:
+        if items is None:
+            return items
+        seen = set()
+        dupe = set()
+        for item in items:
+            if item.name in seen:
+                dupe.add(item.name)
+            seen.add(item.name)
+        if len(dupe):
+            raise ValueError(
+                f"UncertaintySet objects must have unique names, found duplicates for {dupe}"
+            )
+        return items
+
+    @model_validator(mode="after")
+    def check_uncertainty_sets(self) -> "CorrectionSet":
+        if self.uncertainty_sets is None:
+            return self
+        signatures = {corr.name: corr.inputs for corr in self.corrections}
+        ambiguous = set()
+        for ccorr in self.compound_corrections or []:
+            if ccorr.name in signatures:
+                ambiguous.add(ccorr.name)
+            signatures[ccorr.name] = ccorr.inputs
+        for uset in self.uncertainty_sets:
+            for spec in uset.uncertainties:
+                where = f"UncertaintySet {uset.name!r} source {spec.nuisance_name!r}"
+                if spec.correction not in signatures:
+                    raise ValueError(
+                        f"{where} references unknown correction {spec.correction!r}"
+                    )
+                if spec.correction in ambiguous:
+                    raise ValueError(
+                        f"{where} correction {spec.correction!r} is ambiguous: it names both a Correction and a CompoundCorrection"
+                    )
+                variables = {var.name: var for var in signatures[spec.correction]}
+                for inp in spec.inputs:
+                    if inp.name not in variables:
+                        raise ValueError(
+                            f"{where} input {inp.name!r} not found in {spec.correction!r} inputs {set(variables)}"
+                        )
+                    var = variables[inp.name]
+                    if not _check_frozen_input(var, inp.value):
+                        raise ValueError(
+                            f"{where} input {inp.name!r} value {inp.value!r} does not match variable type {var.type!r}"
+                        )
+        return self
+
+    @model_serializer(mode="wrap")
+    def drop_unset_uncertainty_sets(
+        self, handler: SerializerFunctionWrapHandler
+    ) -> dict[str, Any]:
+        # older correctionlib versions reject any uncertainty_sets key, even null
+        data: dict[str, Any] = handler(self)
+        if "uncertainty_sets" in data and data["uncertainty_sets"] is None:
+            del data["uncertainty_sets"]
+        return data
+
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
@@ -677,6 +882,9 @@ may use it to provide autocompletion and validation against the schema.
         if self.compound_corrections:
             for ccorr in self.compound_corrections:
                 tree.add(ccorr)
+        if self.uncertainty_sets:
+            for uset in self.uncertainty_sets:
+                tree.add(uset)
         yield tree
 
     def to_evaluator(self) -> correctionlib.highlevel.CorrectionSet:
