@@ -75,4 +75,4 @@ repos:
     hooks:
       - id: mypy
         pass_filenames: false # to allow mypy to respect pyproject.toml config
-        additional_dependencies: [uhi, pydantic, numpy]
+        additional_dependencies: [uhi, "pydantic<2.14", numpy] # pydantic 2.14 drops Python 3.9, which mypy targets

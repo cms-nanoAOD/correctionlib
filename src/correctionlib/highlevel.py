@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 
 _min_version_ak = version.parse("2.0.0")
 _min_version_dak = version.parse("2024.1.1")
+_min_version_graphed = version.parse("0.0.9")
 
 
 def open_auto(filename: str) -> str:
@@ -179,6 +180,50 @@ def _wrap_dask_awkward(
     )
 
 
+def _wrap_graphed(
+    correction: Correction | CompoundCorrection,
+    *args: Any,
+) -> Any:
+    import graphed
+    from graphed.awkward import gak
+
+    if version.parse(graphed.__version__) < _min_version_graphed:
+        raise RuntimeError(
+            f"""imported graphed is version {graphed.__version__} < {str(_min_version_graphed)}
+            Please upgrade graphed.
+            """
+        )
+
+    context = correction._context
+    payload = getattr(context, "_graphed_payload", None)
+    if payload is None:
+        # one bytes object per set, shared by every node recorded from it
+        payload = context._data.encode()
+        setattr(context, "_graphed_payload", payload)  # noqa: B010
+
+    arrays: list[Any] = []
+    template: list[Any] = []
+    for arg in args:
+        if _isgraphed(arg):
+            template.append(f"${len(arrays)}")
+            arrays.append(arg)
+        else:
+            template.append(arg)
+    return gak.apply_correction(
+        payload,
+        correction._name,
+        arrays,
+        correction.evaluate,
+        args=template,
+        compound=isinstance(correction, CompoundCorrection),
+    )
+
+
+def _isgraphed(arg: Any) -> bool:
+    """Return True if arg's class or a base is defined in graphed, without importing it"""
+    return any(c.__module__.partition(".")[0] == "graphed" for c in type(arg).__mro__)
+
+
 def _isinstance(arg: Any, clsprefix: str) -> bool:
     """Return True if arg is an instance of a class with the given prefix
 
@@ -192,6 +237,9 @@ def _evaluate(
     *args: awkward.Array | numpy.ndarray[Any, Any] | str | int | float,
 ) -> float | awkward.Array | numpy.ndarray[Any, numpy.dtype[numpy.float64]]:
     # TODO: create a ufunc with numpy.vectorize in constructor?
+    # first, so scalar calls skip the per-argument collection checks below
+    if all(isinstance(arg, (str, int, float)) for arg in args):
+        return corr._base.evaluate(*args)  # type: ignore
     if any(_isinstance(arg, "dask.array") for arg in args):
         raise TypeError(
             "Correctionlib does not yet handle dask.array collections. "
@@ -201,10 +249,10 @@ def _evaluate(
         )
     if any(_isinstance(arg, "dask_awkward") for arg in args):
         return _wrap_dask_awkward(corr, *args)  # type: ignore
+    if any(_isgraphed(arg) for arg in args):
+        return _wrap_graphed(corr, *args)
     if any(_isinstance(arg, "awkward") for arg in args):
         return _wrap_awkward(corr._base.evalv, *args)  # type: ignore
-    if all(isinstance(arg, (str, int, float)) for arg in args):
-        return corr._base.evaluate(*args)  # type: ignore
 
     # everything else: convert to numpy and broadcast
     vargs = [
