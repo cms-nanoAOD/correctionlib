@@ -1,3 +1,5 @@
+import json
+
 import awkward
 import pytest
 
@@ -106,6 +108,18 @@ def test_correction_on_graphed_varied(cset, events):
         assert got.to_list() == cset["scale"].evaluate("nominal", pt).to_list()
 
 
+def test_compound_shadowed_by_correction_of_same_name(cset, events):
+    session, array, deferred = events
+    data = json.loads(cset._data)
+    scale = next(c for c in data["corrections"] if c["name"] == "scale")
+    data["corrections"].append({**scale, "name": "stack"})
+    shadowed = correctionlib.CorrectionSet.from_string(json.dumps(data))
+    out = shadowed.compound["stack"].evaluate("up", deferred.pt)
+    want = shadowed.compound["stack"].evaluate("up", array.pt)
+    assert want.to_list() != shadowed["stack"].evaluate("up", array.pt).to_list()
+    assert session.materialize(out).to_list() == want.to_list()
+
+
 class SubclassedArray(graphed_awkward.AwkwardArray):
     pass
 
@@ -148,6 +162,6 @@ def test_one_payload_per_correction_set(cset, events, monkeypatch):
 
 def test_old_graphed_is_refused(cset, events, monkeypatch):
     _, _, deferred = events
-    monkeypatch.setattr(graphed, "__version__", "0.0.6")
-    with pytest.raises(RuntimeError, match=r"graphed is version 0\.0\.6"):
+    monkeypatch.setattr(graphed, "__version__", "0.0.8")
+    with pytest.raises(RuntimeError, match=r"graphed is version 0\.0\.8"):
         cset["scale"].evaluate("up", deferred.pt)

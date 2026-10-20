@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 _min_version_ak = version.parse("2.0.0")
 _min_version_dak = version.parse("2024.1.1")
-_min_version_graphed = version.parse("0.0.7")
+_min_version_graphed = version.parse("0.0.9")
 
 
 def open_auto(filename: str) -> str:
@@ -215,6 +215,7 @@ def _wrap_graphed(
         arrays,
         correction.evaluate,
         args=template,
+        compound=isinstance(correction, CompoundCorrection),
     )
 
 
