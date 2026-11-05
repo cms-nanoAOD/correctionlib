@@ -721,7 +721,7 @@ class UncertaintySet(Model):
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
-        yield f":package: [bold]{self.name}[/bold]"
+        yield f":left_right_arrow: [bold]{self.name}[/bold]"
         yield self.description or "[i]No description[/i]"
 
         def fmt_spec(spec: UncertaintySpec) -> str:
@@ -736,7 +736,7 @@ class UncertaintySet(Model):
 
         yield Panel(
             "\n".join(fmt_spec(spec) for spec in self.uncertainties),
-            title=":clipboard: uncertainties",
+            title=":input_numbers: uncertainties",
             expand=False,
         )
 
