@@ -483,3 +483,94 @@ def test_uncertainty_set_validate_cli(tmp_path):
     assert ret.returncode == 0
     ret = subprocess.run(["correction", "validate", str(bad)], capture_output=True)
     assert ret.returncode == 1
+
+
+def flavor_cset(uncertainties, pt_low=20.0):
+    """A btag-like correction: flavor -> systematic -> pt binning (flow=error)"""
+    pt = {
+        "nodetype": "binning",
+        "input": "pt",
+        "edges": [pt_low, 100.0, 1000.0],
+        "content": [1.0, 1.0],
+        "flow": "error",
+    }
+    systs = {
+        0: ["central", "up_light", "down_light"],
+        4: ["central", "up_as", "down_as"],
+        5: ["central", "up_as", "down_as"],
+    }
+    return {
+        "schema_version": 2,
+        "corrections": [
+            {
+                "name": "btag",
+                "version": 1,
+                "inputs": [
+                    {"name": "flavor", "type": "int"},
+                    {"name": "systematic", "type": "string"},
+                    {"name": "pt", "type": "real"},
+                ],
+                "output": {"name": "sf", "type": "real"},
+                "data": {
+                    "nodetype": "category",
+                    "input": "flavor",
+                    "content": [
+                        {
+                            "key": flavor,
+                            "value": {
+                                "nodetype": "category",
+                                "input": "systematic",
+                                "content": [{"key": s, "value": pt} for s in syst],
+                            },
+                        }
+                        for flavor, syst in systs.items()
+                    ],
+                },
+            }
+        ],
+        "uncertainty_sets": [{"name": "btag_bc", "uncertainties": uncertainties}],
+    }
+
+
+def bc_spec(flavor, systematic, direction=None):
+    spec = {
+        "nuisance_name": "CMS_btag_bc_as",
+        "correction": "btag",
+        "inputs": [
+            {"name": "flavor", "value": flavor},
+            {"name": "systematic", "value": systematic},
+        ],
+    }
+    if direction is not None:
+        spec["direction"] = direction
+    return spec
+
+
+@pytest.mark.parametrize(
+    "spec",
+    [
+        bc_spec(6, "up_as"),  # flavor not in the correction
+        bc_spec(4, "up_typo"),  # systematic not in the correction
+        bc_spec(0, "up_as"),  # systematic only exists for other flavors
+    ],
+)
+def test_uncertainty_set_frozen_value_unknown(spec):
+    with pytest.raises(ValidationError, match="do not match any category"):
+        model.CorrectionSet.model_validate(flavor_cset([spec]))
+
+
+def test_uncertainty_set_free_inputs_not_evaluated():
+    # pt is free and the binning starts at 20 with flow=error: still valid
+    model.CorrectionSet.model_validate(flavor_cset([bc_spec(4, "up_as")]))
+    # flavor is free: valid as long as some flavor has the systematic
+    model.CorrectionSet.model_validate(
+        flavor_cset(
+            [
+                {
+                    "nuisance_name": "n",
+                    "correction": "btag",
+                    "inputs": [{"name": "systematic", "value": "up_light"}],
+                }
+            ]
+        )
+    )

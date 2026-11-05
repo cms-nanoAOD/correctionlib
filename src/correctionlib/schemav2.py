@@ -741,6 +741,36 @@ class UncertaintySet(Model):
         )
 
 
+def _frozen_reachable(node: Content, frozen: dict[str, Union[int, str, float]]) -> bool:
+    """Check if some values of the free inputs lead to a result, given the frozen ones
+
+    A Category on a frozen input must contain that value as a key (or have a
+    default). Other nodes are assumed to accept any frozen value.
+    """
+    if isinstance(node, Category):
+        if node.input in frozen:
+            for item in node.content:
+                if item.key == frozen[node.input]:
+                    return _frozen_reachable(item.value, frozen)
+            return node.default is not None and _frozen_reachable(node.default, frozen)
+        children = [item.value for item in node.content]
+        if node.default is not None:
+            children.append(node.default)
+        return any(_frozen_reachable(child, frozen) for child in children)
+    if isinstance(node, (Binning, MultiBinning)):
+        children = list(node.content)
+        if not isinstance(node.flow, str):
+            children.append(node.flow)
+        return any(_frozen_reachable(child, frozen) for child in children)
+    if isinstance(node, Transform):
+        # the content sees a rewritten value, so that input is no longer frozen
+        inner = {name: val for name, val in frozen.items() if name != node.input}
+        return _frozen_reachable(node.rule, frozen) and _frozen_reachable(
+            node.content, inner
+        )
+    return True
+
+
 def _check_frozen_input(var: Variable, value: Union[int, str, float]) -> bool:
     """Check if a frozen input value is compatible with the variable type"""
     if var.type == "string":
@@ -830,6 +860,8 @@ may use it to provide autocompletion and validation against the schema.
         if self.uncertainty_sets is None:
             return self
         signatures = {corr.name: corr.inputs for corr in self.corrections}
+        corrections = {corr.name: corr for corr in self.corrections}
+        compounds = {ccorr.name: ccorr for ccorr in self.compound_corrections or []}
         ambiguous = set()
         for ccorr in self.compound_corrections or []:
             if ccorr.name in signatures:
@@ -857,30 +889,22 @@ may use it to provide autocompletion and validation against the schema.
                         raise ValueError(
                             f"{where} input {inp.name!r} value {inp.value!r} does not match variable type {var.type!r}"
                         )
-                corr = next(
-                    (c for c in self.corrections if c.name == spec.correction), None
-                )
-                if corr is None:
-                    raise ValueError(
-                        f"Correction '{spec.correction}' not found when analysing uncertainty set {uset.name!r}."
-                    )
-                # args = [spec.inputs for inp in corr.inputs]
-                frozen_inputs_byname = {
-                    frozen.name: frozen.value for frozen in spec.inputs
-                }
-                args = [
-                    frozen_inputs_byname.get(
-                        inp.name,
-                        {"real": 0.0, "int": 0, "string": "nominal"}.get(inp.type, 0.0),
-                    )
-                    for inp in corr.inputs
-                ]
-                try:
-                    corr.to_evaluator().evaluate(*args)
-                except Exception as e:
-                    raise ValueError(
-                        f"{where} input values {frozen_inputs_byname} do not produce a valid evaluation of correction {spec.correction!r}: {e}"
-                    ) from e
+                frozen = {inp.name: inp.value for inp in spec.inputs}
+                updated: set[str] = set()
+                if spec.correction in compounds:
+                    ccorr = compounds[spec.correction]
+                    stack = [corrections[n] for n in ccorr.stack if n in corrections]
+                    updated = set(ccorr.inputs_update)
+                else:
+                    stack = [corrections[spec.correction]]
+                for i, corr in enumerate(stack):
+                    if i > 0:
+                        # inputs updated by the stack no longer hold the frozen value
+                        frozen = {n: v for n, v in frozen.items() if n not in updated}
+                    if not _frozen_reachable(corr.data, frozen):
+                        raise ValueError(
+                            f"{where} input values {frozen} do not match any category of correction {corr.name!r}"
+                        )
         return self
 
     @model_serializer(mode="wrap")
