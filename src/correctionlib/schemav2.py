@@ -846,7 +846,7 @@ may use it to provide autocompletion and validation against the schema.
                     raise ValueError(
                         f"{where} correction {spec.correction!r} is ambiguous: it names both a Correction and a CompoundCorrection"
                     )
-                variables = {var.name: var for var in signatures[spec.correction]}    
+                variables = {var.name: var for var in signatures[spec.correction]}
                 for inp in spec.inputs:
                     if inp.name not in variables:
                         raise ValueError(
@@ -857,12 +857,24 @@ may use it to provide autocompletion and validation against the schema.
                         raise ValueError(
                             f"{where} input {inp.name!r} value {inp.value!r} does not match variable type {var.type!r}"
                         )
-                corr = next((c for c in self.corrections if c.name == spec.correction), None)
+                corr = next(
+                    (c for c in self.corrections if c.name == spec.correction), None
+                )
                 if corr is None:
-                    raise ValueError(f"Correction '{spec.correction}' not found when analysing uncertainty set {uset.name!r}.")
-                #args = [spec.inputs for inp in corr.inputs]
-                frozen_inputs_byname = {frozen.name: frozen.value for frozen in spec.inputs}
-                args = [frozen_inputs_byname.get(inp.name, {"real": 0.0, "int": 0, "string": "nominal"}.get(inp.type, 0.0)) for inp in corr.inputs] 
+                    raise ValueError(
+                        f"Correction '{spec.correction}' not found when analysing uncertainty set {uset.name!r}."
+                    )
+                # args = [spec.inputs for inp in corr.inputs]
+                frozen_inputs_byname = {
+                    frozen.name: frozen.value for frozen in spec.inputs
+                }
+                args = [
+                    frozen_inputs_byname.get(
+                        inp.name,
+                        {"real": 0.0, "int": 0, "string": "nominal"}.get(inp.type, 0.0),
+                    )
+                    for inp in corr.inputs
+                ]
                 try:
                     corr.to_evaluator().evaluate(*args)
                 except Exception as e:
