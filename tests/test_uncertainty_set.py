@@ -546,6 +546,31 @@ def bc_spec(flavor, systematic, direction=None):
     return spec
 
 
+def test_uncertainty_set_shared_nuisance():
+    # one correlated nuisance spread over several frozen flavors
+    model.CorrectionSet.model_validate(
+        flavor_cset(
+            [
+                bc_spec(4, "up_as", "up"),
+                bc_spec(5, "up_as", "up"),
+                bc_spec(4, "down_as", "down"),
+                bc_spec(5, "down_as", "down"),
+            ]
+        )
+    )
+    # flavor 5 has no down variation
+    with pytest.raises(ValidationError, match="as many 'up' as 'down'"):
+        model.CorrectionSet.model_validate(
+            flavor_cset(
+                [
+                    bc_spec(4, "up_as", "up"),
+                    bc_spec(5, "up_as", "up"),
+                    bc_spec(4, "down_as", "down"),
+                ]
+            )
+        )
+
+
 @pytest.mark.parametrize(
     "spec",
     [

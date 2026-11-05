@@ -698,6 +698,7 @@ class UncertaintySet(Model):
         seen = set()
         dupe = set()
         directions: dict[str, set[Optional[str]]] = {}
+        counts: Counter[tuple[str, Optional[str]]] = Counter()
         for item in items:
             inputs = tuple(sorted((inp.name, inp.value) for inp in item.inputs))
             key = (item.nuisance_name, item.direction, inputs)
@@ -705,6 +706,7 @@ class UncertaintySet(Model):
                 dupe.add(key)
             seen.add(key)
             directions.setdefault(item.nuisance_name, set()).add(item.direction)
+            counts[item.nuisance_name, item.direction] += 1
         if len(dupe):
             raise ValueError(
                 f"Uncertainty sources must have unique (nuisance_name, direction, inputs) triples, found duplicates for {dupe}"
@@ -715,6 +717,15 @@ class UncertaintySet(Model):
         if len(mixed):
             raise ValueError(
                 f"Uncertainty sources cannot mix entries with and without a direction for the same nuisance, found {mixed}"
+            )
+        unpaired = {
+            name
+            for name, dirs in directions.items()
+            if dirs == {"up", "down"} and counts[name, "up"] != counts[name, "down"]
+        }
+        if len(unpaired):
+            raise ValueError(
+                f"Uncertainty sources must have as many 'up' as 'down' entries for each nuisance, found {unpaired}"
             )
         return items
 
