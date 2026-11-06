@@ -5,6 +5,7 @@ import sys
 
 import pydantic
 from rich.console import Console
+from rich.markup import escape
 
 import correctionlib.version
 from correctionlib import schemav2
@@ -40,8 +41,22 @@ def validate(console: Console, args: argparse.Namespace) -> int:
                 break
         else:
             if not args.quiet:
+                if isinstance(cset, schemav2.CorrectionSet):
+                    print_uncovered_uncertainties(console, cset, args.nominal_keys)
                 console.print("[green]All OK :heavy_check_mark:")
     return retcode
+
+
+def print_uncovered_uncertainties(
+    console: Console, cset: schemav2.CorrectionSet, nominal_keys: str
+) -> None:
+    keys = [key for key in nominal_keys.split(",") if key]
+    for name, combo in cset.uncovered_uncertainty_inputs(keys):
+        inputs = ", ".join(f"{n}={v!r}" for n, v in combo.items())
+        message = f"correction {name!r} inputs {inputs} are not referenced by any UncertaintySpec"
+        console.print(
+            f"[yellow]Warning: {escape(message)}", highlight=False, soft_wrap=True
+        )
 
 
 def setup_validate(subparsers):
@@ -70,6 +85,11 @@ def setup_validate(subparsers):
         "--ignore-float-inf",
         action="store_true",
         help="Disable errors for use of float infinities in bin edges (as required in v2.6 and later)",
+    )
+    parser.add_argument(
+        "--nominal-keys",
+        default="central,nominal",
+        help="Comma-separated values of uncertainty inputs that are nominal, and so are not warned about when no UncertaintySpec references them (default: %(default)s)",
     )
     parser.add_argument("files", nargs="+", metavar="FILE")
     return parser
@@ -121,6 +141,15 @@ def merge(console: Console, args: argparse.Namespace) -> int:
                 )
                 return 1
             cset.compound_corrections.append(corr2)
+        for uset2 in cset2.uncertainty_sets if cset2.uncertainty_sets else []:
+            if cset.uncertainty_sets is None:
+                cset.uncertainty_sets = []
+            if any(uset.name == uset2.name for uset in cset.uncertainty_sets):
+                console.print(
+                    f"[red]Uncertainty set {uset2.name!r} from {file} is a duplicate"
+                )
+                return 1
+            cset.uncertainty_sets.append(uset2)
     cset.description = "Merged from " + " ".join(args.files)
     if args.format == "compact":
         sys.stdout.write(cset.model_dump_json())
