@@ -1,6 +1,7 @@
 import math
 import warnings
 from collections import Counter
+from collections.abc import Collection
 from functools import partial
 from typing import Annotated, Any, Callable, Literal, Optional, Union
 
@@ -782,6 +783,54 @@ def _frozen_reachable(node: Content, frozen: dict[str, Union[int, str, float]]) 
     return True
 
 
+FrozenValue = Union[int, str, float]
+Combination = frozenset[tuple[str, FrozenValue]]
+
+
+def _frozen_combinations(
+    node: Content, axes: frozenset[str], assigned: dict[str, FrozenValue]
+) -> set[Combination]:
+    """List the Category keys on the axes inputs that lead to a result
+
+    Each returned combination maps the axes inputs met along a path to the
+    Category key taken. Category defaults on an axis are not listed, as they
+    stand for any other value.
+    """
+    if isinstance(node, Category):
+        if node.input in axes:
+            if node.input in assigned:
+                for item in node.content:
+                    if item.key == assigned[node.input]:
+                        return _frozen_combinations(item.value, axes, assigned)
+                if node.default is None:
+                    return set()
+                return _frozen_combinations(node.default, axes, assigned)
+            out: set[Combination] = set()
+            for item in node.content:
+                out |= _frozen_combinations(
+                    item.value, axes, {**assigned, node.input: item.key}
+                )
+            return out
+        children = [item.value for item in node.content]
+        if node.default is not None:
+            children.append(node.default)
+    elif isinstance(node, (Binning, MultiBinning)):
+        children = list(node.content)
+        if not isinstance(node.flow, str):
+            children.append(node.flow)
+    elif isinstance(node, Transform):
+        # the content sees a rewritten value, so that input is no longer an axis
+        return _frozen_combinations(node.rule, axes, assigned) | _frozen_combinations(
+            node.content, axes - {node.input}, assigned
+        )
+    else:
+        return {frozenset(assigned.items())}
+    out = set()
+    for child in children:
+        out |= _frozen_combinations(child, axes, assigned)
+    return out
+
+
 def _check_frozen_input(var: Variable, value: Union[int, str, float]) -> bool:
     """Check if a frozen input value is compatible with the variable type"""
     if var.type == "string":
@@ -917,6 +966,64 @@ may use it to provide autocompletion and validation against the schema.
                             f"{where} input values {frozen} do not match any category of correction {corr.name!r}"
                         )
         return self
+
+    def uncovered_uncertainty_inputs(
+        self, nominal_keys: Collection[FrozenValue] = ("central", "nominal")
+    ) -> list[tuple[str, dict[str, FrozenValue]]]:
+        """List the uncertainty variations not referenced by any UncertaintySpec
+
+        For each correction referenced in the uncertainty sets, the inputs
+        frozen by its sources are taken as uncertainty axes, and every
+        combination of Category keys on these axes that leads to a result
+        should match some source. Combinations with a value in ``nominal_keys``
+        are not reported. Some variations may be intentionally left out (e.g.
+        for internal validation), so this is meant for warnings only.
+
+        Returns a sorted list of (correction name, uncovered combination).
+        """
+        if self.uncertainty_sets is None:
+            return []
+        corrections = {corr.name: corr for corr in self.corrections}
+        compounds = {ccorr.name: ccorr for ccorr in self.compound_corrections or []}
+        specs: dict[str, list[dict[str, FrozenValue]]] = {}
+        for uset in self.uncertainty_sets:
+            for spec in uset.uncertainties:
+                specs.setdefault(spec.correction, []).append(
+                    {inp.name: inp.value for inp in spec.inputs}
+                )
+
+        def covered(combo: dict[str, FrozenValue], name: str) -> bool:
+            return any(
+                all(n not in combo or combo[n] == v for n, v in frozen.items())
+                for frozen in specs[name]
+            )
+
+        out = []
+        for name, frozens in specs.items():
+            axes = frozenset(n for frozen in frozens for n in frozen)
+            if not axes:
+                continue
+            if name in compounds:
+                ccorr = compounds[name]
+                stack = [corrections[n] for n in ccorr.stack if n in corrections]
+                updated = set(ccorr.inputs_update)
+            else:
+                stack = [corrections[name]]
+                updated = set()
+            combos: set[Combination] = set()
+            for i, corr in enumerate(stack):
+                corr_axes = axes & {var.name for var in corr.inputs}
+                if i > 0:
+                    corr_axes -= updated
+                combos |= _frozen_combinations(corr.data, corr_axes, {})
+            for combo in combos:
+                values = dict(sorted(combo))
+                if any(v in nominal_keys for v in values.values()):
+                    continue
+                if not covered(values, name):
+                    out.append((name, values))
+        out.sort(key=lambda item: (item[0], repr(item[1])))
+        return out
 
     @model_serializer(mode="wrap")
     def drop_unset_uncertainty_sets(

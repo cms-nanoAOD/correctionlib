@@ -599,3 +599,132 @@ def test_uncertainty_set_free_inputs_not_evaluated():
             ]
         )
     )
+
+
+BC_SPECS = [
+    bc_spec(4, "up_as", "up"),
+    bc_spec(5, "up_as", "up"),
+    bc_spec(4, "down_as", "down"),
+    bc_spec(5, "down_as", "down"),
+]
+
+
+def light_spec(systematic, direction):
+    return {
+        "nuisance_name": "CMS_btag_light",
+        "correction": "btag",
+        "inputs": [{"name": "systematic", "value": systematic}],
+        "direction": direction,
+    }
+
+
+def test_uncertainty_set_uncovered_inputs():
+    cset = model.CorrectionSet.model_validate(flavor_cset(BC_SPECS))
+    assert cset.uncovered_uncertainty_inputs() == [
+        ("btag", {"flavor": 0, "systematic": "down_light"}),
+        ("btag", {"flavor": 0, "systematic": "up_light"}),
+    ]
+    # nominal values are reported only on request
+    assert cset.uncovered_uncertainty_inputs(nominal_keys=()) == [
+        ("btag", {"flavor": 0, "systematic": "central"}),
+        ("btag", {"flavor": 0, "systematic": "down_light"}),
+        ("btag", {"flavor": 0, "systematic": "up_light"}),
+        ("btag", {"flavor": 4, "systematic": "central"}),
+        ("btag", {"flavor": 5, "systematic": "central"}),
+    ]
+    # a source freezing only systematic covers it for every flavor
+    cset = model.CorrectionSet.model_validate(
+        flavor_cset(
+            [*BC_SPECS, light_spec("up_light", "up"), light_spec("down_light", "down")]
+        )
+    )
+    assert cset.uncovered_uncertainty_inputs() == []
+
+
+def test_uncertainty_set_uncovered_inputs_mixed_sets():
+    cset = model.CorrectionSet.model_validate(make_cset([btag_set(), jes_set()]))
+    # working_point is frozen but never branched on; jes and stack have no categories
+    assert cset.uncovered_uncertainty_inputs() == [
+        ("btag", {"systematic": "down_uncorrelated"}),
+    ]
+    # coverage is pooled over all uncertainty sets
+    other = {
+        "name": "other",
+        "uncertainties": [
+            {
+                "nuisance_name": "n",
+                "correction": "btag",
+                "inputs": [{"name": "systematic", "value": "down_uncorrelated"}],
+            }
+        ],
+    }
+    cset = model.CorrectionSet.model_validate(make_cset([btag_set(), jes_set(), other]))
+    assert cset.uncovered_uncertainty_inputs() == []
+    assert (
+        model.CorrectionSet.model_validate(make_cset()).uncovered_uncertainty_inputs()
+        == []
+    )
+
+
+def test_uncertainty_set_uncovered_inputs_default_and_transform():
+    data = make_cset(
+        [
+            {
+                "name": "s",
+                "uncertainties": [
+                    {
+                        "nuisance_name": "n",
+                        "correction": "btag",
+                        "inputs": [{"name": "systematic", "value": "up"}],
+                    }
+                ],
+            }
+        ]
+    )
+    data["corrections"][0]["data"] = {
+        "nodetype": "transform",
+        "input": "working_point",
+        "rule": 1.0,
+        "content": {
+            "nodetype": "category",
+            "input": "systematic",
+            "content": [
+                {"key": "up", "value": 1.1},
+                {"key": "down", "value": 0.9},
+            ],
+            "default": {
+                "nodetype": "category",
+                "input": "systematic",
+                "content": [{"key": "hidden", "value": 1.0}],
+            },
+        },
+    }
+    cset = model.CorrectionSet.model_validate(data)
+    # the default branch stands for any other value and is not listed
+    assert cset.uncovered_uncertainty_inputs() == [
+        ("btag", {"systematic": "down"}),
+    ]
+
+
+def test_uncertainty_set_uncovered_inputs_cli(tmp_path):
+    path = tmp_path / "btag.json"
+    path.write_text(json.dumps(flavor_cset(BC_SPECS)))
+
+    ret = subprocess.run(["correction", "validate", str(path)], capture_output=True)
+    assert ret.returncode == 0
+    lines = [line for line in ret.stdout.decode().splitlines() if "Warning" in line]
+    assert len(lines) == 2
+    assert "flavor=0, systematic='up_light'" in lines[1]
+
+    ret = subprocess.run(
+        ["correction", "validate", "--nominal-keys", "", str(path)],
+        capture_output=True,
+    )
+    assert ret.returncode == 0
+    assert ret.stdout.decode().count("Warning") == 5
+
+    ret = subprocess.run(
+        ["correction", "validate", "--quiet", str(path)], capture_output=True
+    )
+    assert ret.returncode == 0
+    assert ret.stdout == b""
