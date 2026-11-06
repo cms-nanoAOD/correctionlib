@@ -793,8 +793,8 @@ def _frozen_combinations(
     """List the Category keys on the axes inputs that lead to a result
 
     Each returned combination maps the axes inputs met along a path to the
-    Category key taken. Category defaults on an axis are not listed, as they
-    stand for any other value.
+    Category key taken. Category defaults on an axis do not assign a key, as
+    they stand for any other value, but their content is still walked.
     """
     if isinstance(node, Category):
         if node.input in axes:
@@ -810,6 +810,8 @@ def _frozen_combinations(
                 out |= _frozen_combinations(
                     item.value, axes, {**assigned, node.input: item.key}
                 )
+            if node.default is not None:
+                out |= _frozen_combinations(node.default, axes, assigned)
             return out
         children = [item.value for item in node.content]
         if node.default is not None:
@@ -972,55 +974,60 @@ may use it to provide autocompletion and validation against the schema.
     ) -> list[tuple[str, dict[str, FrozenValue]]]:
         """List the uncertainty variations not referenced by any UncertaintySpec
 
-        For each correction referenced in the uncertainty sets, the inputs
-        frozen by its sources are taken as uncertainty axes, and every
-        combination of Category keys on these axes that leads to a result
-        should match some source. Combinations with a value in ``nominal_keys``
-        are not reported. Some variations may be intentionally left out (e.g.
-        for internal validation), so this is meant for warnings only.
+        For each Correction referenced in the uncertainty sets, directly or
+        through a CompoundCorrection stack, the inputs frozen by its sources
+        are taken as uncertainty axes, and every combination of Category keys
+        on these axes that leads to a result should match some source.
+        Coverage is pooled over all uncertainty sets, and over the Correction
+        and the CompoundCorrections that use it. Combinations with any value in
+        ``nominal_keys`` are not reported. Some variations may be intentionally
+        left out (e.g. for internal validation), so this is meant for warnings
+        only.
 
-        Returns a sorted list of (correction name, uncovered combination).
+        Returns a sorted list of (Correction name, uncovered combination).
         """
         if self.uncertainty_sets is None:
             return []
+        if isinstance(nominal_keys, str):
+            nominal_keys = (nominal_keys,)
         corrections = {corr.name: corr for corr in self.corrections}
         compounds = {ccorr.name: ccorr for ccorr in self.compound_corrections or []}
+        # frozen inputs of the sources, as seen by each Correction they evaluate
         specs: dict[str, list[dict[str, FrozenValue]]] = {}
         for uset in self.uncertainty_sets:
             for spec in uset.uncertainties:
-                specs.setdefault(spec.correction, []).append(
-                    {inp.name: inp.value for inp in spec.inputs}
-                )
-
-        def covered(combo: dict[str, FrozenValue], name: str) -> bool:
-            return any(
-                all(n not in combo or combo[n] == v for n, v in frozen.items())
-                for frozen in specs[name]
-            )
+                frozen = {inp.name: inp.value for inp in spec.inputs}
+                if spec.correction not in compounds:
+                    specs.setdefault(spec.correction, []).append(frozen)
+                    continue
+                ccorr = compounds[spec.correction]
+                stack = [n for n in ccorr.stack if n in corrections]
+                for i, name in enumerate(stack):
+                    if i > 0:
+                        # inputs updated by the stack no longer hold the frozen value
+                        frozen = {
+                            n: v
+                            for n, v in frozen.items()
+                            if n not in ccorr.inputs_update
+                        }
+                    specs.setdefault(name, []).append(frozen)
 
         out = []
         for name, frozens in specs.items():
-            axes = frozenset(n for frozen in frozens for n in frozen)
+            corr = corrections[name]
+            axes = frozenset(n for frozen in frozens for n in frozen) & {
+                var.name for var in corr.inputs
+            }
             if not axes:
                 continue
-            if name in compounds:
-                ccorr = compounds[name]
-                stack = [corrections[n] for n in ccorr.stack if n in corrections]
-                updated = set(ccorr.inputs_update)
-            else:
-                stack = [corrections[name]]
-                updated = set()
-            combos: set[Combination] = set()
-            for i, corr in enumerate(stack):
-                corr_axes = axes & {var.name for var in corr.inputs}
-                if i > 0:
-                    corr_axes -= updated
-                combos |= _frozen_combinations(corr.data, corr_axes, {})
-            for combo in combos:
+            for combo in _frozen_combinations(corr.data, axes, {}):
                 values = dict(sorted(combo))
                 if any(v in nominal_keys for v in values.values()):
                     continue
-                if not covered(values, name):
+                if not any(
+                    all(n not in values or values[n] == v for n, v in frozen.items())
+                    for frozen in frozens
+                ):
                     out.append((name, values))
         out.sort(key=lambda item: (item[0], repr(item[1])))
         return out

@@ -700,9 +700,57 @@ def test_uncertainty_set_uncovered_inputs_default_and_transform():
         },
     }
     cset = model.CorrectionSet.model_validate(data)
-    # the default branch stands for any other value and is not listed
+    # the default branch assigns no key, but the categories below it are listed
     assert cset.uncovered_uncertainty_inputs() == [
         ("btag", {"systematic": "down"}),
+        ("btag", {"systematic": "hidden"}),
+    ]
+
+
+def test_uncertainty_set_uncovered_inputs_flavor_default():
+    # light flavour as the default of the flavor category, as in BTV files
+    data = flavor_cset(BC_SPECS)
+    flavor = data["corrections"][0]["data"]
+    flavor["default"] = flavor["content"].pop(0)["value"]
+    cset = model.CorrectionSet.model_validate(data)
+    assert cset.uncovered_uncertainty_inputs() == [
+        ("btag", {"systematic": "down_light"}),
+        ("btag", {"systematic": "up_light"}),
+    ]
+    # a bare string is one nominal key, not a collection of characters
+    assert cset.uncovered_uncertainty_inputs(nominal_keys="central") == [
+        ("btag", {"systematic": "down_light"}),
+        ("btag", {"systematic": "up_light"}),
+    ]
+
+
+def test_uncertainty_set_uncovered_inputs_compound():
+    data = flavor_cset(BC_SPECS)
+    btag = data["corrections"][0]
+    data["compound_corrections"] = [
+        {
+            "name": "btag_stack",
+            "inputs": btag["inputs"],
+            "output": btag["output"],
+            "inputs_update": [],
+            "input_op": "*",
+            "output_op": "*",
+            "stack": ["btag"],
+        }
+    ]
+    light = [light_spec("up_light", "up"), light_spec("down_light", "down")]
+    for spec in light:
+        spec["correction"] = "btag_stack"
+    data["uncertainty_sets"].append({"name": "light", "uncertainties": light})
+    cset = model.CorrectionSet.model_validate(data)
+    # sources on the compound correction cover its components, and vice versa
+    assert cset.uncovered_uncertainty_inputs() == []
+    # without the b/c sources, flavor is no longer frozen and so not an axis
+    data["uncertainty_sets"].pop(0)
+    cset = model.CorrectionSet.model_validate(data)
+    assert cset.uncovered_uncertainty_inputs() == [
+        ("btag", {"systematic": "down_as"}),
+        ("btag", {"systematic": "up_as"}),
     ]
 
 
