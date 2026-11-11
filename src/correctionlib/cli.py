@@ -152,6 +152,74 @@ def setup_merge(subparsers):
     return parser
 
 
+def filter_corrections(console: Console, args: argparse.Namespace) -> int:
+    """Keep whole corrections by exact name and print the result to stdout."""
+    cset = model_auto(open_auto(args.file))
+    keep = set(args.keep)
+    compounds = getattr(cset, "compound_corrections", None)
+    known = {corr.name for corr in cset.corrections} | {
+        corr.name for corr in compounds or []
+    }
+    unknown = keep - known
+    if unknown:
+        sys.stderr.write(
+            "Unknown correction names: "
+            + ", ".join(repr(name) for name in sorted(unknown))
+            + "\n"
+        )
+        return 1
+    selected = [corr for corr in cset.corrections if corr.name in keep]
+    selected_compounds = [corr for corr in compounds or [] if corr.name in keep]
+    ordinary_names = {corr.name for corr in selected}
+    for compound in selected_compounds:
+        missing = set(compound.stack) - ordinary_names
+        if missing:
+            sys.stderr.write(
+                f"Compound correction {compound.name!r} requires omitted or missing ordinary corrections: "
+                + ", ".join(repr(name) for name in sorted(missing))
+                + "\n"
+            )
+            return 1
+    cset.corrections = selected
+    if compounds is not None:
+        cset.compound_corrections = selected_compounds
+    if args.format == "compact":
+        sys.stdout.write(cset.model_dump_json(by_alias=True))
+    elif args.format == "indented":
+        sys.stdout.write(cset.model_dump_json(indent=4, by_alias=True) + "\n")
+    elif args.format == "pretty":
+        from correctionlib.JSONEncoder import dumps
+
+        sys.stdout.write(
+            dumps(cset.model_dump(mode="json", by_alias=True, exclude_unset=True))
+            + "\n"
+        )
+    else:
+        return 1
+    return 0
+
+
+def setup_filter(subparsers):
+    parser = subparsers.add_parser("filter", help=filter_corrections.__doc__)
+    parser.set_defaults(command=filter_corrections)
+    parser.add_argument("file", metavar="FILE")
+    parser.add_argument(
+        "--keep",
+        action="append",
+        required=True,
+        metavar="NAME",
+        help="Keep every ordinary or compound correction with this exact name (repeatable)",
+    )
+    parser.add_argument(
+        "-f",
+        "--format",
+        choices=("compact", "indented", "pretty"),
+        default="compact",
+        help="JSON output formatting (default: %(default)s)",
+    )
+    return parser
+
+
 def config(console: Console, args: argparse.Namespace) -> int:
     from .util import artifact_base_dir
 
@@ -213,6 +281,7 @@ def main() -> int:
     all_commands.append(setup_validate(subparsers))
     all_commands.append(setup_summary(subparsers))
     all_commands.append(setup_merge(subparsers))
+    all_commands.append(setup_filter(subparsers))
     all_commands.append(setup_config(subparsers))
     args = parser.parse_args()
 
