@@ -103,6 +103,34 @@ python package should be available, as well as the `correction` command-line
 utility. In case the latter is not on your path for some reason, it can also be
 invoked via `python3 -m correctionlib.cli`.
 
+### Keeping a subset of corrections
+
+Use `correction filter` to keep whole corrections from a `.json` or `.json.gz`
+file and write the filtered set to standard output:
+
+```bash
+correction filter corrections.json.gz --keep electron --keep muon -f pretty > selected.json
+```
+
+At least one `--keep NAME` is required. Names are exact, literal matches: there
+is no wildcard matching or filtering within a correction. Repeat `--keep` to
+select multiple names; repeating a name does not duplicate its correction.
+Selected corrections retain their original order, complete content and set
+metadata. As with `correction merge`, `-f compact` (the default), `-f indented`
+and `-f pretty` select the JSON output formatting. JSON formatting and optional
+default fields may differ from the input; schema versions 1 and 2 are supported.
+
+The selection applies to both ordinary and compound corrections. If a name is
+shared by an ordinary correction and a compound correction, both are kept.
+Compound corrections are included only when explicitly selected. Keeping a
+compound correction also requires explicitly keeping every ordinary correction
+named in its `stack`; dependencies are not added automatically. A compound
+correction with the same name as a dependency does not satisfy that dependency.
+Unknown names or omitted/missing constituents of a selected compound produce an
+error on standard error and a nonzero exit status before any JSON is written.
+
+### Linking the C++ evaluator
+
 The C++ evaluator library is distributed as part of the python package, and it
 can be linked to directly without using python. If you are using CMake you can
 depend on it by including the output of `correction config --cmake` in your
