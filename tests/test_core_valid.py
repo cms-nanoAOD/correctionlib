@@ -44,8 +44,9 @@ def test_evaluator_validation():
         with pytest.raises(RuntimeError):
             CorrectionSet.from_string(json)
 
-    # TODO: this is not detected by the pydantic model yet
     hard_json = '{"schema_version":2, "corrections": [{"name": "hi", "version": 2, "output": {"name": "hi","type": "real"}, "inputs": [{"name":"blah", "type": "int"}], "data": {"nodetype": "category", "input": "blah", "content": [{"key": "a", "value": 3.0}]}}]}'
+    with pytest.raises(ValidationError):
+        schema.CorrectionSet.model_validate_json(hard_json)
     with pytest.raises(RuntimeError):
         CorrectionSet.from_string(hard_json)
 

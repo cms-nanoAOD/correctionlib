@@ -2,13 +2,16 @@ import math
 import warnings
 from collections import Counter
 from functools import partial
+from numbers import Complex, Integral, Number, Real
 from typing import Annotated, Callable, Literal, Optional, Union
 
 from pydantic import (
     AfterValidator,
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     Field,
+    StrictFloat,
     StrictInt,
     StrictStr,
     ValidationInfo,
@@ -26,6 +29,32 @@ VERSION = 2
 
 # See https://github.com/cms-nanoAOD/correctionlib/issues/255
 IGNORE_FLOAT_INF = False
+
+
+def _real_number(value: object) -> object:
+    if type(value) in (int, float):
+        return value
+    if (
+        not isinstance(value, Number)
+        or isinstance(value, bool)
+        or (isinstance(value, Complex) and not isinstance(value, Real))
+    ):
+        raise ValueError("Expected a real number")
+    return value
+
+
+def _integer_number(value: object) -> int:
+    if type(value) is int:
+        return value
+    if not isinstance(value, Integral) or isinstance(value, bool):
+        raise ValueError("Expected an integer")
+    return int(value)
+
+
+# Keep numeric authoring inputs (including NumPy scalars), without accepting
+# quoted numbers, booleans, or complex values through coercion protocols.
+RealNumber = Annotated[StrictFloat, BeforeValidator(_real_number)]
+IntegerNumber = Annotated[StrictInt, BeforeValidator(_integer_number)]
 
 
 class Model(BaseModel):
@@ -65,7 +94,7 @@ Content = Union[
         ],
         Field(discriminator="nodetype"),
     ],
-    float,
+    RealNumber,
 ]
 
 
@@ -78,7 +107,7 @@ class Formula(Model):
     variables: list[str] = Field(
         description="The names of the correction input variables this formula applies to"
     )
-    parameters: Optional[list[float]] = Field(
+    parameters: Optional[list[RealNumber]] = Field(
         description="Parameters, if the parser supports them (e.g. [0] for TFormula)",
         default=None,
     )
@@ -88,10 +117,10 @@ class FormulaRef(Model):
     """A reference to one of the Correction generic_formula items, with specific parameters"""
 
     nodetype: Literal["formularef"]
-    index: int = Field(
+    index: IntegerNumber = Field(
         description="Index into the Correction.generic_formulas list", ge=0
     )
-    parameters: list[float] = Field(
+    parameters: list[RealNumber] = Field(
         description="Same interpretation as Formula.parameters"
     )
 
@@ -181,9 +210,9 @@ class LWTNN(Model):
 class UniformBinning(Model):
     """Uniform binning description, to be used as the `edges` attribute of Binning or MultiBinning."""
 
-    n: int = Field(description="Number of bins")
-    low: float = Field(description="Lower edge of first bin")
-    high: float = Field(description="Higher edge of last bin")
+    n: IntegerNumber = Field(description="Number of bins")
+    low: RealNumber = Field(description="Lower edge of first bin")
+    high: RealNumber = Field(description="Higher edge of last bin")
 
     @field_validator("n")
     @classmethod
@@ -195,6 +224,8 @@ class UniformBinning(Model):
     @field_validator("high")
     @classmethod
     def validate_edges(cls, high: float, info: ValidationInfo) -> float:
+        if "low" not in info.data:
+            return high
         low = info.data["low"]
         if low >= high:
             raise ValueError(
@@ -204,7 +235,7 @@ class UniformBinning(Model):
 
 
 Infinity = Literal["inf", "+inf", "-inf"]
-Edges = list[Union[float, Infinity]]
+Edges = list[Union[RealNumber, Infinity]]
 
 
 def validate_nonuniform_edges(edges: Edges) -> Edges:
@@ -363,12 +394,24 @@ def walk_content(content: Content, func: Callable[[Content], None]) -> None:
         raise RuntimeError(f"Unknown content node type: {type(content)}")
 
 
-def _validate_input(allowed_names: set[str], node: Content) -> None:
+def _validate_input(input_types: dict[str, str], node: Content) -> None:
+    allowed_names = input_types.keys()
     nodename = type(node).__name__
     if isinstance(node, (Binning, Category, Transform)):
         if node.input not in allowed_names:
             msg = f"{nodename} input {node.input!r} not found in Correction inputs {allowed_names}"
             raise ValueError(msg)
+        if isinstance(node, Category):
+            input_type = input_types[node.input]
+            if input_type == "real":
+                raise ValueError(
+                    f"Category input {node.input!r} must be int or string, got real"
+                )
+            key_type = int if input_type == "int" else str
+            if any(not isinstance(item.key, key_type) for item in node.content):
+                raise ValueError(
+                    f"Category keys for input {node.input!r} must match its type {input_type!r}"
+                )
     elif isinstance(node, (MultiBinning, HashPRNG)):
         for inp in node.inputs:
             if inp not in allowed_names:
@@ -460,7 +503,7 @@ class Correction(Model):
         description="Detailed description of the correction",
         default=None,
     )
-    version: int = Field(
+    version: IntegerNumber = Field(
         description="Some value that may increase over time due to bugfixes"
     )
     inputs: list[Variable] = Field(
@@ -490,8 +533,10 @@ class Correction(Model):
 
     @model_validator(mode="after")
     def check_input_names(self) -> "Correction":
-        input_names = {var.name for var in self.inputs}
-        walk_content(self.data, partial(_validate_input, input_names))
+        input_types: dict[str, str] = {}
+        for var in self.inputs:
+            input_types.setdefault(var.name, var.type)
+        walk_content(self.data, partial(_validate_input, input_types))
         return self
 
     def summary(self) -> tuple[dict[str, int], dict[str, _SummaryInfo]]:
@@ -612,7 +657,9 @@ class CompoundCorrection(Model):
 
 
 class CorrectionSet(Model):
-    schema_version: Literal[2] = Field(description="The overall schema version")
+    schema_version: Annotated[Literal[2], BeforeValidator(_integer_number)] = Field(
+        description="The overall schema version"
+    )
     description: Optional[str] = Field(
         description="A nice description of what is in this CorrectionSet means",
         default=None,

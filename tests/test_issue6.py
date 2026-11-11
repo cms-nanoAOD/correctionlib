@@ -17,7 +17,7 @@ def test_input_names_valid():
 
     bin1 = cs.Category(
         nodetype="category",
-        input="eta",
+        input="region",
         content=[
             cs.CategoryItem(key="central", value=1.05),
             cs.CategoryItem(key="forward", value=1.15),
@@ -31,7 +31,13 @@ def test_input_names_valid():
         distribution="normal",
     )
 
-    def try_name(ptname: str, etaname: str, phiname: str, evtname: str):
+    def try_name(
+        ptname: str,
+        etaname: str,
+        phiname: str,
+        evtname: str,
+        regionname: str = "region",
+    ):
         return cs.Correction(
             version=2,
             name="test_issue6",
@@ -41,6 +47,7 @@ def test_input_names_valid():
                 cs.Variable(name=etaname, type="real"),
                 cs.Variable(name=phiname, type="real"),
                 cs.Variable(name=evtname, type="int"),
+                cs.Variable(name=regionname, type="string"),
             ],
             output=cs.Variable(name="weight", type="real", description="event weight"),
             data=cs.Binning(
@@ -52,7 +59,8 @@ def test_input_names_valid():
             ),
         )
 
-    try_name("pt", "eta", "phi", "evt")  # should work
+    corr = try_name("pt", "eta", "phi", "evt")
+    assert corr.to_evaluator().evaluate(75.0, 0.0, 0.0, 1, "central") == 1.05
 
     with pytest.raises(ValueError):
         try_name("pt_wrong", "eta", "phi", "evt")
@@ -62,3 +70,5 @@ def test_input_names_valid():
         try_name("pt", "eta", "phi_wrong", "evt")
     with pytest.raises(ValueError):
         try_name("pt", "eta", "phi", "evt_wrong")
+    with pytest.raises(ValueError):
+        try_name("pt", "eta", "phi", "evt", "region_wrong")
