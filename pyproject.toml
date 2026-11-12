@@ -139,6 +139,9 @@ ignore = [
   "E501", # line too long (comments and docstrings, code will be formatted with ruff)
 ]
 
+[tool.ruff.lint.isort]
+known-first-party = ["correctionlib"]
+
 [project.scripts]
 correction = "correctionlib.cli:main"
 
