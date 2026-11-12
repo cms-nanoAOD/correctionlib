@@ -27,9 +27,9 @@ def test_jsonencode():
             "layer2_2": {
                 "layer3_4": [
                     ["a", "b", "c"],
-                    [c for c in "abcdefghijklmnopqrstuvwxyz"],
-                    [c for c in "abcdefghijklmnopqrstuvwxyz123"],
-                    [c for c in "abcdefghijklmnopqrstuvwxyz" * 2],
+                    [*"abcdefghijklmnopqrstuvwxyz"],
+                    [*"abcdefghijklmnopqrstuvwxyz123"],
+                    [*"abcdefghijklmnopqrstuvwxyz" * 2],
                     [
                         "this is short",
                         "very short",
