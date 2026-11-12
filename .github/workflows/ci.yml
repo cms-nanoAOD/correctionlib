@@ -39,6 +39,12 @@ jobs:
         exclude:
           - python-version: "3.9"
             runs-on: windows-11-arm
+          # setup-python has no 3.9 for Ubuntu 26.04, which ubuntu-latest now is
+          - python-version: "3.9"
+            runs-on: ubuntu-latest
+        include:
+          - python-version: "3.9"
+            runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v7
