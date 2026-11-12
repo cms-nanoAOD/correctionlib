@@ -33,6 +33,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Development Status :: 5 - Production/Stable",
 ]
 requires-python = ">=3.9"
@@ -176,6 +177,12 @@ repair-wheel-command = ""
 # the linux tests run in a container, so the ULP report path has to be handed in
 # explicitly; the other platforms see the runner environment already
 environment-pass = ["CORRECTIONLIB_ULP_REPORT"]
+
+[[tool.cibuildwheel.overrides]]
+# pyyaml (needed by dask) has no 3.15 wheels yet
+select = "cp315*"
+inherit.environment = "append"
+environment.PIP_NO_BINARY = "pyyaml"
 
 [tool.codespell]
 ignore-regex = "[A-Za-z0-9+/]{100,}"  # ignore long base64 strings
