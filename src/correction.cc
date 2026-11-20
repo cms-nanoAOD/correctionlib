@@ -661,13 +661,9 @@ Correction::Correction(const JSONObject& json) :
   }
 
   data_ = resolve_content(json.getRequiredValue("data"), *this);
-  initialized_ = true;
 }
 
 double Correction::evaluate(const std::vector<Variable::Type>& values) const {
-  if ( ! initialized_ ) {
-    throw std::logic_error("Not initialized");
-  }
   if ( values.size() != inputs_.size() ) {
     throw std::invalid_argument("Incorrect number of inputs (got " + std::to_string(values.size())
           + ", expected " + std::to_string(inputs_.size()) + ")");

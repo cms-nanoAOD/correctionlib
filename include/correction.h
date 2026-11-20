@@ -283,7 +283,6 @@ class Correction {
     std::vector<Variable> inputs_;
     Variable output_;
     std::vector<Formula::Ref> formula_refs_;
-    bool initialized_; // is data_ filled?
     Content data_;
 };
 

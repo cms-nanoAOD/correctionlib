@@ -85,3 +85,10 @@ can be compiled with:
 wget https://raw.githubusercontent.com/cms-nanoAOD/correctionlib/master/src/demo.cc
 g++ $(correction config --cflags --ldflags --rpath) demo.cc -o demo
 ```
+
+The C++ library does not have a stable ABI across releases, so any program
+compiled against it should be rebuilt after upgrading the correctionlib python
+package. Otherwise it will load the new shared library while still using the old
+class layouts, which can crash or silently give wrong results rather than
+failing to link. For the same reason, `find_package(correctionlib X.Y)` in CMake
+only accepts version `X.Y` itself.
