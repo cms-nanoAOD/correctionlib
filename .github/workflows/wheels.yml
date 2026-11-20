@@ -15,7 +15,7 @@ jobs:
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-tags: true
@@ -49,16 +49,27 @@ jobs:
             arch: universal2
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
           fetch-tags: true
           fetch-depth: 0
 
-      - uses: pypa/cibuildwheel@v3.4
+      - uses: pypa/cibuildwheel@v4.1
         env:
           CIBW_ARCHS: ${{ matrix.arch }}
           MACOSX_DEPLOYMENT_TARGET: 11.0
+          CORRECTIONLIB_ULP_REPORT: ${{ github.workspace }}/ulp-report.md
+
+      # cibuildwheel overwrites GITHUB_STEP_SUMMARY with its own build table once it
+      # finishes, so the tests collect this separately and it gets appended after
+      - name: Report float assertion ULPs
+        if: always()
+        shell: bash
+        run: |
+          if [ -f ulp-report.md ]; then
+            cat ulp-report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload wheels
         uses: actions/upload-artifact@v7
