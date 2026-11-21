@@ -26,7 +26,7 @@ namespace {
       };
       AstPtr parse(const std::string_view expression) {
         AstPtr peg_ast;
-        int pos;
+        size_t pos = 0;
         std::string msg;
         parser_.log = [&](size_t, size_t col, const std::string &themsg) {
           pos = col;
@@ -67,7 +67,7 @@ namespace {
   VARIABLE    <- < VARNUM / VARNAME >
   VARNAME     <- [xyzt]
   VARNUM      <- 'x[' [0-9]+ ']'
-  LITERAL     <- < '-'? [0-9]+ ('.' [0-9]*)? ('e' '-'? [0-9]+)? >
+  LITERAL     <- < '-'? ([0-9]+ ('.' [0-9]*)? / '.' [0-9]+) ([eE] [-+]? [0-9]+)? >
   CALLU       <- UNARYF '(' EXPRESSION ')'
   CALLB       <- BINARYF '(' EXPRESSION ',' EXPRESSION ')'
   ATOM        <- LITERAL / UATOM
@@ -103,7 +103,7 @@ namespace {
             idx
           );
           if ( ec != std::errc() ) {
-            throw std::runtime_error("Failed to parse variable '" + std::string(ptr) + "' in formula");
+            throw std::runtime_error("Failed to parse variable '" + std::string(ast->token) + "' in formula");
           }
         }
         else {

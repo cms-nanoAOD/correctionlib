@@ -6,10 +6,8 @@ installed as a python package (see e.g.
 [this tutorial](https://packaging.python.org/tutorials/installing-packages/) for
 an introduction), using [scikit-build](https://scikit-build.readthedocs.io/) and
 thus [CMake](https://cmake.org/), for the C++ components. Builds have been
-tested in Windows, OS X, and Linux, and the python bindings can be compiled
-against both python2 (with limited functionality) and python3, as well as from
-within a CMSSW environment. Note that CMSSW `11_2_X` and above has ROOT
-accessible from python 3.
+tested in Windows, OS X, and Linux, as well as from within a CMSSW environment.
+Note that CMSSW `11_2_X` and above has ROOT accessible from python 3.
 
 ## Inside CMSSW
 
@@ -37,20 +35,7 @@ python3 -m pip install --user --no-binary=correctionlib correctionlib
 for python3. Alternatively,
 [this script](https://gist.github.com/pieterdavid/8f43f302e9f8a71f92702101600b7ddb),
 can be used to install a `py3-correctionlib` tool similar to the one provided in
-more recent releases, or a `py2-correctionlib` tool with limited functionality.
-
-The package can be built as follows:
-
-```bash
-git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
-cd correctionlib
-make PYTHON=python
-make install  # set PREFIX=... to change from default (./correctionlib)
-```
-
-where `python` is the name of the python scram tool you intend to link against.
-This will output a `correctionlib` directory that acts as a python package, and
-can be moved where needed.
+more recent releases.
 
 ## Outside CMSSW
 
@@ -78,24 +63,6 @@ If you wish to install the latest development version, this should work:
 python3 -m pip install git+https://github.com/cms-nanoAOD/correctionlib.git
 ```
 
-## With python 2 (outside CMSSW)
-
-To compile with python2 support, consider using python 3 :). If you considered
-that and still want to use python2, the following recipe may work to install
-only the `correctionlib._core` evaluator, which allows to use the C++ evaluator
-from python2 and python3 (the schema tools and high-level bindings are
-python3-only):
-
-```bash
-git clone --recursive git@github.com:cms-nanoAOD/correctionlib.git
-cd correctionlib
-make PYTHON=python2
-make install  # set PREFIX=... to change from default (./correctionlib)
-```
-
-This will output a `correctionlib` directory that acts as a python package, and
-can be moved where needed.
-
 ## Usage from python and C++
 
 After the installation following one of the recipes above, the correctionlib
@@ -118,3 +85,10 @@ can be compiled with:
 wget https://raw.githubusercontent.com/cms-nanoAOD/correctionlib/master/src/demo.cc
 g++ $(correction config --cflags --ldflags --rpath) demo.cc -o demo
 ```
+
+The C++ library does not have a stable ABI across releases, so any program
+compiled against it should be rebuilt after upgrading the correctionlib python
+package. Otherwise it will load the new shared library while still using the old
+class layouts, which can crash or silently give wrong results rather than
+failing to link. For the same reason, `find_package(correctionlib X.Y)` in CMake
+only accepts version `X.Y` itself.

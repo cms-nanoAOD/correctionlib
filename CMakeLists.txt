@@ -162,6 +162,9 @@ configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/correctionlibConfigVersion.cmake"
   VERSION "${correctionlib_VERSION_MAJOR}.${correctionlib_VERSION_MINOR}"
-  COMPATIBILITY AnyNewerVersion
+  # The C++ ABI is not kept stable across releases (class layouts are exposed in
+  # the public headers), so a newer minor version is not a drop-in replacement
+  # for the one a downstream project requested
+  COMPATIBILITY SameMinorVersion
   )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/correctionlibConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/correctionlibConfigVersion.cmake DESTINATION ${PKG_INSTALL}/cmake)
